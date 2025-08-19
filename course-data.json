@@ -1,0 +1,84 @@
+[
+    {
+        "name": "Introduction to Computer Science",
+        "code": "CS101",
+        "credits": 3,
+        "student_groupsID": ["group1", "group2", "group3"],
+        "facultyId": "teacher1",
+        "required_room_type": "lab"
+    },
+    {
+        "name": "Calculus I", 
+        "code": "MATH101",
+        "credits": 3, 
+        "student_groupsID": ["group1"],
+        "facultyId": "teacher2",
+        "required_room_type": "regular"
+    },
+    {
+        "name": "Advanced Mathematics",
+        "code": "MATH301",
+        "credits": 4,
+        "student_groupsID": ["group4", "group5"],
+        "facultyId": "teacher7",
+        "required_room_type": "regular"
+    },
+    {
+        "name": "Physics of the Universe",
+        "code": "PHY210",
+        "credits": 3,
+        "student_groupsID": ["group1", "group6"],
+        "facultyId": "teacher8",
+        "required_room_type": "lab"
+    },
+    {
+        "name": "Literature and Composition",
+        "code": "ENG102",
+        "credits": 2,
+        "student_groupsID": ["group3", "group7", "group8"],
+        "facultyId": "teacher5",
+        "required_room_type": "regular"
+    },
+    {
+        "name": "Principles of Economics",
+        "code": "ECON201",
+        "credits": 3,
+        "student_groupsID": ["group2", "group9"],
+        "facultyId": "teacher3",
+        "required_room_type": "regular"
+    },
+    {
+        "name": "Statistics for Economics",  
+        "code": "STAT202",
+        "credits": 4,  
+        "student_groupsID": ["group2"],
+        "facultyId": "teacher4" ,
+        "required_room_type": "regular" 
+    },
+    {
+        "name": "Introduction to Philosophy", 
+        "code": "PHIL301",
+        "credits": 3,  
+        "student_groupsID": ["group3"],
+        "facultyId": "teacher6",
+        "required_room_type": "regular" 
+    },
+      {
+        "name": "Biology 201", 
+        "code": "BIO201",
+        "credits": 3, 
+        "student_groupsID": ["group5"],
+        "facultyId": "teacher9",
+        "required_room_type": "lab"  
+      },
+      {
+        "name": "Chemistry 202",  
+        "code": "CHEM202",
+        "credits": 3, 
+        "student_groupsID": ["group5"],
+        "facultyId": "teacher10",
+        "required_room_type": "lab"
+      }
+]
+
+

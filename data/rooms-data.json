@@ -1,0 +1,236 @@
+[
+  {
+    "Id": "Classroom_1",
+    "name": "Classroom 1",
+    "capacity": 40,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Physics_lab",
+    "name": "Physics lab",
+    "capacity": 25,
+    "room_type": "Phy Lab"
+  },
+  {
+    "Id": "Abuja",
+    "name": "Abuja",
+    "capacity": 500,
+    "room_type": "Hall"
+  },
+  {
+    "Id": "Chem_Lab",
+    "name": "Chem Lab",
+    "capacity": 50,
+    "room_type": "Chem Lab"
+  },
+  {
+    "Id": "Computer_Lab_1",
+    "name": "Computer Lab 1",
+    "capacity": 100,
+    "room_type": "Comp Lab"
+  },
+  {
+    "Id": "Computer_Lab_2",
+    "name": "Computer Lab 2",
+    "capacity": 100,
+    "room_type": "Comp Lab"
+  },
+  {
+    "Id": "Classroom_2",
+    "name": "Classroom 2",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Classroom_3",
+    "name": "Classroom 3",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Classroom_4",
+    "name": "Classroom 4",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Classroom_5",
+    "name": "Classroom 5",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Asaba",
+    "name": "Asaba",
+    "capacity": 150,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Makurdi",
+    "name": "Makurdi",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Jalingo",
+    "name": "Jalingo",
+    "capacity": 70,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Ibadan",
+    "name": "Ibadan",
+    "capacity": 100,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "HP_Lab",
+    "name": "HP Lab",
+    "capacity": 70,
+    "room_type": "Comp Lab"
+  },
+  {
+    "Id": "Mac_Lab",
+    "name": "Mac Lab",
+    "capacity": 70,
+    "room_type": "Comp Lab"
+  },
+  {
+    "Id": "Thermo_Lab",
+    "name": "Thermo Lab",
+    "capacity": 50,
+    "room_type": "Thermo Lab"
+  },
+  {
+    "Id": "Fluid_Mech_Lab",
+    "name": "Fluid Mech Lab",
+    "capacity": 50,
+    "room_type": "Fluid Mech Lab"
+  },
+  {
+    "Id": "Materials_Lab",
+    "name": "Materials Lab",
+    "capacity": 30,
+    "room_type": "Materials Lab"
+  },
+  {
+    "Id": "Mechanics_Lab",
+    "name": "Mechanics Lab",
+    "capacity": 30,
+    "room_type": "Mechanics Lab"
+  },
+  {
+    "Id": "Workshop",
+    "name": "Workshop",
+    "capacity": 50,
+    "room_type": "Workshop"
+  },
+  {
+    "Id": "EPM_Lab",
+    "name": "EPM Lab",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Telecoms_Lab",
+    "name": "Telecoms Lab",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Bauchi",
+    "name": "Bauchi",
+    "capacity": 51,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Oshogbo",
+    "name": "Oshogbo",
+    "capacity": 35,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Umuahia",
+    "name": "Umuahia",
+    "capacity": 35,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "News_Room",
+    "name": "News Room",
+    "capacity": 54,
+    "room_type": "Studio"
+  },
+  {
+    "Id": "Arts_And_Graphics_Studio",
+    "name": "Arts And Graphics Studio",
+    "capacity": 55,
+    "room_type": "Studio"
+  },
+  {
+    "Id": "Uyo",
+    "name": "Uyo",
+    "capacity": 35,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Lokoja",
+    "name": "Lokoja",
+    "capacity": 35,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Abakaliki",
+    "name": "Abakaliki",
+    "capacity": 60,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Portharcourt",
+    "name": "Portharcourt",
+    "capacity": 100,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Abeokuta",
+    "name": "Abeokuta",
+    "capacity": 60,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Zaria",
+    "name": "Zaria",
+    "capacity": 70,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Enugu",
+    "name": "Enugu",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Jos",
+    "name": "Jos",
+    "capacity": 50,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "AV_Studio",
+    "name": "AV Studio",
+    "capacity": 50,
+    "room_type": "Studio"
+  },
+  {
+    "Id": "Ado-Ekiti",
+    "name": "Ado-Ekiti",
+    "capacity": 30,
+    "room_type": "Classroom"
+  },
+  {
+    "Id": "Maiduguri",
+    "name": "Maiduguri",
+    "capacity": 30,
+    "room_type": "Classroom"
+  }
+]

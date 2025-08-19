@@ -1,0 +1,50 @@
+[
+    {
+        "Id": "room1",
+        "name": "Main Lecture Hall",
+        "capacity": 200,
+        "room_type": "regular"
+    },
+    {
+        "Id": "room2",
+        "name": "Computer Lab 1",
+        "capacity": 100,
+        "room_type": "lab"
+    },
+    {
+        "Id": "room3",
+        "name": "Physics Lab",
+        "capacity": 60,
+        "room_type": "lab"
+    },
+    {
+        "Id": "room4",
+        "name": "Seminar Room A",
+        "capacity": 50,
+        "room_type": "regular"
+    },
+    {
+        "Id": "room5",
+        "name": "Chemistry Lab",
+        "capacity": 60,
+        "room_type": "lab"
+    },
+    {
+        "Id": "room6",
+        "name": "Library Conference Room",
+        "capacity": 15,
+        "room_type": "regular"
+    },
+    {
+        "Id": "room7",
+        "name": "Classroom 101",
+        "capacity": 35,
+        "room_type": "regular"
+    },
+    {
+        "Id": "room8",
+        "name": "Classroom 202",
+        "capacity": 60,
+        "room_type": "regular"
+    }
+]
