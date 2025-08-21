@@ -1,5 +1,30 @@
-    
-class Constraints:    
+from input_data import input_data
+  
+class Constraints:
+    def __init__(self):
+        self.rooms = []
+        self.timeslots = []
+        self.student_groups = []
+        self.events_map = {}
+        
+    def evaluate_fitness(self, chromosome):
+        """
+        Main fitness evaluation function that combines all constraints
+        """
+        penalty = 0
+        cost = 0
+        
+        # Hard constraints
+        penalty += self.check_room_constraints(chromosome)
+        penalty += self.check_student_group_constraints(chromosome)
+        penalty += self.check_lecturer_availability(chromosome)
+        
+        # You can uncomment soft constraints if needed
+        # cost += self.check_single_event_per_day(chromosome)
+        # cost += self.check_consecutive_timeslots(chromosome)
+        # cost += self.check_spread_events(chromosome)
+        
+        return penalty + cost
     def check_room_constraints(self, chromosome):
         """
         rooms must meet the capacity and type of the scheduled event

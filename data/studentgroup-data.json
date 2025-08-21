@@ -303,6 +303,7 @@
       "STA 111",
       "MTH101",
       "PHY101",
+      "PAU-CSC 111",
       "PHY 107",
       "PAU-CSC 192",
       "COS 101"
@@ -311,6 +312,7 @@
       "gokoacha@pau.edu.ng",
       "cifegwu@pau.edu.ng",
       "rbalogun@pau.edu.ng",
+      "muduehi@pau.edu.ng",
       "rbalogun@pau.edu.ng",
       "iogboh@pau.edu.ng",
       "ponobhayedo@pau.edu.ng"
@@ -319,9 +321,10 @@
       3,
       2,
       2,
-      1,
+      3,
+      3,
       2,
-      1
+      3
     ]
   },
   {
@@ -332,6 +335,7 @@
       "STA 111",
       "MTH101",
       "PHY101",
+      "PAU-CSC 111",
       "PHY 107",
       "PAU-CSC 192",
       "COS 101"
@@ -340,6 +344,7 @@
       "gokoacha@pau.edu.ng",
       "cifegwu@pau.edu.ng",
       "rbalogun@pau.edu.ng",
+      "muduehi@pau.edu.ng",
       "rbalogun@pau.edu.ng",
       "iogboh@pau.edu.ng",
       "ponobhayedo@pau.edu.ng"
@@ -348,9 +353,10 @@
       3,
       2,
       2,
-      1,
+      3,
+      3,
       2,
-      1
+      3
     ]
   },
   {

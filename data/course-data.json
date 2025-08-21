@@ -165,9 +165,20 @@
     "required_room_type": "Phy Lab"
   },
   {
+    "name": "Introduction to Software Packages",
+    "code": "PAU-CSC 111",
+    "credits": 3,
+    "student_groupsID": [
+      "CSC 100 - 1",
+      "CSC 100 - 2"
+    ],
+    "facultyId": "muduehi@pau.edu.ng",
+    "required_room_type": "Comp Lab"
+  },
+  {
     "name": "General Practical Physics I",
     "code": "PHY 107",
-    "credits": 1,
+    "credits": 3,
     "student_groupsID": [
       "CSC 100 - 1",
       "CSC 100 - 2"
@@ -189,7 +200,7 @@
   {
     "name": "Introduction to Computer Sciences",
     "code": "COS 101",
-    "credits": 1,
+    "credits": 3,
     "student_groupsID": [
       "CSC 100 - 1",
       "CSC 100 - 2"

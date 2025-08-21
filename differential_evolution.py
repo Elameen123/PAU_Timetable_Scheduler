@@ -5,7 +5,7 @@ from utils import Utility
 from entitities.Class import Class
 from input_data import input_data
 import numpy as np
-from constraints import Constraints
+from constraints import Constraints  # Import the Constraints class
 
 # population initialization using input_data
 class DifferentialEvolution:
@@ -19,6 +19,11 @@ class DifferentialEvolution:
         self.pop_size = pop_size
         self.F = F
         self.CR = CR
+        self.constraints = Constraints()  # Initialize constraints
+        self.constraints.rooms = self.rooms
+        self.constraints.timeslots = self.timeslots
+        self.constraints.student_groups = self.student_groups
+        self.constraints.events_map = self.events_map
         self.population = self.initialize_population()  # List to hold all chromosomes
 
     def create_events(self):
@@ -188,83 +193,16 @@ class DifferentialEvolution:
         penalty = 0
         cost = 0
         
-        # Check for hard constraint violations (H1-H5)
-        penalty += self.check_room_constraints(chromosome)  # H1
-        penalty += self.check_student_group_constraints(chromosome)  # H2
-        # penalty += self.check_room_time_conflict(chromosome)  # H3
-        penalty += self.check_lecturer_availability(chromosome)  # H4
-        # penalty += self.check_valid_timeslot(chromosome)  # H5
+        # Use the constraints class for evaluation
+        penalty += self.constraints.check_room_constraints(chromosome)  # H1
+        penalty += self.constraints.check_student_group_constraints(chromosome)  # H2
+        penalty += self.constraints.check_lecturer_availability(chromosome)  # H4
         
-        # Check for soft constraint violations (S1-S3)
-        # cost += self.check_single_event_per_day(chromosome)  # S1
-        # cost += self.check_consecutive_timeslots(chromosome)  # S2
-
         # Fitness is a combination of penalties and costs
-        return penalty + cost   
-
-    def check_room_constraints(self, chromosome):
-        """
-        rooms must meet the capacity and type of the scheduled event
-        """
-        point = 0
-        for room_idx in range(len(self.rooms)):
-            room = self.rooms[room_idx]
-            for timeslot_idx in range(len(self.timeslots)):
-                class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
-                if class_event is not None:
-                    course = input_data.getCourse(class_event.course_id)
-                    # H1: Room capacity and type constraints
-                    if room.room_type != course.required_room_type or class_event.student_group.no_students > room.capacity:
-                        point += 1
-
-        return point
-       
-    
-    def check_student_group_constraints(self, chromosome):
-        penalty = 0
-        for i in range(len(self.timeslots)):
-            simultaneous_class_events = chromosome[:, i]
-            student_group_watch = set()
-            for class_event_idx in simultaneous_class_events:
-                if class_event_idx is not None:
-                    class_event = self.events_map.get(class_event_idx)
-                    student_group = class_event.student_group
-                    if student_group.id in student_group_watch:
-                        penalty += 1
-                    else:
-                        student_group_watch.add(student_group.id)
-
-        return penalty
-    
-    def check_lecturer_availability(self, chromosome):
-        penalty = 0
-        for i in range(len(self.timeslots)):
-            simultaneous_class_events = chromosome[:, i]
-            lecturer_watch = set()
-            for class_event_idx in simultaneous_class_events:
-                if class_event_idx is not None:
-                    class_event = self.events_map.get(class_event_idx)
-                    faculty_id = class_event.faculty_id
-                    if faculty_id in lecturer_watch:
-                        penalty += 1
-                    else:
-                        lecturer_watch.add(faculty_id)
-
-        return penalty
+        return penalty + cost
 
 
-    # def check_room_time_conflict(self, chromosome):
-        penalty = 0
 
-        # Check if multiple events are scheduled in the same room at the same time
-        for room_idx, room_schedule in enumerate(chromosome):
-            for timeslot_idx, class_event in enumerate(room_schedule):
-                if class_event is not None:
-                    # H3: Ensure only one event is scheduled per timeslot per room
-                    if isinstance(class_event, list) and len(class_event) > 1:
-                        penalty += 1000  # Penalty for multiple events in the same room at the same time
-
-        return penalty
 # -------------------------------------------
     # def check_valid_timeslot(self, chromosome):
     #     penalty = 0
@@ -380,89 +318,90 @@ class DifferentialEvolution:
             data.append({"student_group": student_group, "timetable": rows})
         return data
 
-de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-
-best_solution, fitness_history, generation, diversity_history = de.run(200)
-print(best_solution)
-
-
-import dash
-from dash import dash_table
-from dash import dcc, html, Input, Output
-import pandas as pd
-
-app = dash.Dash(__name__)
-
-# Layout for the Dash app
-app.layout = html.Div([
-    html.H1("DE Timetable Output"),
-    html.Div(id='tables-container')
-])
-
-# Callback to generate tables dynamically
-@app.callback(
-    Output('tables-container', 'children'),
-    [Input('tables-container', 'n_clicks')]
-)
-def render_tables(n_clicks):
-    all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
-    # print(all_timetables)
-    tables = []
-    
-    for timetable_data in all_timetables:
-        table = dash_table.DataTable(
-            columns=[{"name": "Time", "id": "Time"}] + [{"name": f"Day {d+1}", "id": f"Day {d+1}"} for d in range(input_data.days)],
-            data=[dict(zip(["Time"] + [f"Day {d+1}" for d in range(input_data.days)], row)) for row in timetable_data["timetable"]],
-            style_cell={
-                'textAlign': 'center',
-                'height': 'auto',
-                'whiteSpace': 'normal',
-            },
-            style_data_conditional=[
-                {
-                    'if': {'column_id': 'Day 1'},
-                    'backgroundColor': 'lightblue',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Day 2'},
-                    'backgroundColor': 'lightgreen',
-                    'color': 'black',
-                },
-                  {
-                    'if': {'column_id': 'Day 3'},
-                    'backgroundColor': 'lavender',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Day 4'},
-                    'backgroundColor': 'lightcyan',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Day 5'},
-                    'backgroundColor': 'lightyellow',
-                    'color': 'black',
-                },
-                # Add more styles for other days as needed
-            ],
-            tooltip_data=[
-                {
-                    f"Day {d+1}": {'value': 'Room info goes here', 'type': 'markdown'} for d in range(input_data.days)
-                } for row in timetable_data["timetable"]
-            ],
-            tooltip_duration=None
-        )
-
-        tables.append(html.Div([
-            html.H3(f"Timetable for {timetable_data['student_group'].name}"), 
-            table
-        ]))
-    
-    return tables
-
-# Run the Dash app
+# Run the algorithm only when this file is executed directly
 if __name__ == '__main__':
+    print("Starting Differential Evolution Algorithm...")
+    de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
+    best_solution, fitness_history, generation, diversity_history = de.run(200)
+    print("Algorithm completed!")
+
+
+    # Import Dash components only when needed
+    import dash
+    from dash import dash_table
+    from dash import dcc, html, Input, Output
+    import pandas as pd
+
+    app = dash.Dash(__name__)
+
+    # Layout for the Dash app
+    app.layout = html.Div([
+        html.H1("DE Timetable Output"),
+        html.Div(id='tables-container')
+    ])
+
+    # Callback to generate tables dynamically
+    @app.callback(
+        Output('tables-container', 'children'),
+        [Input('tables-container', 'n_clicks')]
+    )
+    def render_tables(n_clicks):
+        all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
+        tables = []
+        
+        for timetable_data in all_timetables:
+            table = dash_table.DataTable(
+                columns=[{"name": "Time", "id": "Time"}] + [{"name": f"Day {d+1}", "id": f"Day {d+1}"} for d in range(input_data.days)],
+                data=[dict(zip(["Time"] + [f"Day {d+1}" for d in range(input_data.days)], row)) for row in timetable_data["timetable"]],
+                style_cell={
+                    'textAlign': 'center',
+                    'height': 'auto',
+                    'whiteSpace': 'normal',
+                },
+                style_data_conditional=[
+                    {
+                        'if': {'column_id': 'Day 1'},
+                        'backgroundColor': 'lightblue',
+                        'color': 'black',
+                    },
+                    {
+                        'if': {'column_id': 'Day 2'},
+                        'backgroundColor': 'lightgreen',
+                        'color': 'black',
+                    },
+                      {
+                        'if': {'column_id': 'Day 3'},
+                        'backgroundColor': 'lavender',
+                        'color': 'black',
+                    },
+                    {
+                        'if': {'column_id': 'Day 4'},
+                        'backgroundColor': 'lightcyan',
+                        'color': 'black',
+                    },
+                    {
+                        'if': {'column_id': 'Day 5'},
+                        'backgroundColor': 'lightyellow',
+                        'color': 'black',
+                    },
+                ],
+                tooltip_data=[
+                    {
+                        f"Day {d+1}": {'value': 'Room info goes here', 'type': 'markdown'} for d in range(input_data.days)
+                    } for row in timetable_data["timetable"]
+                ],
+                tooltip_duration=None
+            )
+
+            tables.append(html.Div([
+                html.H3(f"Timetable for {timetable_data['student_group'].name}"), 
+                table
+            ]))
+        
+        return tables
+
+    # Start the Dash app
+    print("Starting Dash web application...")
     app.run(debug=True)
 
 
