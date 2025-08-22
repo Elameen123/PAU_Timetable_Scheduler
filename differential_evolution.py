@@ -5,7 +5,7 @@ from utils import Utility
 from entitities.Class import Class
 from input_data import input_data
 import numpy as np
-from constraints import Constraints  # Import the Constraints class
+from constraints import Constraints
 
 # population initialization using input_data
 class DifferentialEvolution:
@@ -19,11 +19,26 @@ class DifferentialEvolution:
         self.pop_size = pop_size
         self.F = F
         self.CR = CR
-        self.constraints = Constraints()  # Initialize constraints
-        self.constraints.rooms = self.rooms
-        self.constraints.timeslots = self.timeslots
-        self.constraints.student_groups = self.student_groups
-        self.constraints.events_map = self.events_map
+        self.constraints = Constraints(input_data)
+        
+        # Optimization: Cache fitness values to avoid recalculation
+        self.fitness_cache = {}
+        
+        # Optimization: Pre-calculate building assignments for rooms to speed up evaluation
+        self.room_building_cache = {}
+        for idx, room in enumerate(self.rooms):
+            self.room_building_cache[idx] = self.get_room_building(room)
+        
+        # Optimization: Pre-calculate engineering groups to avoid repeated checks
+        self.engineering_groups = set()
+        for student_group in self.student_groups:
+            group_name = student_group.name.lower()
+            if any(keyword in group_name for keyword in [
+                'engineering', 'eng', 'computer science', 'software engineering',
+                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
+            ]):
+                self.engineering_groups.add(student_group.id)
+        
         self.population = self.initialize_population()  # List to hold all chromosomes
 
     def create_events(self):
@@ -56,22 +71,97 @@ class DifferentialEvolution:
         # 2D NumPy array for chromosome where each row is a room and each column is a time slot
         chromosome = np.empty((len(self.rooms), len(self.timeslots)), dtype=object)
 
-        # return chromosome
+        # Optimization: Create smarter initial assignment to reduce high fitness
         unassigned_events = []
+        course_day_room_mapping = {}  # Track room assignments for courses per day
+        
         for idx, event in enumerate(self.events_list):
             valid_slots = []
             course = input_data.getCourse(event.course_id)
+            student_group = event.student_group
+            
+            # Calculate which day this event might be scheduled on
+            day_preference = None
+            preferred_room = None
+            
+            # Check if this course already appeared today and get its room
+            for potential_timeslot in range(len(self.timeslots)):
+                day_idx = potential_timeslot // input_data.hours
+                # Use the correct course identifier (try course_id first, then id, then other common names)
+                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+                course_day_key = (course_id, day_idx)
+                
+                if course_day_key in course_day_room_mapping:
+                    day_preference = day_idx
+                    preferred_room = course_day_room_mapping[course_day_key]
+                    break
+            
+            # Optimization: Prioritize building assignments during initial generation
             for room_idx, room in enumerate(self.rooms):
                 if self.is_room_suitable(room, course):
-                    for i in range(len(self.timeslots)):
-                        if self.is_slot_available(chromosome, room_idx, i):
-                            valid_slots.append((room_idx, i))
+                    # Apply STRICT building preference logic using cached values
+                    room_building = self.room_building_cache[room_idx]
+                    is_engineering = student_group.id in self.engineering_groups
+                    
+                    # Check if this course needs a computer lab (exception to building rules)
+                    needs_computer_lab = (
+                        course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
+                        room.room_type.lower() in ['comp lab', 'computer_lab'] or
+                        ('lab' in course.name.lower() and ('computer' in course.name.lower() or 
+                                                          'programming' in course.name.lower() or
+                                                          'software' in course.name.lower()))
+                    )
+                    
+                    # STRICT Building assignment rules with computer lab exception
+                    building_allowed = True
+                    if needs_computer_lab:
+                        # Computer labs can be in any building (exception rule)
+                        building_allowed = True
+                    elif is_engineering:
+                        # Engineering groups MUST be in SST (unless no SST rooms available)
+                        if room_building != 'SST':
+                            # Check if any SST rooms are still available for this timeslot
+                            sst_rooms_available = any(
+                                self.room_building_cache[r_idx] == 'SST' and 
+                                self.is_room_suitable(self.rooms[r_idx], course)
+                                for r_idx in range(len(self.rooms))
+                            )
+                            if sst_rooms_available:
+                                building_allowed = False  # Reject TYD if SST rooms exist
+                            # else: allow TYD as fallback if no SST rooms suitable
+                    else:
+                        # Non-engineering groups MUST be in TYD (strict rule, no SST allowed except for computer labs)
+                        if room_building == 'SST':
+                            building_allowed = False
+                    
+                    if building_allowed:
+                        for i in range(len(self.timeslots)):
+                            if self.is_slot_available(chromosome, room_idx, i):
+                                day_idx = i // input_data.hours
+                                
+                                # Same course same day constraint
+                                if day_preference is not None:
+                                    if day_idx == day_preference and room_idx == preferred_room:
+                                        valid_slots.insert(0, (room_idx, i))  # Prioritize same room
+                                    elif day_idx == day_preference:
+                                        continue  # Skip other rooms on same day
+                                    else:
+                                        valid_slots.append((room_idx, i))
+                                else:
+                                    valid_slots.append((room_idx, i))
 
             if len(valid_slots) > 0:
                 row, col = random.choice(valid_slots)
                 chromosome[row, col] = idx
+                
+                # Track course-day-room mapping
+                day_idx = col // input_data.hours
+                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+                course_day_key = (course_id, day_idx)
+                course_day_room_mapping[course_day_key] = row
             else:
-                unassigned_events.append(idx) #TODO
+                unassigned_events.append(idx)
+                
         return chromosome
 
     def find_consecutive_slots(self, chromosome, course):
@@ -115,19 +205,50 @@ class DifferentialEvolution:
             return False
         return room.room_type == course.required_room_type
     
+    def get_room_building(self, room):
+        """Helper method to determine room building"""
+        if hasattr(room, 'building'):
+            return room.building.upper()
+        elif hasattr(room, 'name') and room.name:
+            room_name = room.name.upper()
+            if 'SST' in room_name:
+                return 'SST'
+            elif 'TYD' in room_name:
+                return 'TYD'
+        elif hasattr(room, 'room_id'):
+            room_id = str(room.room_id).upper()
+            if 'SST' in room_id:
+                return 'SST'
+            elif 'TYD' in room_id:
+                return 'TYD'
+        return 'UNKNOWN'
+    
     def hamming_distance(self, chromosome1, chromosome2):
         return np.sum(chromosome1.flatten() != chromosome2.flatten())
 
     def calculate_population_diversity(self):
-        total_distance = 0
-        comparisons = 0
-        
-        for i in range(self.pop_size):
-            for j in range(i + 1, self.pop_size):
+        # Optimization: Sample diversity calculation instead of full O(n²)
+        if self.pop_size <= 10:
+            # For small populations, calculate full diversity
+            total_distance = 0
+            comparisons = 0
+            
+            for i in range(self.pop_size):
+                for j in range(i + 1, self.pop_size):
+                    total_distance += self.hamming_distance(self.population[i], self.population[j])
+                    comparisons += 1
+            
+            return total_distance / comparisons if comparisons > 0 else 0
+        else:
+            # For larger populations, sample 10 random pairs
+            total_distance = 0
+            comparisons = 10
+            
+            for _ in range(comparisons):
+                i, j = random.sample(range(self.pop_size), 2)
                 total_distance += self.hamming_distance(self.population[i], self.population[j])
-                comparisons += 1
-        
-        return total_distance / comparisons if comparisons > 0 else 0
+            
+            return total_distance / comparisons
 
 
     def mutate(self, target_idx):
@@ -140,7 +261,8 @@ class DifferentialEvolution:
     
         r1, r2, r3 = random.sample(indices, 3)
 
-        x_r1 = copy.deepcopy(self.population[r1])
+        # Optimization: Use numpy copy instead of deepcopy for better performance
+        x_r1 = self.population[r1].copy()
         x_r2 = self.population[r2]
         x_r3 = self.population[r3]
 
@@ -159,7 +281,65 @@ class DifferentialEvolution:
         return self.ensure_valid_solution(mutant_vector)
 
     def ensure_valid_solution(self, mutant_vector):
-        # for now TODO
+        """Ensure same course on same day appears in same room"""
+        course_day_room_mapping = {}
+        violations_fixed = 0
+        
+        # First pass: collect course-day-room mappings
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = mutant_vector[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event:
+                        day_idx = timeslot_idx // input_data.hours
+                        # Use the correct course identifier
+                        course = input_data.getCourse(class_event.course_id)
+                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
+                        course_day_key = (course_id, day_idx)
+                        
+                        if course_day_key not in course_day_room_mapping:
+                            course_day_room_mapping[course_day_key] = room_idx
+        
+        # Second pass: fix violations
+        events_to_move = []
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = mutant_vector[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event:
+                        day_idx = timeslot_idx // input_data.hours
+                        # Use the correct course identifier
+                        course = input_data.getCourse(class_event.course_id)
+                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
+                        course_day_key = (course_id, day_idx)
+                        expected_room = course_day_room_mapping[course_day_key]
+                        
+                        if room_idx != expected_room:
+                            # This event is in wrong room for this course on this day
+                            mutant_vector[room_idx][timeslot_idx] = None
+                            events_to_move.append((event_id, expected_room, timeslot_idx))
+                            violations_fixed += 1
+        
+        # Third pass: place moved events in correct rooms
+        for event_id, correct_room, original_timeslot in events_to_move:
+            day_idx = original_timeslot // input_data.hours
+            # Try to find available slot in correct room on same day
+            day_start = day_idx * input_data.hours
+            day_end = (day_idx + 1) * input_data.hours
+            
+            placed = False
+            for timeslot in range(day_start, day_end):
+                if timeslot < len(self.timeslots) and mutant_vector[correct_room][timeslot] is None:
+                    mutant_vector[correct_room][timeslot] = event_id
+                    placed = True
+                    break
+            
+            if not placed:
+                # If no slot available in correct room on same day, place in original slot
+                mutant_vector[correct_room][original_timeslot] = event_id
+        
         return mutant_vector
     
     def count_non_none(self, arr):
@@ -168,7 +348,8 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         donor_vector = mutant_vector
-        trial_vector = copy.deepcopy(target_vector)
+        # Optimization: Use numpy copy instead of deepcopy
+        trial_vector = target_vector.copy()
 
         # Perform crossover based on a crossover rate (CR)
         for room_idx in range(len(self.rooms)):
@@ -190,19 +371,91 @@ class DifferentialEvolution:
 
     
     def evaluate_fitness(self, chromosome):
+        # Optimization: Use cached fitness if available
+        chromosome_key = str(chromosome.tobytes())
+        if chromosome_key in self.fitness_cache:
+            return self.fitness_cache[chromosome_key]
+        
+        # Use the centralized Constraints class for consistent evaluation
+        fitness = self.constraints.evaluate_fitness(chromosome)
+        
+        # Cache management: prevent unlimited growth
+        if len(self.fitness_cache) > 2000:  # Increased cache size for better performance
+            # Keep only the most recent 1000 entries
+            keys_to_remove = list(self.fitness_cache.keys())[:-1000]
+            for key in keys_to_remove:
+                del self.fitness_cache[key]
+        
+        # Cache the result
+        self.fitness_cache[chromosome_key] = fitness
+        return fitness
+
+    # Original DE constraint methods preserved for reference
+    # These are now replaced by the centralized Constraints class above   
+
+    def check_room_constraints(self, chromosome):
+        """
+        rooms must meet the capacity and type of the scheduled event
+        """
+        point = 0
+        for room_idx in range(len(self.rooms)):
+            room = self.rooms[room_idx]
+            for timeslot_idx in range(len(self.timeslots)):
+                class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
+                if class_event is not None:
+                    course = input_data.getCourse(class_event.course_id)
+                    # H1: Room capacity and type constraints
+                    if room.room_type != course.required_room_type or class_event.student_group.no_students > room.capacity:
+                        point += 1
+
+        return point
+       
+    
+    def check_student_group_constraints(self, chromosome):
         penalty = 0
-        cost = 0
-        
-        # Use the constraints class for evaluation
-        penalty += self.constraints.check_room_constraints(chromosome)  # H1
-        penalty += self.constraints.check_student_group_constraints(chromosome)  # H2
-        penalty += self.constraints.check_lecturer_availability(chromosome)  # H4
-        
-        # Fitness is a combination of penalties and costs
-        return penalty + cost
+        for i in range(len(self.timeslots)):
+            simultaneous_class_events = chromosome[:, i]
+            student_group_watch = set()
+            for class_event_idx in simultaneous_class_events:
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    student_group = class_event.student_group
+                    if student_group.id in student_group_watch:
+                        penalty += 1
+                    else:
+                        student_group_watch.add(student_group.id)
+
+        return penalty
+    
+    def check_lecturer_availability(self, chromosome):
+        penalty = 0
+        for i in range(len(self.timeslots)):
+            simultaneous_class_events = chromosome[:, i]
+            lecturer_watch = set()
+            for class_event_idx in simultaneous_class_events:
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    faculty_id = class_event.faculty_id
+                    if faculty_id in lecturer_watch:
+                        penalty += 1
+                    else:
+                        lecturer_watch.add(faculty_id)
+
+        return penalty
 
 
+    # def check_room_time_conflict(self, chromosome):
+        penalty = 0
 
+        # Check if multiple events are scheduled in the same room at the same time
+        for room_idx, room_schedule in enumerate(chromosome):
+            for timeslot_idx, class_event in enumerate(room_schedule):
+                if class_event is not None:
+                    # H3: Ensure only one event is scheduled per timeslot per room
+                    if isinstance(class_event, list) and len(class_event) > 1:
+                        penalty += 1000  # Penalty for multiple events in the same room at the same time
+
+        return penalty
 # -------------------------------------------
     # def check_valid_timeslot(self, chromosome):
     #     penalty = 0
@@ -233,42 +486,67 @@ class DifferentialEvolution:
         fitness_history = []
         best_solution = self.population[0]
         diversity_history = []
+        
+        # Optimization: Calculate initial fitness and find best solution
+        initial_fitness = [self.evaluate_fitness(ind) for ind in self.population]
+        best_idx = np.argmin(initial_fitness)
+        best_solution = self.population[best_idx].copy()
+        best_fitness = initial_fitness[best_idx]
+        
+        # Track fitness for early convergence detection
+        stagnation_counter = 0
+        last_improvement = best_fitness
 
         for generation in range(max_generations):
+            generation_improved = False
+            
             for i in range(self.pop_size):
                 # Step 1: Mutation
-                # print(f"Generation {generation}, Individual {i}: Before mutation: {self.count_non_none(self.population[i])}")
                 mutant_vector = self.mutate(i)
-                # print(f"Generation {generation}, Individual {i}: After mutation: {self.count_non_none(mutant_vector)}")
                 
                 # Step 2: Crossover
                 target_vector = self.population[i]
-                # print(f"Generation {generation}, Individual {i}: Before crossover: {self.count_non_none(self.population[i])}")
                 trial_vector = self.crossover(target_vector, mutant_vector)
-                # print(f"Generation {generation}, Individual {i}: After crossover: {self.count_non_none(trial_vector)}")
                 
                 # Step 3: Evaluation and Selection
+                old_fitness = self.evaluate_fitness(self.population[i])
                 self.select(i, trial_vector)
-                # print(f"Generation {generation}, Individual {i}: After selection: {self.count_non_none(self.population[i])}")
+                new_fitness = self.evaluate_fitness(self.population[i])
                 
-            # Optional: Check if the best solution is good enough
-            best_solution = min(self.population, key=self.evaluate_fitness)
-            best_fitness = self.evaluate_fitness(best_solution)
+                if new_fitness < old_fitness:
+                    generation_improved = True
+                
+            # Optimization: Find best solution more efficiently
+            current_fitness = [self.evaluate_fitness(ind) for ind in self.population]
+            current_best_idx = np.argmin(current_fitness)
+            current_best_fitness = current_fitness[current_best_idx]
+            
+            if current_best_fitness < best_fitness:
+                best_solution = self.population[current_best_idx].copy()
+                best_fitness = current_best_fitness
+                stagnation_counter = 0
+                last_improvement = best_fitness
+            else:
+                stagnation_counter += 1
+            
             fitness_history.append(best_fitness)
 
-            # Measure and track diversity
-            population_diversity = self.calculate_population_diversity()
-            diversity_history.append(population_diversity)
+            # Optimization: Calculate diversity less frequently
+            if generation % 10 == 0:  # Only every 10 generations
+                population_diversity = self.calculate_population_diversity()
+                diversity_history.append(population_diversity)
 
             print(f"Best solution for generation {generation+1}/{max_generations} has a fitness of: {best_fitness}")
 
-            if self.evaluate_fitness(best_solution) == self.desired_fitness:
+            if best_fitness == self.desired_fitness:
                 print(f"Solution with desired fitness of {self.desired_fitness} found at Generation {generation}! 🎉")
                 break  # Stop if the best solution has no constraint violations
+            
+            # Early termination if no improvement for many generations
+            if stagnation_counter > 50 and best_fitness < 100:
+                print(f"Early termination due to convergence at generation {generation+1}")
+                break
 
-        # print and return best individual for last generation
-        best_solution = min(self.population, key=self.evaluate_fitness)
-        # self.print_all_timetables(best_solution, input_data.days, input_data.hours)
         return best_solution, fitness_history, generation, diversity_history
 
 
@@ -318,90 +596,89 @@ class DifferentialEvolution:
             data.append({"student_group": student_group, "timetable": rows})
         return data
 
-# Run the algorithm only when this file is executed directly
-if __name__ == '__main__':
-    print("Starting Differential Evolution Algorithm...")
-    de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-    best_solution, fitness_history, generation, diversity_history = de.run(200)
-    print("Algorithm completed!")
+de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
+
+best_solution, fitness_history, generation, diversity_history = de.run(200)
+print(best_solution)
 
 
-    # Import Dash components only when needed
-    import dash
-    from dash import dash_table
-    from dash import dcc, html, Input, Output
-    import pandas as pd
+import dash
+from dash import dash_table
+from dash import dcc, html, Input, Output
+import pandas as pd
 
-    app = dash.Dash(__name__)
+app = dash.Dash(__name__)
 
-    # Layout for the Dash app
-    app.layout = html.Div([
-        html.H1("DE Timetable Output"),
-        html.Div(id='tables-container')
-    ])
+# Layout for the Dash app
+app.layout = html.Div([
+    html.H1("DE Timetable Output"),
+    html.Div(id='tables-container')
+])
 
-    # Callback to generate tables dynamically
-    @app.callback(
-        Output('tables-container', 'children'),
-        [Input('tables-container', 'n_clicks')]
-    )
-    def render_tables(n_clicks):
-        all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
-        tables = []
-        
-        for timetable_data in all_timetables:
-            table = dash_table.DataTable(
-                columns=[{"name": "Time", "id": "Time"}] + [{"name": f"Day {d+1}", "id": f"Day {d+1}"} for d in range(input_data.days)],
-                data=[dict(zip(["Time"] + [f"Day {d+1}" for d in range(input_data.days)], row)) for row in timetable_data["timetable"]],
-                style_cell={
-                    'textAlign': 'center',
-                    'height': 'auto',
-                    'whiteSpace': 'normal',
+# Callback to generate tables dynamically
+@app.callback(
+    Output('tables-container', 'children'),
+    [Input('tables-container', 'n_clicks')]
+)
+def render_tables(n_clicks):
+    all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
+    # print(all_timetables)
+    tables = []
+    
+    for timetable_data in all_timetables:
+        table = dash_table.DataTable(
+            columns=[{"name": "Time", "id": "Time"}] + [{"name": f"Day {d+1}", "id": f"Day {d+1}"} for d in range(input_data.days)],
+            data=[dict(zip(["Time"] + [f"Day {d+1}" for d in range(input_data.days)], row)) for row in timetable_data["timetable"]],
+            style_cell={
+                'textAlign': 'center',
+                'height': 'auto',
+                'whiteSpace': 'normal',
+            },
+            style_data_conditional=[
+                {
+                    'if': {'column_id': 'Day 1'},
+                    'backgroundColor': 'lightblue',
+                    'color': 'black',
                 },
-                style_data_conditional=[
-                    {
-                        'if': {'column_id': 'Day 1'},
-                        'backgroundColor': 'lightblue',
-                        'color': 'black',
-                    },
-                    {
-                        'if': {'column_id': 'Day 2'},
-                        'backgroundColor': 'lightgreen',
-                        'color': 'black',
-                    },
-                      {
-                        'if': {'column_id': 'Day 3'},
-                        'backgroundColor': 'lavender',
-                        'color': 'black',
-                    },
-                    {
-                        'if': {'column_id': 'Day 4'},
-                        'backgroundColor': 'lightcyan',
-                        'color': 'black',
-                    },
-                    {
-                        'if': {'column_id': 'Day 5'},
-                        'backgroundColor': 'lightyellow',
-                        'color': 'black',
-                    },
-                ],
-                tooltip_data=[
-                    {
-                        f"Day {d+1}": {'value': 'Room info goes here', 'type': 'markdown'} for d in range(input_data.days)
-                    } for row in timetable_data["timetable"]
-                ],
-                tooltip_duration=None
-            )
+                {
+                    'if': {'column_id': 'Day 2'},
+                    'backgroundColor': 'lightgreen',
+                    'color': 'black',
+                },
+                  {
+                    'if': {'column_id': 'Day 3'},
+                    'backgroundColor': 'lavender',
+                    'color': 'black',
+                },
+                {
+                    'if': {'column_id': 'Day 4'},
+                    'backgroundColor': 'lightcyan',
+                    'color': 'black',
+                },
+                {
+                    'if': {'column_id': 'Day 5'},
+                    'backgroundColor': 'lightyellow',
+                    'color': 'black',
+                },
+                # Add more styles for other days as needed
+            ],
+            tooltip_data=[
+                {
+                    f"Day {d+1}": {'value': 'Room info goes here', 'type': 'markdown'} for d in range(input_data.days)
+                } for row in timetable_data["timetable"]
+            ],
+            tooltip_duration=None
+        )
 
-            tables.append(html.Div([
-                html.H3(f"Timetable for {timetable_data['student_group'].name}"), 
-                table
-            ]))
-        
-        return tables
+        tables.append(html.Div([
+            html.H3(f"Timetable for {timetable_data['student_group'].name}"), 
+            table
+        ]))
+    
+    return tables
 
-    # Start the Dash app
-    print("Starting Dash web application...")
+# Run the Dash app
+if __name__ == '__main__':
     app.run(debug=True)
 
 
