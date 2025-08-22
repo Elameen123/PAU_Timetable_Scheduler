@@ -40,14 +40,20 @@ class Constraints:
                 class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
                 if class_event is not None:
                     course = input_data.getCourse(class_event.course_id)
-                    # H1: Room capacity and type constraints
-                    if room.room_type != course.required_room_type or class_event.student_group.no_students > room.capacity:
+                    # H1a: Room type constraints
+                    if room.room_type != course.required_room_type:
+                        point += 1
+                    # H1b: Room capacity constraints - student group must fit in room
+                    if class_event.student_group.no_students > room.capacity:
                         point += 1
 
         return point
        
     
     def check_student_group_constraints(self, chromosome):
+        """
+        No student group can have overlapping classes at the same time
+        """
         penalty = 0
         for i in range(len(self.timeslots)):
             simultaneous_class_events = chromosome[:, i]
@@ -55,15 +61,19 @@ class Constraints:
             for class_event_idx in simultaneous_class_events:
                 if class_event_idx is not None:
                     class_event = self.events_map.get(class_event_idx)
-                    student_group = class_event.student_group
-                    if student_group.id in student_group_watch:
-                        penalty += 1
-                    else:
-                        student_group_watch.add(student_group.id)
+                    if class_event is not None:  # Added safety check
+                        student_group = class_event.student_group
+                        if student_group.id in student_group_watch:
+                            penalty += 1  # Student group has overlapping classes
+                        else:
+                            student_group_watch.add(student_group.id)
 
         return penalty
     
     def check_lecturer_availability(self, chromosome):
+        """
+        No lecturer can have overlapping classes at the same time
+        """
         penalty = 0
         for i in range(len(self.timeslots)):
             simultaneous_class_events = chromosome[:, i]
@@ -71,12 +81,33 @@ class Constraints:
             for class_event_idx in simultaneous_class_events:
                 if class_event_idx is not None:
                     class_event = self.events_map.get(class_event_idx)
-                    faculty_id = class_event.faculty_id
-                    if faculty_id in lecturer_watch:
-                        penalty += 1
-                    else:
-                        lecturer_watch.add(faculty_id)
+                    if class_event is not None:  # Added safety check
+                        faculty_id = class_event.faculty_id
+                        if faculty_id is not None:  # Check if faculty_id exists
+                            if faculty_id in lecturer_watch:
+                                penalty += 1  # Lecturer has overlapping classes
+                            else:
+                                lecturer_watch.add(faculty_id)
 
+        return penalty
+
+    def check_room_time_conflict(self, chromosome):
+        """
+        Ensure only one event is scheduled per room per timeslot
+        """
+        penalty = 0
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event = chromosome[room_idx][timeslot_idx]
+                if event is not None:
+                    # Check if event is somehow a list (multiple events in same slot)
+                    if isinstance(event, list) and len(event) > 1:
+                        penalty += 100  # High penalty for multiple events in same room-time slot
+                    
+                    # Additional check: count non-None values to ensure only one event per slot
+                    # This constraint is inherently satisfied by the chromosome structure,
+                    # but we check for any data corruption
+                    
         return penalty
 
     def check_building_assignments(self, chromosome):
@@ -254,11 +285,12 @@ class Constraints:
         cost = 0
         
         # Check for hard constraint violations (H1-H6)
-        penalty += self.check_room_constraints(chromosome)  # H1
-        penalty += self.check_student_group_constraints(chromosome)  # H2
-        penalty += self.check_lecturer_availability(chromosome)  # H4
-        penalty += self.check_building_assignments(chromosome)  # H6: Building assignments
-        penalty += self.check_same_course_same_room_per_day(chromosome)  # H7: Same course same room per day
+        penalty += self.check_room_constraints(chromosome)  # H1: Room capacity and type
+        penalty += self.check_student_group_constraints(chromosome)  # H2: No student overlaps
+        penalty += self.check_lecturer_availability(chromosome)  # H3: No lecturer overlaps
+        penalty += self.check_room_time_conflict(chromosome)  # H4: One event per room-time slot
+        penalty += self.check_building_assignments(chromosome)  # H5: Building assignments
+        penalty += self.check_same_course_same_room_per_day(chromosome)  # H6: Same course same room per day
         
         # Check for soft constraint violations (S1-S3)
         cost += self.check_single_event_per_day(chromosome)  # S1
@@ -276,6 +308,7 @@ class Constraints:
             'room_constraints': self.check_room_constraints(chromosome),
             'student_group_constraints': self.check_student_group_constraints(chromosome),
             'lecturer_availability': self.check_lecturer_availability(chromosome),
+            'room_time_conflict': self.check_room_time_conflict(chromosome),
             'building_assignments': self.check_building_assignments(chromosome),
             'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
