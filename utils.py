@@ -42,6 +42,12 @@ class Utility:
 def print_timetable(individual, student_group, events_map, days, hours_per_day, day_start_time=9):
     # Create a blank timetable grid for the student group
     timetable = [['' for _ in range(days)] for _ in range(hours_per_day)]
+    
+    # First, fill break time slots
+    break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+    if break_hour < hours_per_day:
+        for day in range(days):
+            timetable[break_hour][day] = "BREAK"
 
     # Loop through the individual's chromosome to populate the timetable
     for room_idx, room_slots in enumerate(individual):
@@ -51,7 +57,7 @@ def print_timetable(individual, student_group, events_map, days, hours_per_day, 
                 
                 day = timeslot_idx // hours_per_day
                 hour = timeslot_idx % hours_per_day
-                if day < days:
+                if day < days and hour != break_hour:  # Don't overwrite break slots
                     timetable[hour][day] = f"Course: {class_event.course_id}, Lecturer: {class_event.faculty_id}, Room: {room_idx}"
     
     # Print the timetable for the student group

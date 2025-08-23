@@ -1,4 +1,5 @@
 from input_data import input_data
+import random
 
 class Constraints:
     def __init__(self, input_data):
@@ -107,6 +108,23 @@ class Constraints:
                     # Additional check: count non-None values to ensure only one event per slot
                     # This constraint is inherently satisfied by the chromosome structure,
                     # but we check for any data corruption
+                    
+        return penalty
+
+    def check_break_time_constraint(self, chromosome):
+        """
+        Ensure no classes are scheduled during break time (13:00 - 14:00)
+        Break time corresponds to timeslot index 4 on each day (9:00, 10:00, 11:00, 12:00, 13:00)
+        """
+        penalty = 0
+        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        
+        for day in range(input_data.days):  # For each day
+            break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
+            
+            for room_idx in range(len(self.rooms)):
+                if chromosome[room_idx][break_timeslot] is not None:
+                    penalty += 1000  # Very high penalty for scheduling during break time
                     
         return penalty
 
@@ -276,6 +294,40 @@ class Constraints:
 
         return penalty
 
+    def check_course_allocation_completeness(self, chromosome):
+        """
+        Check that all courses appear the correct number of times for each student group
+        based on their credit hours/hours_required.
+        """
+        penalty = 0
+        
+        for student_group in self.student_groups:
+            # Count actual course occurrences
+            course_counts = {}
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        class_event = self.events_map.get(event_id)
+                        if class_event and class_event.student_group.id == student_group.id:
+                            course_id = class_event.course_id
+                            course_counts[course_id] = course_counts.get(course_id, 0) + 1
+            
+            # Check expected vs actual course occurrences
+            for i, course_id in enumerate(student_group.courseIDs):
+                expected_hours = student_group.hours_required[i]
+                actual_hours = course_counts.get(course_id, 0)
+                
+                if actual_hours != expected_hours:
+                    # Apply stronger penalty for missing courses to force proper allocation
+                    difference = abs(expected_hours - actual_hours)
+                    if actual_hours == 0:
+                        penalty += difference * 20  # Strong penalty for completely missing courses
+                    else:
+                        penalty += difference * 5   # Moderate penalty for imbalances
+        
+        return penalty
+
     def evaluate_fitness(self, chromosome):
         """
         Evaluate the overall fitness of a chromosome by checking all constraints.
@@ -284,13 +336,15 @@ class Constraints:
         penalty = 0
         cost = 0
         
-        # Check for hard constraint violations (H1-H6)
+        # Check for hard constraint violations (H1-H8)
         penalty += self.check_room_constraints(chromosome)  # H1: Room capacity and type
         penalty += self.check_student_group_constraints(chromosome)  # H2: No student overlaps
         penalty += self.check_lecturer_availability(chromosome)  # H3: No lecturer overlaps
         penalty += self.check_room_time_conflict(chromosome)  # H4: One event per room-time slot
         penalty += self.check_building_assignments(chromosome)  # H5: Building assignments
         penalty += self.check_same_course_same_room_per_day(chromosome)  # H6: Same course same room per day
+        penalty += self.check_break_time_constraint(chromosome)  # H7: No classes during break time
+        penalty += self.check_course_allocation_completeness(chromosome)  # H8: All courses allocated correctly
         
         # Check for soft constraint violations (S1-S3)
         cost += self.check_single_event_per_day(chromosome)  # S1
@@ -311,9 +365,12 @@ class Constraints:
             'room_time_conflict': self.check_room_time_conflict(chromosome),
             'building_assignments': self.check_building_assignments(chromosome),
             'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome),
+            'break_time_constraint': self.check_break_time_constraint(chromosome),
+            'course_allocation_completeness': self.check_course_allocation_completeness(chromosome),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
             'consecutive_timeslots': self.check_consecutive_timeslots(chromosome),
-            'spread_events': self.check_spread_events(chromosome)
+            'spread_events': self.check_spread_events(chromosome),
+            'course_allocation_completeness': self.check_course_allocation_completeness(chromosome)
         }
         violations['total'] = sum(violations.values())
         return violations
