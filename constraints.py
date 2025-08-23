@@ -319,12 +319,12 @@ class Constraints:
                 actual_hours = course_counts.get(course_id, 0)
                 
                 if actual_hours != expected_hours:
-                    # Apply stronger penalty for missing courses to force proper allocation
+                    # Apply very strong penalty for missing courses to force proper allocation
                     difference = abs(expected_hours - actual_hours)
                     if actual_hours == 0:
-                        penalty += difference * 20  # Strong penalty for completely missing courses
+                        penalty += difference * 50  # Very strong penalty for completely missing courses
                     else:
-                        penalty += difference * 5   # Moderate penalty for imbalances
+                        penalty += difference * 10  # Strong penalty for imbalances
         
         return penalty
 

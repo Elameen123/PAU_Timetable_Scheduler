@@ -89,7 +89,7 @@ class DifferentialEvolution:
                 day_idx = potential_timeslot // input_data.hours
                 # Use the correct course identifier (try course_id first, then id, then other common names)
                 course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
-                course_day_key = (course_id, day_idx)
+                course_day_key = (course_id, day_idx, student_group.id)  # Include student group for uniqueness
                 
                 if course_day_key in course_day_room_mapping:
                     day_preference = day_idx
@@ -157,7 +157,7 @@ class DifferentialEvolution:
                 # Track course-day-room mapping
                 day_idx = col // input_data.hours
                 course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
-                course_day_key = (course_id, day_idx)
+                course_day_key = (course_id, day_idx, student_group.id)  # Include student group for uniqueness
                 course_day_room_mapping[course_day_key] = row
             else:
                 unassigned_events.append(idx)
@@ -335,10 +335,10 @@ class DifferentialEvolution:
                     class_event = self.events_map.get(event_id)
                     if class_event:
                         day_idx = timeslot_idx // input_data.hours
-                        # Use the correct course identifier
+                        # Use the correct course identifier - must include student group for uniqueness
                         course = input_data.getCourse(class_event.course_id)
                         course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
-                        course_day_key = (course_id, day_idx)
+                        course_day_key = (course_id, day_idx, class_event.student_group.id)  # Include student group
                         
                         if course_day_key not in course_day_room_mapping:
                             course_day_room_mapping[course_day_key] = room_idx
@@ -352,10 +352,10 @@ class DifferentialEvolution:
                     class_event = self.events_map.get(event_id)
                     if class_event:
                         day_idx = timeslot_idx // input_data.hours
-                        # Use the correct course identifier
+                        # Use the correct course identifier - must include student group for uniqueness
                         course = input_data.getCourse(class_event.course_id)
                         course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
-                        course_day_key = (course_id, day_idx)
+                        course_day_key = (course_id, day_idx, class_event.student_group.id)  # Include student group
                         expected_room = course_day_room_mapping[course_day_key]
                         
                         if room_idx != expected_room:
@@ -530,13 +530,14 @@ class DifferentialEvolution:
         target_fitness = self.evaluate_fitness(self.population[target_idx])
         
         # If the trial vector is better, it replaces the target in the population
-        if trial_fitness < target_fitness:
+        if trial_fitness <= target_fitness:  # Allow equal fitness to increase diversity
+            # Ensure the selected solution has all events properly allocated
+            trial_vector = self.verify_and_repair_course_allocations(trial_vector)
             self.population[target_idx] = trial_vector
 
 
     def run(self, max_generations):
-        # np.random.seed(seed)
-        self.initialize_population()
+        # Population already initialized in __init__, don't reinitialize
         fitness_history = []
         best_solution = self.population[0]
         diversity_history = []
@@ -566,6 +567,9 @@ class DifferentialEvolution:
                 old_fitness = self.evaluate_fitness(self.population[i])
                 self.select(i, trial_vector)
                 new_fitness = self.evaluate_fitness(self.population[i])
+                
+                # Ensure population member has all events after selection
+                self.population[i] = self.verify_and_repair_course_allocations(self.population[i])
                 
                 if new_fitness < old_fitness:
                     generation_improved = True
@@ -668,7 +672,7 @@ class DifferentialEvolution:
         Verify that all courses appear the correct number of times for each student group
         and repair any missing allocations with minimal disruption.
         """
-        # Only repair if there are actually missing events, not if courses are just unbalanced
+        # First pass: Only repair if there are actually missing events, not if courses are just unbalanced
         scheduled_events = set()
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -701,7 +705,7 @@ class DifferentialEvolution:
                             course_day_key = (course_id, day_idx, event.student_group.id)
                             course_day_room_mapping[course_day_key] = room_idx
         
-        # Try to place missing events with priority for maintaining consistency
+        # Try to place missing events with multiple strategies and improved priority
         for missing_event_id in missing_events:
             event = self.events_list[missing_event_id]
             course = input_data.getCourse(event.course_id)
@@ -712,7 +716,7 @@ class DifferentialEvolution:
             course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
             placed = False
             
-            # Try to place in same room as other instances of this course (less aggressive)
+            # Strategy 1: Try to place in same room as other instances of this course
             preferred_slots = []
             for day_idx in range(input_data.days):
                 course_day_key = (course_id, day_idx, event.student_group.id)
@@ -721,16 +725,18 @@ class DifferentialEvolution:
                     day_start = day_idx * input_data.hours
                     day_end = (day_idx + 1) * input_data.hours
                     for timeslot in range(day_start, day_end):
-                        if timeslot < len(self.timeslots) and self.is_slot_available(chromosome, preferred_room, timeslot):
+                        if (timeslot < len(self.timeslots) and 
+                            self.is_slot_available(chromosome, preferred_room, timeslot) and
+                            timeslot % input_data.hours != 4):  # Avoid break time
                             preferred_slots.append((preferred_room, timeslot))
             
             # If we have preferred slots, use them
             if preferred_slots:
-                room_idx, timeslot_idx = random.choice(preferred_slots)
+                room_idx, timeslot_idx = preferred_slots[0]  # Take first available
                 chromosome[room_idx][timeslot_idx] = missing_event_id
                 placed = True
             
-            # If not placed and still missing, find any valid slot and FORCE placement
+            # Strategy 2: Find valid slots with all constraints if preferred didn't work
             if not placed:
                 valid_slots = []
                 for room_idx, room in enumerate(self.rooms):
@@ -761,26 +767,41 @@ class DifferentialEvolution:
                         
                         if building_allowed:
                             for timeslot_idx in range(len(self.timeslots)):
-                                if self.is_slot_available(chromosome, room_idx, timeslot_idx):
+                                if (self.is_slot_available(chromosome, room_idx, timeslot_idx) and
+                                    timeslot_idx % input_data.hours != 4):  # Avoid break time
                                     valid_slots.append((room_idx, timeslot_idx))
                 
-                # Place the missing event - MUST be placed!
+                # Place in first valid slot
                 if valid_slots:
-                    room_idx, timeslot_idx = random.choice(valid_slots)
+                    room_idx, timeslot_idx = valid_slots[0]
                     chromosome[room_idx][timeslot_idx] = missing_event_id
                     placed = True
                 
-                # If still not placed, place anywhere that meets basic room requirements (emergency placement)
-                if not placed:
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            for timeslot_idx in range(len(self.timeslots)):
-                                if self.is_slot_available(chromosome, room_idx, timeslot_idx):
-                                    chromosome[room_idx][timeslot_idx] = missing_event_id
-                                    placed = True
-                                    break
-                            if placed:
+            # Strategy 3: Emergency placement - relaxed building constraints
+            if not placed:
+                for room_idx, room in enumerate(self.rooms):
+                    if self.is_room_suitable(room, course):  # Keep room type constraint
+                        for timeslot_idx in range(len(self.timeslots)):
+                            if (self.is_slot_available(chromosome, room_idx, timeslot_idx) and
+                                timeslot_idx % input_data.hours != 4):  # Still avoid break time
+                                chromosome[room_idx][timeslot_idx] = missing_event_id
+                                placed = True
                                 break
+                        if placed:
+                            break
+                
+            # Strategy 4: ABSOLUTE LAST RESORT - Place anywhere but break time
+            if not placed:
+                for room_idx, room in enumerate(self.rooms):
+                    if self.is_room_suitable(room, course):  # Keep room size at minimum
+                        for timeslot_idx in range(len(self.timeslots)):
+                            if (chromosome[room_idx][timeslot_idx] is None and 
+                                timeslot_idx % input_data.hours != 4):  # Avoid break time
+                                chromosome[room_idx][timeslot_idx] = missing_event_id
+                                placed = True
+                                break
+                        if placed:
+                            break
         
         return chromosome
 
