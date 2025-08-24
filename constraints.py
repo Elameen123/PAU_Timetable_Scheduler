@@ -103,7 +103,7 @@ class Constraints:
                 if event is not None:
                     # Check if event is somehow a list (multiple events in same slot)
                     if isinstance(event, list) and len(event) > 1:
-                        penalty += 100  # High penalty for multiple events in same room-time slot
+                        penalty += 10  # Reduced from 100 to 10
                     
                     # Additional check: count non-None values to ensure only one event per slot
                     # This constraint is inherently satisfied by the chromosome structure,
@@ -124,7 +124,7 @@ class Constraints:
             
             for room_idx in range(len(self.rooms)):
                 if chromosome[room_idx][break_timeslot] is not None:
-                    penalty += 1000  # Very high penalty for scheduling during break time
+                    penalty += 100  # Reduced from 1000 to 100
                     
         return penalty
 
@@ -184,15 +184,15 @@ class Constraints:
                             elif 'TYD' in room_id:
                                 room_building = 'TYD'
                         
-                        # Apply STRICT building assignment rules
+                        # Apply LENIENT building assignment rules (reduced penalties)
                         if class_event.student_group.id in engineering_groups:
-                            # Engineering groups should be in SST but allow some flexibility
+                            # Engineering groups prefer SST but small penalty for TYD
                             if not needs_computer_lab and room_building != 'SST':
-                                penalty += 10  # Moderate penalty for engineering in TYD
+                                penalty += 0.5  # Very small penalty (reduced from 2)
                         else:
-                            # Non-engineering groups MUST NEVER be in SST (except computer labs)
+                            # Non-engineering groups prefer TYD but small penalty for SST
                             if not needs_computer_lab and room_building == 'SST':
-                                penalty += 200  # Very high penalty for non-engineering in SST
+                                penalty += 0.5  # Very small penalty (reduced from 20)
                         
         return penalty
 
@@ -319,12 +319,12 @@ class Constraints:
                 actual_hours = course_counts.get(course_id, 0)
                 
                 if actual_hours != expected_hours:
-                    # Apply very strong penalty for missing courses to force proper allocation
+                    # Apply moderate penalty for missing courses (reduced from extreme values)
                     difference = abs(expected_hours - actual_hours)
                     if actual_hours == 0:
-                        penalty += difference * 50  # Very strong penalty for completely missing courses
+                        penalty += difference * 5  # Reduced from 50 to 5
                     else:
-                        penalty += difference * 10  # Strong penalty for imbalances
+                        penalty += difference * 2  # Reduced from 10 to 2
         
         return penalty
 
