@@ -111,12 +111,16 @@ for _, r in lect_df.iterrows():
     if "Available Days" in lect_df.columns:
         aval = str(r.get("Available Days") or "").strip()
         avail_days = [d.strip() for d in re.split(r'[ ,;]+', aval) if d.strip()] if aval else []
+    avail_times = []
+    if "Available Times" in lect_df.columns:
+        aval_t = str(r.get("Available Times") or "").strip()
+        avail_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
     if raw_email:
         key = raw_email.lower()
-        faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "courseID": []}
+        faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}
     else:
         synthetic = slugify_id(raw_name) or f"lect_{len(faculty_by_lower)+1}"
-        faculty_by_lower[synthetic.lower()] = {"id": synthetic, "name": raw_name or synthetic, "department": dept, "status": status, "avail_days": avail_days, "courseID": []}
+        faculty_by_lower[synthetic.lower()] = {"id": synthetic, "name": raw_name or synthetic, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}
 
 # Rooms
 rooms = []
@@ -204,7 +208,7 @@ for _, r in course_df.iterrows():
             if not faculty_by_lower[key].get("department") and dept:
                 faculty_by_lower[key]["department"] = dept
         else:
-            faculty_by_lower[key] = {"id": lect.strip(), "name": lect.strip(), "department": dept, "status": "", "avail_days": [], "courseID": [code]}
+            faculty_by_lower[key] = {"id": lect.strip(), "name": lect.strip(), "department": dept, "status": "", "avail_days": [], "avail_times": [], "courseID": [code]}
 
 # finalize groups
 for gobj in groups.values():

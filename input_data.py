@@ -36,8 +36,8 @@ class inputData():
     def addStudentGroup(self, id: str, name:str, no_students: int, courseIDs: str, teacherIDS: str, hours_required:List[int]):
         self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, teacherIDS, hours_required))
 
-    def addFaculty(self, id:str, name:str, department:str, courseID: str):
-        self.faculties.append(Faculty(id, name, department, courseID))
+    def addFaculty(self, id:str, name:str, department:str, courseID: str, avail_days: list = [], avail_times: list = []):
+        self.faculties.append(Faculty(id, name, department, courseID, avail_days, avail_times))
 
     # def addConstraint(self, constraint: Constraint):
     #     self.constraints.append(constraint)
@@ -126,7 +126,7 @@ with open( DATA_DIR / 'studentgroup-data.json') as file:
 with open( DATA_DIR / 'faculty-data.json') as file:
     faculty_data = json.load(file)
     for faculty in faculty_data:
-        input_data.addFaculty(faculty['id'], faculty['name'], faculty['department'], faculty['courseID'])
+        input_data.addFaculty(faculty['id'], faculty['name'], faculty['department'], faculty['courseID'], faculty.get('avail_days', []), faculty.get('avail_times', []))
 
 # timeslot
 # [print(time_slot.day, time_slot.start_time) for time_slot in input_data.create_time_slots(7, 5, 9)]
