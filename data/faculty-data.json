@@ -131,6 +131,8 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
+      "Mon",
+      "Tue",
       "Thu"
     ],
     "avail_times": [
@@ -146,6 +148,8 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
+      "Tue",
+      "Wed",
       "Fri"
     ],
     "avail_times": [
@@ -289,7 +293,9 @@
     "department": "Computer Science",
     "status": "Adjunct",
     "avail_days": [
+      "Mon",
       "Tue",
+      "Wed",
       "Thu"
     ],
     "avail_times": [
@@ -450,6 +456,21 @@
     ],
     "courseID": [
       "PAU-FMM 292"
+    ]
+  },
+  {
+    "id": "eo...@pau.edu.ng",
+    "name": "Dr E O",
+    "department": "Information and Media Studies",
+    "status": "Full Time",
+    "avail_days": [
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
+    ],
+    "courseID": [
+      "ISM 110"
     ]
   },
   {
@@ -1043,7 +1064,8 @@
     "department": "Computer Science",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Mon",
+      "Tue"
     ],
     "avail_times": [
       "14:00-17:00"
@@ -1241,7 +1263,8 @@
     "status": "Adjunct",
     "avail_days": [
       "Mon",
-      "Tue"
+      "Tue",
+      "Thu"
     ],
     "avail_times": [
       "14:00-17:00"
@@ -1423,7 +1446,9 @@
     "department": "Mechanical Engineering",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Mon",
+      "Tue",
+      "Wed"
     ],
     "avail_times": [
       "14:00-17:00"
@@ -1462,17 +1487,6 @@
     ],
     "courseID": [
       "PAU-MEE 511"
-    ]
-  },
-  {
-    "id": "eo...@pau.edu.ng",
-    "name": "eo...@pau.edu.ng",
-    "department": "Information and Media Studies",
-    "status": "",
-    "avail_days": [],
-    "avail_times": [],
-    "courseID": [
-      "ISM 110"
     ]
   }
 ]
