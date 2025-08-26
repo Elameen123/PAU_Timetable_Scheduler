@@ -3,234 +3,273 @@
     "Id": "Classroom_1",
     "name": "Classroom 1",
     "capacity": 40,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Physics_lab",
     "name": "Physics lab",
-    "capacity": 25,
-    "room_type": "Phy Lab"
+    "capacity": 55,
+    "room_type": "Phy Lab",
+    "building": "SST"
   },
   {
     "Id": "Abuja",
     "name": "Abuja",
     "capacity": 500,
-    "room_type": "Hall"
+    "room_type": "Hall",
+    "building": "TYD"
   },
   {
     "Id": "Chem_Lab",
     "name": "Chem Lab",
     "capacity": 50,
-    "room_type": "Chem Lab"
+    "room_type": "Chem Lab",
+    "building": "SST"
   },
   {
     "Id": "Computer_Lab_1",
     "name": "Computer Lab 1",
     "capacity": 100,
-    "room_type": "Comp Lab"
+    "room_type": "Comp Lab",
+    "building": "SST"
   },
   {
     "Id": "Computer_Lab_2",
     "name": "Computer Lab 2",
     "capacity": 100,
-    "room_type": "Comp Lab"
+    "room_type": "Comp Lab",
+    "building": "SST"
   },
   {
     "Id": "Classroom_2",
     "name": "Classroom 2",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Classroom_3",
     "name": "Classroom 3",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Classroom_4",
     "name": "Classroom 4",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Classroom_5",
     "name": "Classroom 5",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Asaba",
     "name": "Asaba",
     "capacity": 150,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Makurdi",
     "name": "Makurdi",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Jalingo",
     "name": "Jalingo",
     "capacity": 70,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Ibadan",
     "name": "Ibadan",
     "capacity": 100,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "HP_Lab",
     "name": "HP Lab",
     "capacity": 70,
-    "room_type": "Comp Lab"
+    "room_type": "Comp Lab",
+    "building": "TYD"
   },
   {
     "Id": "Mac_Lab",
     "name": "Mac Lab",
     "capacity": 70,
-    "room_type": "Comp Lab"
+    "room_type": "Comp Lab",
+    "building": "TYD"
   },
   {
     "Id": "Thermo_Lab",
     "name": "Thermo Lab",
     "capacity": 50,
-    "room_type": "Thermo Lab"
+    "room_type": "Thermo Lab",
+    "building": "SST"
   },
   {
     "Id": "Fluid_Mech_Lab",
     "name": "Fluid Mech Lab",
     "capacity": 50,
-    "room_type": "Fluid Mech Lab"
+    "room_type": "Fluid Mech Lab",
+    "building": "SST"
   },
   {
     "Id": "Materials_Lab",
     "name": "Materials Lab",
     "capacity": 30,
-    "room_type": "Materials Lab"
+    "room_type": "Materials Lab",
+    "building": "SST"
   },
   {
     "Id": "Mechanics_Lab",
     "name": "Mechanics Lab",
     "capacity": 30,
-    "room_type": "Mechanics Lab"
+    "room_type": "Mechanics Lab",
+    "building": "SST"
   },
   {
     "Id": "Workshop",
     "name": "Workshop",
     "capacity": 50,
-    "room_type": "Workshop"
+    "room_type": "Workshop",
+    "building": "SST"
   },
   {
     "Id": "EPM_Lab",
     "name": "EPM Lab",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Telecoms_Lab",
     "name": "Telecoms Lab",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "SST"
   },
   {
     "Id": "Bauchi",
     "name": "Bauchi",
     "capacity": 51,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Oshogbo",
     "name": "Oshogbo",
     "capacity": 35,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Umuahia",
     "name": "Umuahia",
     "capacity": 35,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "News_Room",
     "name": "News Room",
     "capacity": 54,
-    "room_type": "Studio"
+    "room_type": "Studio",
+    "building": "TYD"
   },
   {
     "Id": "Arts_And_Graphics_Studio",
     "name": "Arts And Graphics Studio",
     "capacity": 55,
-    "room_type": "Studio"
+    "room_type": "Studio",
+    "building": "TYD"
   },
   {
     "Id": "Uyo",
     "name": "Uyo",
     "capacity": 35,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Lokoja",
     "name": "Lokoja",
     "capacity": 35,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Abakaliki",
     "name": "Abakaliki",
     "capacity": 60,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Portharcourt",
     "name": "Portharcourt",
     "capacity": 100,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Abeokuta",
     "name": "Abeokuta",
     "capacity": 60,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Zaria",
     "name": "Zaria",
     "capacity": 70,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Enugu",
     "name": "Enugu",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Jos",
     "name": "Jos",
     "capacity": 50,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "AV_Studio",
     "name": "AV Studio",
     "capacity": 50,
-    "room_type": "Studio"
+    "room_type": "Studio",
+    "building": "TYD"
   },
   {
     "Id": "Ado-Ekiti",
     "name": "Ado-Ekiti",
     "capacity": 30,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   },
   {
     "Id": "Maiduguri",
     "name": "Maiduguri",
     "capacity": 30,
-    "room_type": "Classroom"
+    "room_type": "Classroom",
+    "building": "TYD"
   }
 ]

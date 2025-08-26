@@ -5,9 +5,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Wed",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "CMS 101",
@@ -20,7 +21,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MCM 101"
@@ -32,7 +36,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MCM 101",
@@ -46,8 +53,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MCM 103",
@@ -60,7 +69,12 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
+      "Mon",
+      "Wed",
       "Fri"
+    ],
+    "avail_times": [
+      "09:00-12:00"
     ],
     "courseID": [
       "MCM 107"
@@ -72,7 +86,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MCM 105"
@@ -86,6 +103,9 @@
     "avail_days": [
       "Mon"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": []
   },
   {
@@ -94,8 +114,12 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
+      "Tue",
       "Wed",
       "Fri"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "COM 405"
@@ -107,7 +131,12 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Mon",
+      "Tue",
+      "Thu"
+    ],
+    "avail_times": [
+      "09:00-12:00"
     ],
     "courseID": [
       "COM 401"
@@ -119,7 +148,12 @@
     "department": "Mass Communication",
     "status": "Adjunct",
     "avail_days": [
+      "Tue",
+      "Wed",
       "Fri"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "COM 403"
@@ -131,7 +165,10 @@
     "department": "Mass Communication",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "COM 413"
@@ -143,7 +180,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "STA 111"
@@ -155,7 +195,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MTH101",
@@ -168,7 +211,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PHY101",
@@ -182,7 +228,11 @@
     "status": "Adjunct",
     "avail_days": [
       "Mon",
-      "Wed"
+      "Wed",
+      "Thu"
+    ],
+    "avail_times": [
+      "09:00-12:00"
     ],
     "courseID": [
       "PAU-CSC 192"
@@ -194,7 +244,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "COS 101",
@@ -208,13 +261,15 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "CSC 309",
       "CSC 409",
-      "CSC 203",
-      "DAT 613"
+      "CSC 203"
     ]
   },
   {
@@ -223,7 +278,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-CSC 312"
@@ -235,7 +293,13 @@
     "department": "Computer Science",
     "status": "Adjunct",
     "avail_days": [
-      "Wed"
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "PAU-CSC 310",
@@ -248,7 +312,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GST 303"
@@ -260,7 +327,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GST 312"
@@ -272,7 +342,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GST 111"
@@ -284,7 +357,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-FMM 104",
@@ -297,8 +373,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "FMM 203"
@@ -310,7 +388,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ENT 211"
@@ -322,7 +403,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "FMM 201"
@@ -332,10 +416,13 @@
     "id": "usaku.wammanda@pau.edu.ng",
     "name": "Mr. Wammanda Usaku",
     "department": "Film and Multimedia Studies",
-    "status": "PHD student",
+    "status": "Adjunct",
     "avail_days": [
       "Wed",
       "Fri"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "FMM 205"
@@ -347,7 +434,10 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GST 212"
@@ -359,10 +449,28 @@
     "department": "Film and Multimedia Studies",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-FMM 292"
+    ]
+  },
+  {
+    "id": "eo...@pau.edu.ng",
+    "name": "Dr E O",
+    "department": "Information and Media Studies",
+    "status": "Full Time",
+    "avail_days": [
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
+    ],
+    "courseID": [
+      "ISM 110"
     ]
   },
   {
@@ -371,7 +479,10 @@
     "department": "Information and Media Studies",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GST 112"
@@ -383,7 +494,10 @@
     "department": "Information and Media Studies",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ISM 112",
@@ -395,9 +509,12 @@
     "id": "tvincent@pau.edu.ng",
     "name": "Barr. Tomi Vincent",
     "department": "Information and Media Studies",
-    "status": "Contract",
+    "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ISM 405",
@@ -413,6 +530,9 @@
       "Mon",
       "Wed"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": [
       "ISM 401"
     ]
@@ -423,7 +543,10 @@
     "department": "Information and Media Studies",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ISM 407"
@@ -437,6 +560,9 @@
     "avail_days": [
       "Wed"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": [
       "ISM 415"
     ]
@@ -449,6 +575,9 @@
     "avail_days": [
       "Fri"
     ],
+    "avail_times": [
+      "09:00-12:00"
+    ],
     "courseID": [
       "ISM 410"
     ]
@@ -459,8 +588,10 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -470,7 +601,10 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "AMS 101",
@@ -483,7 +617,10 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "AMS 104"
@@ -495,14 +632,15 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "AMS 102",
       "ECO 412",
-      "ECO 415",
-      "ECO 812",
-      "ECO 823"
+      "ECO 415"
     ]
   },
   {
@@ -511,13 +649,14 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "AMS 102",
-      "ECO 411",
-      "ECO 815",
-      "ECO 826"
+      "ECO 411"
     ]
   },
   {
@@ -528,6 +667,9 @@
     "avail_days": [
       "Wed",
       "Fri"
+    ],
+    "avail_times": [
+      "09:00-12:00"
     ],
     "courseID": [
       "BUA 101"
@@ -541,6 +683,9 @@
     "avail_days": [
       "Fri"
     ],
+    "avail_times": [
+      "09:00-12:00"
+    ],
     "courseID": [
       "LAW 301"
     ]
@@ -551,7 +696,10 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "BUS 401",
@@ -564,13 +712,14 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "BUS 304",
-      "ECO 401",
-      "ECO 816",
-      "ECO 827"
+      "ECO 401"
     ]
   },
   {
@@ -579,7 +728,10 @@
     "department": "Business Administration",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "MIS 401"
@@ -594,6 +746,9 @@
       "Mon",
       "Fri"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": [
       "BUS 403"
     ]
@@ -604,7 +759,10 @@
     "department": "Economics",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -614,7 +772,10 @@
     "department": "Economics",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ECO 101",
@@ -627,12 +788,14 @@
     "department": "Economics",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ECO 103",
-      "FIN 303",
-      "COM 603"
+      "FIN 303"
     ]
   },
   {
@@ -641,7 +804,10 @@
     "department": "Economics",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-ECO 105",
@@ -654,8 +820,10 @@
     "department": "Economics",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-ECO 109",
@@ -671,6 +839,9 @@
     "avail_days": [
       "Wed"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": [
       "ECO 413"
     ]
@@ -681,7 +852,10 @@
     "department": "Accounting",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -691,8 +865,10 @@
     "department": "Accounting",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -702,7 +878,10 @@
     "department": "Accounting",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ACC 101"
@@ -716,6 +895,9 @@
     "avail_days": [
       "Fri"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": [
       "ACC 401"
     ]
@@ -726,7 +908,10 @@
     "department": "Accounting",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ACC 404"
@@ -740,6 +925,9 @@
     "avail_days": [
       "Wed"
     ],
+    "avail_times": [
+      "09:00-12:00"
+    ],
     "courseID": [
       "ACC 402"
     ]
@@ -750,7 +938,10 @@
     "department": "Accounting",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "ACC 407"
@@ -762,7 +953,10 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -774,6 +968,9 @@
     "avail_days": [
       "Fri"
     ],
+    "avail_times": [
+      "14:00-17:00"
+    ],
     "courseID": []
   },
   {
@@ -782,8 +979,10 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -793,7 +992,10 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "FIN 101",
@@ -806,12 +1008,12 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
     ],
-    "courseID": [
-      "ECO 818",
-      "ECO 829"
-    ]
+    "avail_times": [
+      "ALL"
+    ],
+    "courseID": []
   },
   {
     "id": "iolaniyi@pau.edu.ng",
@@ -819,7 +1021,10 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "FIN 304"
@@ -831,7 +1036,10 @@
     "department": "Finance",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "FIN 305"
@@ -843,8 +1051,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -854,7 +1064,11 @@
     "department": "Computer Science",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Mon",
+      "Tue"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "CSC 401"
@@ -866,7 +1080,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "CSC 403"
@@ -878,8 +1095,10 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "CSC 405",
@@ -892,11 +1111,13 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
-      "CSC 421",
-      "DAT 601"
+      "CSC 421"
     ]
   },
   {
@@ -905,13 +1126,13 @@
     "department": "Computer Science",
     "status": "Full Time",
     "avail_days": [
-      "Wed",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
-      "CSC 421",
-      "DAT 601",
-      "DAT 609"
+      "CSC 421"
     ]
   },
   {
@@ -920,9 +1141,13 @@
     "department": "Software Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
+      "PAU-CSC 111",
       "PAU-SEN 111",
       "SEN 201"
     ]
@@ -933,9 +1158,13 @@
     "department": "Software Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
+      "PAU-CSC 111",
       "PAU-SEN 111"
     ]
   },
@@ -945,9 +1174,13 @@
     "department": "Software Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
+      "PAU-CSC 111",
       "PAU-SEN 111"
     ]
   },
@@ -957,7 +1190,10 @@
     "department": "Software Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -967,7 +1203,10 @@
     "department": "Software Engineering",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Tue"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": []
   },
@@ -978,7 +1217,10 @@
     "status": "Adjunct",
     "avail_days": [
       "Wed",
-      "Fri"
+      "Thu"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "PAU-CSC 211"
@@ -990,7 +1232,10 @@
     "department": "Software Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -1000,7 +1245,10 @@
     "department": "Mechatronics Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GET 101",
@@ -1015,7 +1263,11 @@
     "status": "Adjunct",
     "avail_days": [
       "Mon",
-      "Fri"
+      "Tue",
+      "Thu"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "MCT 102",
@@ -1028,7 +1280,10 @@
     "department": "Mechatronics Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "CHM 101",
@@ -1041,7 +1296,10 @@
     "department": "Mechatronics Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -1051,7 +1309,10 @@
     "department": "Mechatronics Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -1061,7 +1322,10 @@
     "department": "Mechatronics Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": []
   },
@@ -1072,7 +1336,11 @@
     "status": "Adjunct",
     "avail_days": [
       "Mon",
-      "Wed"
+      "Wed",
+      "Fri"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "PAU-MCT 192"
@@ -1084,7 +1352,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "EEE 102"
@@ -1096,7 +1367,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "EEE 102",
@@ -1109,7 +1383,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "IFT 211",
@@ -1122,8 +1399,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon",
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-EEE 405",
@@ -1137,7 +1416,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Wed"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-EEE 407"
@@ -1149,7 +1431,10 @@
     "department": "Electrical and Electronic Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Fri"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "GET 501"
@@ -1161,7 +1446,12 @@
     "department": "Mechanical Engineering",
     "status": "Adjunct",
     "avail_days": [
-      "Mon"
+      "Mon",
+      "Tue",
+      "Wed"
+    ],
+    "avail_times": [
+      "14:00-17:00"
     ],
     "courseID": [
       "MEE 101",
@@ -1175,7 +1465,10 @@
     "department": "Mechanical Engineering",
     "status": "Adjunct",
     "avail_days": [
-      "Wed"
+      "Tue"
+    ],
+    "avail_times": [
+      "09:00-12:00"
     ],
     "courseID": [
       "PAU-MEE 409"
@@ -1187,181 +1480,13 @@
     "department": "Mechanical Engineering",
     "status": "Full Time",
     "avail_days": [
-      "Mon"
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
     ],
     "courseID": [
       "PAU-MEE 511"
-    ]
-  },
-  {
-    "id": "nokorie@pau.edu.ng",
-    "name": "Dr. Nelson Okorie",
-    "department": "Media and Communication",
-    "status": "Full Time",
-    "avail_days": [
-      "Wed",
-      "Fri"
-    ],
-    "courseID": [
-      "COM 601",
-      "COM 600"
-    ]
-  },
-  {
-    "id": "iobiaya@pau.edu.ng",
-    "name": "Dr. Ikechukwu Obiaya",
-    "department": "Media and Communication",
-    "status": "Full Time",
-    "avail_days": [
-      "Fri"
-    ],
-    "courseID": [
-      "COM 602",
-      "COM 607"
-    ]
-  },
-  {
-    "id": "aagina@pau.edu.ng",
-    "name": "Dr. Anulika Agina",
-    "department": "Media and Communication",
-    "status": "Full Time",
-    "avail_days": [
-      "Mon"
-    ],
-    "courseID": [
-      "COM 603"
-    ]
-  },
-  {
-    "id": "nokpara@pau.edu.ng",
-    "name": "Dr. Ngozi Okpara",
-    "department": "Media and Communication",
-    "status": "Full Time",
-    "avail_days": [
-      "Wed"
-    ],
-    "courseID": [
-      "COM 604"
-    ]
-  },
-  {
-    "id": "hemore@pau.edu.ng",
-    "name": "Dr. Helen Emore",
-    "department": "Media and Communication",
-    "status": "Adjunct",
-    "avail_days": [
-      "Mon"
-    ],
-    "courseID": [
-      "COM 607"
-    ]
-  },
-  {
-    "id": "oowodunni@pau.edu.ng",
-    "name": "Mrs. Omowunmi Owodunni",
-    "department": "Media and Communication",
-    "status": "Adjunct",
-    "avail_days": [
-      "Fri"
-    ],
-    "courseID": [
-      "COM 611"
-    ]
-  },
-  {
-    "id": "jsawyerr@pau.edu.ng",
-    "name": "Mr. Jerry Sawyer",
-    "department": "Media and Communication",
-    "status": "Adjunct",
-    "avail_days": [
-      "Wed"
-    ],
-    "courseID": [
-      "COM 655"
-    ]
-  },
-  {
-    "id": "posatohanmwem@pau.edu.ng",
-    "name": "Dr. Patrick Osatohanmwem",
-    "department": "Data Science",
-    "status": "Full Time",
-    "avail_days": [
-      "Mon"
-    ],
-    "courseID": [
-      "DAT 607"
-    ]
-  },
-  {
-    "id": "aoyefusi@pau.edu.ng",
-    "name": "Prof. Aderoju Oyefusi",
-    "department": "Economics",
-    "status": "Adjunct",
-    "avail_days": [
-      "Fri"
-    ],
-    "courseID": [
-      "ECO 810",
-      "ECO 820"
-    ]
-  },
-  {
-    "id": "peregha@pau.edu.ng",
-    "name": "Prof. Perekunah Eregha",
-    "department": "Economics",
-    "status": "Full Time",
-    "avail_days": [
-      "Mon",
-      "Fri"
-    ],
-    "courseID": [
-      "ECO 811",
-      "ECO 821",
-      "ECO 822"
-    ]
-  },
-  {
-    "id": "oaworinde@pau.edu.ng",
-    "name": "Dr. Aworinde",
-    "department": "Economics",
-    "status": "Adjunct",
-    "avail_days": [
-      "Wed"
-    ],
-    "courseID": [
-      "ECO 822"
-    ]
-  },
-  {
-    "id": "aolowookere@pau.edu.ng",
-    "name": "Dr. Afolabi Olowookere",
-    "department": "Economics",
-    "status": "Adjunct",
-    "avail_days": [
-      "Fri"
-    ],
-    "courseID": [
-      "ECO 843"
-    ]
-  },
-  {
-    "id": "aalawal@pau.edu.ng",
-    "name": "Dr. A.A. Lawal",
-    "department": "Management",
-    "status": "Adjunct",
-    "avail_days": [
-      "Mon"
-    ],
-    "courseID": []
-  },
-  {
-    "id": "eo...@pau.edu.ng",
-    "name": "eo...@pau.edu.ng",
-    "department": "Information and Media Studies",
-    "status": "",
-    "avail_days": [],
-    "courseID": [
-      "ISM 110"
     ]
   }
 ]

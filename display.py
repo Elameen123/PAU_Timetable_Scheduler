@@ -8,13 +8,13 @@ from dash.dependencies import Input, Output
 weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 timeslots = ['9:00 - 10:00', '10:00 - 11:00', '11:00 - 12:00', '12:00 - 13:00', '13:00 - 14:00']
 
-# Dummy data for timetable
+# Dummy data for timetable - 13:00 slot (index 4) shows BREAK for all days
 timetable = [
     [{'course': 'Math', 'room': '101', 'lecturer': 'Dr. A'}, {'course': 'Physics', 'room': '102', 'lecturer': 'Dr. B'}, None, None, None],
     [None, {'course': 'Chemistry', 'room': '101', 'lecturer': 'Dr. C'}, None, None, {'course': 'History', 'room': '102', 'lecturer': 'Dr. D'}],
     [{'course': 'Biology', 'room': '103', 'lecturer': 'Dr. E'}, None, {'course': 'CS', 'room': '105', 'lecturer': 'Dr. F'}, None, None],
     [None, None, None, {'course': 'Math', 'room': '101', 'lecturer': 'Dr. A'}, {'course': 'Physics', 'room': '102', 'lecturer': 'Dr. B'}],
-    [{'course': 'Philosophy', 'room': '107', 'lecturer': 'Dr. G'}, None, None, {'course': 'Economics', 'room': '108', 'lecturer': 'Dr. H'}, None],
+    [{'course': 'BREAK', 'room': '', 'lecturer': ''}, {'course': 'BREAK', 'room': '', 'lecturer': ''}, {'course': 'BREAK', 'room': '', 'lecturer': ''}, {'course': 'BREAK', 'room': '', 'lecturer': ''}, {'course': 'BREAK', 'room': '', 'lecturer': ''}],  # Break time for all days
 ]
 
 # Initialize Dash app
@@ -33,7 +33,11 @@ def generate_table():
         
         for j in range(len(weekdays)):
             cell_data = timetable[i][j]
-            if cell_data:
+            if cell_data and cell_data['course'] == 'BREAK':
+                # Special styling for break time
+                cell = html.Td("BREAK", style={"background-color": "#ffcccc", "text-align": "center", "font-weight": "bold"})
+                row.append(cell)
+            elif cell_data:
                 # Tooltip for course name, room, and lecturer on hover
                 cell_content = dbc.Tooltip(
                     f"Room: {cell_data['room']}, Lecturer: {cell_data['lecturer']}",

@@ -6,8 +6,14 @@ import pandas as pd, json, re, sys
 from pathlib import Path
 from collections import OrderedDict
 
-# Locate the Excel file: prefer data/Timetable_Input_Template.xlsx
-candidates = [Path("data/Timetable_Input_Template.xlsx"), Path("Timetable_Input_Template.xlsx")]
+# Base path relative to this script's location
+SCRIPT_DIR = Path(__file__).resolve().parent
+
+# Locate the Excel file relative to the script location
+candidates = [
+    SCRIPT_DIR / "data" / "Timetable_Input_Template.xlsx",
+    SCRIPT_DIR / "Timetable_Input_Template.xlsx"
+]
 excel_path = None
 for p in candidates:
     if p.exists():
@@ -18,7 +24,7 @@ if excel_path is None:
 
 print("Using Excel file at:", excel_path)
 
-OUT_DIR = Path("data")
+OUT_DIR = SCRIPT_DIR / "data"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def slugify_id(s: str) -> str:
@@ -105,12 +111,16 @@ for _, r in lect_df.iterrows():
     if "Available Days" in lect_df.columns:
         aval = str(r.get("Available Days") or "").strip()
         avail_days = [d.strip() for d in re.split(r'[ ,;]+', aval) if d.strip()] if aval else []
+    avail_times = []
+    if "Available Times" in lect_df.columns:
+        aval_t = str(r.get("Available Times") or "").strip()
+        avail_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
     if raw_email:
         key = raw_email.lower()
-        faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "courseID": []}
+        faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}
     else:
         synthetic = slugify_id(raw_name) or f"lect_{len(faculty_by_lower)+1}"
-        faculty_by_lower[synthetic.lower()] = {"id": synthetic, "name": raw_name or synthetic, "department": dept, "status": status, "avail_days": avail_days, "courseID": []}
+        faculty_by_lower[synthetic.lower()] = {"id": synthetic, "name": raw_name or synthetic, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}
 
 # Rooms
 rooms = []
@@ -198,7 +208,7 @@ for _, r in course_df.iterrows():
             if not faculty_by_lower[key].get("department") and dept:
                 faculty_by_lower[key]["department"] = dept
         else:
-            faculty_by_lower[key] = {"id": lect.strip(), "name": lect.strip(), "department": dept, "status": "", "avail_days": [], "courseID": [code]}
+            faculty_by_lower[key] = {"id": lect.strip(), "name": lect.strip(), "department": dept, "status": "", "avail_days": [], "avail_times": [], "courseID": [code]}
 
 # finalize groups
 for gobj in groups.values():
@@ -207,7 +217,7 @@ for gobj in groups.values():
 
 # Prepare JSON arrays
 course_json = [{"name": c["name"], "code": c["code"], "credits": int(c["credits"]), "student_groupsID": c["student_groupsID"], "facultyId": c["facultyId"], "required_room_type": c["required_room_type"]} for c in courses]
-rooms_json = [{"Id": r["Id"], "name": r["name"], "capacity": int(r["capacity"]), "room_type": r["room_type"]} for r in rooms]
+rooms_json = [{"Id": r["Id"], "name": r["name"], "capacity": int(r["capacity"]), "room_type": r["room_type"], "building": r["building"]} for r in rooms]
 studentgroups_json = [{"id": g["id"], "name": g["name"], "no_students": int(g.get("no_students") or 0), "courseIDs": g.get("courseIDs") or [], "teacherIDS": g.get("teacherIDS") or [], "hours_required": g.get("hours_required") or []} for g in groups.values()]
 faculties_json = list(faculty_by_lower.values())
 

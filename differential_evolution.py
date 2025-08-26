@@ -19,6 +19,26 @@ class DifferentialEvolution:
         self.pop_size = pop_size
         self.F = F
         self.CR = CR
+        self.constraints = Constraints(input_data)
+        
+        # Optimization: Cache fitness values to avoid recalculation
+        self.fitness_cache = {}
+        
+        # Optimization: Pre-calculate building assignments for rooms to speed up evaluation
+        self.room_building_cache = {}
+        for idx, room in enumerate(self.rooms):
+            self.room_building_cache[idx] = self.get_room_building(room)
+        
+        # Optimization: Pre-calculate engineering groups to avoid repeated checks
+        self.engineering_groups = set()
+        for student_group in self.student_groups:
+            group_name = student_group.name.lower()
+            if any(keyword in group_name for keyword in [
+                'engineering', 'eng', 'computer science', 'software engineering',
+                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
+            ]):
+                self.engineering_groups.add(student_group.id)
+        
         self.population = self.initialize_population()  # List to hold all chromosomes
 
     def create_events(self):
@@ -42,31 +62,117 @@ class DifferentialEvolution:
 
     def initialize_population(self):
         population = [] 
-        for _ in range(self.pop_size):
+        for i in range(self.pop_size):
             chromosome = self.create_chromosome()
             population.append(chromosome)
         return np.array(population)
 
     def create_chromosome(self):
-        # 2D NumPy array for chromosome where each row is a room and each column is a time slot
         chromosome = np.empty((len(self.rooms), len(self.timeslots)), dtype=object)
-
-        # return chromosome
-        unassigned_events = []
+        
+        # Group events by student group and course to handle them as blocks
+        events_by_group_course = {}
         for idx, event in enumerate(self.events_list):
-            valid_slots = []
-            course = input_data.getCourse(event.course_id)
-            for room_idx, room in enumerate(self.rooms):
-                if self.is_room_suitable(room, course):
-                    for i in range(len(self.timeslots)):
-                        if self.is_slot_available(chromosome, room_idx, i):
-                            valid_slots.append((room_idx, i))
+            key = (event.student_group.id, event.course_id)
+            if key not in events_by_group_course:
+                events_by_group_course[key] = []
+            events_by_group_course[key].append(idx)
 
-            if len(valid_slots) > 0:
-                row, col = random.choice(valid_slots)
-                chromosome[row, col] = idx
+        # Trackers for optimized placement
+        hours_per_day_for_group = {sg.id: [0] * input_data.days for sg in self.student_groups}
+        non_sst_course_count_for_group = {sg.id: 0 for sg in self.student_groups}
+        course_days_used = {}
+
+        # Randomize course processing order for population diversity
+        course_items = list(events_by_group_course.items())
+        random.shuffle(course_items)
+
+        for (student_group_id, course_id), event_indices in course_items:
+            course = input_data.getCourse(course_id)
+            student_group = input_data.getStudentGroup(student_group_id)
+            hours_required = len(event_indices)
+
+            if hours_required == 0:
+                continue
+
+            # Decide on a split strategy based on course credits
+            if hours_required == 3:
+                split_strategy = random.choice([(3,), (2, 1)])
+            elif hours_required == 2:
+                split_strategy = random.choice([(2,), (1, 1)])
             else:
-                unassigned_events.append(idx) #TODO
+                split_strategy = (hours_required,)
+
+            event_idx_counter = 0
+            course_key = (student_group_id, course_id)
+            course_days_used[course_key] = set()
+            
+            is_course_placed_in_non_sst = False
+
+            for block_hours in split_strategy:
+                placed = False
+                block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
+                event_idx_counter += block_hours
+
+                # Prioritize days with fewer hours and those not yet used by this course
+                available_days = [d for d in range(input_data.days) if d not in course_days_used[course_key]]
+                sorted_days = sorted(available_days, key=lambda d: hours_per_day_for_group[student_group_id][d])
+
+                for day_idx in sorted_days:
+                    day_start = day_idx * input_data.hours
+                    day_end = (day_idx + 1) * input_data.hours
+                    
+                    possible_slots = []
+                    for room_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            # Apply building constraints
+                            room_building = self.room_building_cache[room_idx]
+                            is_engineering = student_group.id in self.engineering_groups
+                            needs_computer_lab = (
+                                course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
+                                room.room_type.lower() in ['comp lab', 'computer_lab'] or
+                                ('lab' in course.name.lower() and any(k in course.name.lower() for k in ['computer', 'programming', 'software']))
+                            )
+
+                            building_allowed = True
+                            if needs_computer_lab:
+                                pass  # Computer labs can be in any building
+                            elif is_engineering:
+                                if room_building != 'SST' and non_sst_course_count_for_group[student_group_id] >= 2:
+                                    building_allowed = False
+                            elif room_building == 'SST': # Non-engineering
+                                building_allowed = False
+                            
+                            if building_allowed:
+                                # Find consecutive slots
+                                for timeslot_start in range(day_start, day_end):
+                                    if timeslot_start + block_hours > day_end:
+                                        continue
+                                    
+                                    if all(self.is_slot_available(chromosome, room_idx, timeslot_start + i) for i in range(block_hours)):
+                                        possible_slots.append((room_idx, timeslot_start))
+                    
+                    if possible_slots:
+                        room_idx, timeslot_start = random.choice(possible_slots)
+                        for i in range(block_hours):
+                            chromosome[room_idx, timeslot_start + i] = block_event_indices[i]
+                        
+                        # Update trackers
+                        hours_per_day_for_group[student_group_id][day_idx] += block_hours
+                        course_days_used[course_key].add(day_idx)
+                        
+                        if not is_course_placed_in_non_sst and self.room_building_cache[room_idx] != 'SST' and not needs_computer_lab and is_engineering:
+                            non_sst_course_count_for_group[student_group_id] += 1
+                            is_course_placed_in_non_sst = True
+                        
+                        placed = True
+                        break  # Move to the next block
+                
+                if placed:
+                    break
+
+        # Final verification to place any unassigned events
+        chromosome = self.verify_and_repair_course_allocations(chromosome)
         return chromosome
 
     def find_consecutive_slots(self, chromosome, course):
@@ -103,58 +209,142 @@ class DifferentialEvolution:
 
     def is_slot_available(self, chromosome, room_idx, timeslot_idx):
         # Check if the slot is available (i.e., not already assigned)
-        return chromosome[room_idx][timeslot_idx] is None
+        if chromosome[room_idx][timeslot_idx] is not None:
+            return False
+        
+        # Check if this is break time (13:00 - 14:00)
+        # Break time is the 5th hour (index 4) of each day starting from 9:00
+        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        day = timeslot_idx // input_data.hours
+        hour_in_day = timeslot_idx % input_data.hours
+        
+        if hour_in_day == break_hour:
+            return False  # Break time slot is not available
+        
+        return True
 
     def is_room_suitable(self, room, course):
         if course is None:
             return False
         return room.room_type == course.required_room_type
     
+    def get_room_building(self, room):
+        """Helper method to determine room building"""
+        if hasattr(room, 'building'):
+            return room.building.upper()
+        elif hasattr(room, 'name') and room.name:
+            room_name = room.name.upper()
+            if 'SST' in room_name:
+                return 'SST'
+            elif 'TYD' in room_name:
+                return 'TYD'
+        elif hasattr(room, 'room_id'):
+            room_id = str(room.room_id).upper()
+            if 'SST' in room_id:
+                return 'SST'
+            elif 'TYD' in room_id:
+                return 'TYD'
+        return 'UNKNOWN'
+    
     def hamming_distance(self, chromosome1, chromosome2):
         return np.sum(chromosome1.flatten() != chromosome2.flatten())
 
     def calculate_population_diversity(self):
-        total_distance = 0
-        comparisons = 0
-        
-        for i in range(self.pop_size):
-            for j in range(i + 1, self.pop_size):
+        # Optimization: Sample diversity calculation instead of full O(n²)
+        if self.pop_size <= 10:
+            # For small populations, calculate full diversity
+            total_distance = 0
+            comparisons = 0
+            
+            for i in range(self.pop_size):
+                for j in range(i + 1, self.pop_size):
+                    total_distance += self.hamming_distance(self.population[i], self.population[j])
+                    comparisons += 1
+            
+            return total_distance / comparisons if comparisons > 0 else 0
+        else:
+            # For larger populations, sample 10 random pairs
+            total_distance = 0
+            comparisons = 10
+            
+            for _ in range(comparisons):
+                i, j = random.sample(range(self.pop_size), 2)
                 total_distance += self.hamming_distance(self.population[i], self.population[j])
-                comparisons += 1
-        
-        return total_distance / comparisons if comparisons > 0 else 0
+            
+            return total_distance / comparisons
 
 
     def mutate(self, target_idx):
-        indices = list(range(self.pop_size))
-        indices.remove(target_idx)
-
-        # Ensure population size is sufficient for mutation
-        if len(indices) < 3:
-            raise ValueError("Not enough population members to perform mutation.")
-    
-        r1, r2, r3 = random.sample(indices, 3)
-
-        x_r1 = copy.deepcopy(self.population[r1])
-        x_r2 = self.population[r2]
-        x_r3 = self.population[r3]
-
-        for room_idx in range(len(self.rooms)):
-            for timeslot_idx in range(len(self.timeslots)):
-                # Check if the room-timeslot assignment is different between x_r2 and x_r3, and x_r1 has an open slot
-                if x_r2[room_idx][timeslot_idx] != x_r3[room_idx][timeslot_idx] and x_r1[room_idx][timeslot_idx] == None:
-                    mutant_gene = x_r2[room_idx][timeslot_idx] or x_r3[room_idx][timeslot_idx]
-                    
-                    # With probability F, adopt the assignment from x_r2 into x_r1
-                    if random.random() < self.F:
-                        self.remove_previous_event_assignment(x_r1, mutant_gene)
-                        x_r1[room_idx][timeslot_idx] = mutant_gene
+        mutant_vector = self.population[target_idx].copy()
         
-        mutant_vector = x_r1  # The mutated chromosome
+        # Perform a few swaps to introduce variation
+        for _ in range(random.randint(1, 5)):  # Swap 1 to 5 events
+            # Find two random, non-empty slots
+            occupied_slots = np.argwhere(mutant_vector != None)
+            if len(occupied_slots) < 2:
+                continue
+
+            idx1, idx2 = random.sample(range(len(occupied_slots)), 2)
+            pos1 = tuple(occupied_slots[idx1])
+            pos2 = tuple(occupied_slots[idx2])
+
+            # Swap the events
+            mutant_vector[pos1], mutant_vector[pos2] = mutant_vector[pos2], mutant_vector[pos1]
+
         return self.ensure_valid_solution(mutant_vector)
 
     def ensure_valid_solution(self, mutant_vector):
-        # for now TODO
+        """Ensure same course on same day appears in same room and handle course splits."""
+        course_day_room_mapping = {}
+        
+        # First pass: collect course-day-room mappings
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = mutant_vector[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event:
+                        day_idx = timeslot_idx // input_data.hours
+                        course = input_data.getCourse(class_event.course_id)
+                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
+                        course_day_key = (course_id, day_idx, class_event.student_group.id)
+                        
+                        if course_day_key not in course_day_room_mapping:
+                            course_day_room_mapping[course_day_key] = room_idx
+        
+        # Second pass: fix room violations
+        events_to_move = []
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = mutant_vector[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event:
+                        day_idx = timeslot_idx // input_data.hours
+                        course = input_data.getCourse(class_event.course_id)
+                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
+                        course_day_key = (course_id, day_idx, class_event.student_group.id)
+                        expected_room = course_day_room_mapping.get(course_day_key)
+                        
+                        if expected_room is not None and room_idx != expected_room:
+                            mutant_vector[room_idx][timeslot_idx] = None
+                            events_to_move.append((event_id, expected_room, timeslot_idx))
+        
+        # Third pass: place moved events in correct rooms
+        for event_id, correct_room, original_timeslot in events_to_move:
+            placed = False
+            # Try to find an available slot in the correct room
+            for timeslot in range(len(self.timeslots)):
+                if self.is_slot_available(mutant_vector, correct_room, timeslot):
+                    mutant_vector[correct_room][timeslot] = event_id
+                    placed = True
+                    break
+            
+            # If not placed, it will be handled by the repair function
+        
+        # Repair course allocations to ensure all events are scheduled
+        mutant_vector = self.verify_and_repair_course_allocations(mutant_vector)
+        
         return mutant_vector
     
     def count_non_none(self, arr):
@@ -163,17 +353,22 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         donor_vector = mutant_vector
-        trial_vector = copy.deepcopy(target_vector)
+        # Optimization: Use numpy copy instead of deepcopy
+        trial_vector = target_vector.copy()
 
         # Perform crossover based on a crossover rate (CR)
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
                 crossover_gene = donor_vector[room_idx][timeslot_idx]
-                if crossover_gene is not None and trial_vector[room_idx][timeslot_idx] == None:
+                if crossover_gene is not None and self.is_slot_available(trial_vector, room_idx, timeslot_idx):
                     if random.random() < self.CR:  # With probability CR, adopt from mutant
                         self.remove_previous_event_assignment(trial_vector, crossover_gene)
                         trial_vector[room_idx][timeslot_idx] = crossover_gene
 
+        # Verify and repair missing course allocations after crossover
+        # Apply repair every time to ensure course completeness
+        trial_vector = self.verify_and_repair_course_allocations(trial_vector)
+        
         return trial_vector
     
     def remove_previous_event_assignment(self, chromosome, gene):
@@ -185,22 +380,27 @@ class DifferentialEvolution:
 
     
     def evaluate_fitness(self, chromosome):
-        penalty = 0
-        cost = 0
+        # Optimization: Use cached fitness if available
+        chromosome_key = str(chromosome.tobytes())
+        if chromosome_key in self.fitness_cache:
+            return self.fitness_cache[chromosome_key]
         
-        # Check for hard constraint violations (H1-H5)
-        penalty += self.check_room_constraints(chromosome)  # H1
-        penalty += self.check_student_group_constraints(chromosome)  # H2
-        # penalty += self.check_room_time_conflict(chromosome)  # H3
-        penalty += self.check_lecturer_availability(chromosome)  # H4
-        # penalty += self.check_valid_timeslot(chromosome)  # H5
+        # Use the centralized Constraints class for consistent evaluation
+        fitness = self.constraints.evaluate_fitness(chromosome)
         
-        # Check for soft constraint violations (S1-S3)
-        # cost += self.check_single_event_per_day(chromosome)  # S1
-        # cost += self.check_consecutive_timeslots(chromosome)  # S2
+        # Cache management: prevent unlimited growth (reduced frequency for speed)
+        if len(self.fitness_cache) > 1000:  # Reduced from 2000 for faster cache management
+            # Keep only the most recent 500 entries
+            keys_to_remove = list(self.fitness_cache.keys())[:-500]
+            for key in keys_to_remove:
+                del self.fitness_cache[key]
+        
+        # Cache the result
+        self.fitness_cache[chromosome_key] = fitness
+        return fitness
 
-        # Fitness is a combination of penalties and costs
-        return penalty + cost   
+    # Original DE constraint methods preserved for reference
+    # These are now replaced by the centralized Constraints class above   
 
     def check_room_constraints(self, chromosome):
         """
@@ -285,64 +485,106 @@ class DifferentialEvolution:
         target_fitness = self.evaluate_fitness(self.population[target_idx])
         
         # If the trial vector is better, it replaces the target in the population
-        if trial_fitness < target_fitness:
+        if trial_fitness <= target_fitness:  # Allow equal fitness to increase diversity
+            # Ensure the selected solution has all events properly allocated
+            trial_vector = self.verify_and_repair_course_allocations(trial_vector)
             self.population[target_idx] = trial_vector
 
 
     def run(self, max_generations):
-        # np.random.seed(seed)
-        self.initialize_population()
+        # Population already initialized in __init__, don't reinitialize
         fitness_history = []
         best_solution = self.population[0]
         diversity_history = []
+        
+        # Optimization: Calculate initial fitness and find best solution
+        initial_fitness = [self.evaluate_fitness(ind) for ind in self.population]
+        best_idx = np.argmin(initial_fitness)
+        best_solution = self.population[best_idx].copy()
+        best_fitness = initial_fitness[best_idx]
+        
+        # Track fitness for early convergence detection
+        stagnation_counter = 0
+        last_improvement = best_fitness
 
         for generation in range(max_generations):
+            generation_improved = False
+            
             for i in range(self.pop_size):
                 # Step 1: Mutation
-                # print(f"Generation {generation}, Individual {i}: Before mutation: {self.count_non_none(self.population[i])}")
                 mutant_vector = self.mutate(i)
-                # print(f"Generation {generation}, Individual {i}: After mutation: {self.count_non_none(mutant_vector)}")
                 
                 # Step 2: Crossover
                 target_vector = self.population[i]
-                # print(f"Generation {generation}, Individual {i}: Before crossover: {self.count_non_none(self.population[i])}")
                 trial_vector = self.crossover(target_vector, mutant_vector)
-                # print(f"Generation {generation}, Individual {i}: After crossover: {self.count_non_none(trial_vector)}")
                 
                 # Step 3: Evaluation and Selection
+                old_fitness = self.evaluate_fitness(self.population[i])
                 self.select(i, trial_vector)
-                # print(f"Generation {generation}, Individual {i}: After selection: {self.count_non_none(self.population[i])}")
+                new_fitness = self.evaluate_fitness(self.population[i])
                 
-            # Optional: Check if the best solution is good enough
-            best_solution = min(self.population, key=self.evaluate_fitness)
-            best_fitness = self.evaluate_fitness(best_solution)
+                # Ensure population member has all events after selection
+                self.population[i] = self.verify_and_repair_course_allocations(self.population[i])
+                
+                if new_fitness < old_fitness:
+                    generation_improved = True
+                
+            # Optimization: Find best solution more efficiently
+            current_fitness = [self.evaluate_fitness(ind) for ind in self.population]
+            current_best_idx = np.argmin(current_fitness)
+            current_best_fitness = current_fitness[current_best_idx]
+            
+            if current_best_fitness < best_fitness:
+                best_solution = self.population[current_best_idx].copy()
+                best_fitness = current_best_fitness
+                stagnation_counter = 0
+                last_improvement = best_fitness
+                
+                # Ensure best solution has all courses properly allocated
+                best_solution = self.verify_and_repair_course_allocations(best_solution)
+            else:
+                stagnation_counter += 1
+            
             fitness_history.append(best_fitness)
 
-            # Measure and track diversity
-            population_diversity = self.calculate_population_diversity()
-            diversity_history.append(population_diversity)
+            # Optimization: Calculate diversity less frequently for speed
+            if generation % 20 == 0:  # Only every 20 generations (reduced from 10)
+                population_diversity = self.calculate_population_diversity()
+                diversity_history.append(population_diversity)
 
             print(f"Best solution for generation {generation+1}/{max_generations} has a fitness of: {best_fitness}")
 
-            if self.evaluate_fitness(best_solution) == self.desired_fitness:
+            if best_fitness == self.desired_fitness:
                 print(f"Solution with desired fitness of {self.desired_fitness} found at Generation {generation}! 🎉")
                 break  # Stop if the best solution has no constraint violations
+            
+            # Early termination if no improvement for many generations
+            if stagnation_counter > 50 and best_fitness < 100:
+                print(f"Early termination due to convergence at generation {generation+1}")
+                break
 
-        # print and return best individual for last generation
-        best_solution = min(self.population, key=self.evaluate_fitness)
-        # self.print_all_timetables(best_solution, input_data.days, input_data.hours)
+        # Final verification and repair of the best solution to ensure all courses are allocated
+        best_solution = self.verify_and_repair_course_allocations(best_solution)
+        
         return best_solution, fitness_history, generation, diversity_history
 
 
     def print_timetable(self, individual, student_group, days, hours_per_day, day_start_time=9):
         timetable = [["" for _ in range(days)] for _ in range(hours_per_day)]
+        
+        # First, fill break time slots
+        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        if break_hour < hours_per_day:
+            for day in range(days):
+                timetable[break_hour][day] = "BREAK"
+        
         for room_idx, room_slots in enumerate(individual):
             for timeslot_idx, event in enumerate(room_slots):
                 class_event = self.events_map.get(event)
                 if class_event is not None and class_event.student_group.id == student_group.id:
                     day = timeslot_idx // hours_per_day
                     hour = timeslot_idx % hours_per_day
-                    if day < days:
+                    if day < days and hour != break_hour:  # Don't overwrite break slots
                         course = input_data.getCourse(class_event.course_id)
                         faculty = input_data.getFaculty(class_event.faculty_id)
                         course_code = course.code if course is not None else "Unknown"
@@ -380,10 +622,250 @@ class DifferentialEvolution:
             data.append({"student_group": student_group, "timetable": rows})
         return data
 
-de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
+    def verify_and_repair_course_allocations(self, chromosome):
+        """
+        Verify that all courses appear the correct number of times for each student group
+        and repair any missing allocations with minimal disruption.
+        """
+        # Multiple repair passes to ensure completeness
+        max_repair_passes = 3
+        
+        for repair_pass in range(max_repair_passes):
+            # Check for missing events
+            scheduled_events = set()
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        scheduled_events.add(event_id)
+            
+            # Find truly missing events (events that should exist but aren't scheduled anywhere)
+            missing_events = []
+            for event_id in range(len(self.events_list)):
+                if event_id not in scheduled_events:
+                    missing_events.append(event_id)
+            
+            # If no missing events, we're done
+            if not missing_events:
+                break
+            
+            # Get more aggressive with each pass
+            flexibility_level = repair_pass
+        
+            # Get more aggressive with each pass
+            flexibility_level = repair_pass
+        
+            # Track course-day room assignments to maintain consistency
+            course_day_room_mapping = {}
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        event = self.events_map.get(event_id)
+                        if event:
+                            course = input_data.getCourse(event.course_id)
+                            if course:
+                                day_idx = timeslot_idx // input_data.hours
+                                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+                                course_day_key = (course_id, day_idx, event.student_group.id)
+                                course_day_room_mapping[course_day_key] = room_idx
+            
+            # Try to place missing events with increasing aggression
+            for missing_event_id in missing_events:
+                event = self.events_list[missing_event_id]
+                course = input_data.getCourse(event.course_id)
+                
+                if not course:
+                    continue
+                    
+                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+                placed = False
+                
+                # Strategy 1: Try to place in same room as other instances (only on first pass)
+                if flexibility_level == 0:
+                    preferred_slots = []
+                    for day_idx in range(input_data.days):
+                        course_day_key = (course_id, day_idx, event.student_group.id)
+                        if course_day_key in course_day_room_mapping:
+                            preferred_room = course_day_room_mapping[course_day_key]
+                            day_start = day_idx * input_data.hours
+                            day_end = (day_idx + 1) * input_data.hours
+                            for timeslot in range(day_start, day_end):
+                                if (timeslot < len(self.timeslots) and 
+                                    self.is_slot_available(chromosome, preferred_room, timeslot) and
+                                    timeslot % input_data.hours != 4):  # Avoid break time
+                                    preferred_slots.append((preferred_room, timeslot))
+                    
+                    # If we have preferred slots, use them
+                    if preferred_slots:
+                        room_idx, timeslot_idx = preferred_slots[0]  # Take first available
+                        chromosome[room_idx][timeslot_idx] = missing_event_id
+                        placed = True
+                
+                # Strategy 2: Find valid slots with building constraints (flexibility increases each pass)
+                if not placed:
+                    valid_slots = []
+                    for room_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            # Check building constraints with increasing flexibility
+                            room_building = self.room_building_cache[room_idx]
+                            is_engineering = event.student_group.id in self.engineering_groups
+                            
+                            # Check if this course needs a computer lab
+                            needs_computer_lab = (
+                                course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
+                                room.room_type.lower() in ['comp lab', 'computer_lab'] or
+                                ('lab' in course.name.lower() and ('computer' in course.name.lower() or 
+                                                                  'programming' in course.name.lower() or
+                                                                  'software' in course.name.lower()))
+                            )
+                            
+                            # Apply building assignment rules with increasing flexibility
+                            building_allowed = True
+                            if needs_computer_lab:
+                                building_allowed = True  # Always allow computer labs
+                            elif flexibility_level >= 2:
+                                building_allowed = True  # On final pass, ignore building constraints
+                            elif is_engineering:
+                                # Count existing non-SST courses for this student group
+                                non_sst_count = 0
+                                for r_idx in range(len(self.rooms)):
+                                    for t_idx in range(len(self.timeslots)):
+                                        existing_event_id = chromosome[r_idx][t_idx]
+                                        if existing_event_id is not None:
+                                            existing_event = self.events_map.get(existing_event_id)
+                                            if (existing_event and 
+                                                existing_event.student_group.id == event.student_group.id and
+                                                self.room_building_cache[r_idx] != 'SST'):
+                                                non_sst_count += 1
+                                
+                                # Increase flexibility with each pass
+                                max_non_sst = 2 + flexibility_level  # 2, 3, 4 for passes 0, 1, 2
+                                if room_building != 'SST' and non_sst_count >= max_non_sst:
+                                    building_allowed = False
+                            else:
+                                # Non-engineering: prefer TYD but be flexible on later passes
+                                if room_building == 'SST' and not needs_computer_lab and flexibility_level == 0:
+                                    building_allowed = False
+                            
+                            if building_allowed:
+                                for timeslot_idx in range(len(self.timeslots)):
+                                    if (self.is_slot_available(chromosome, room_idx, timeslot_idx) and
+                                        timeslot_idx % input_data.hours != 4):  # Avoid break time
+                                        valid_slots.append((room_idx, timeslot_idx))
+                    
+                    # Place in first valid slot
+                    if valid_slots:
+                        room_idx, timeslot_idx = valid_slots[0]
+                        chromosome[room_idx][timeslot_idx] = missing_event_id
+                        placed = True
+                    
+                # Strategy 3: Emergency placement (only room type constraint)
+                if not placed and flexibility_level >= 1:
+                    for room_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):  # Keep room type constraint
+                            for timeslot_idx in range(len(self.timeslots)):
+                                if (self.is_slot_available(chromosome, room_idx, timeslot_idx) and
+                                    timeslot_idx % input_data.hours != 4):  # Still avoid break time
+                                    chromosome[room_idx][timeslot_idx] = missing_event_id
+                                    placed = True
+                                    break
+                            if placed:
+                                break
+                    
+                # Strategy 4: Force placement with displacement (final pass only)
+                if not placed and flexibility_level >= 2:
+                    for room_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            for timeslot_idx in range(len(self.timeslots)):
+                                if timeslot_idx % input_data.hours != 4:  # Only avoid break time
+                                    # If slot is occupied, try to move the existing event
+                                    if chromosome[room_idx][timeslot_idx] is not None:
+                                        existing_event_id = chromosome[room_idx][timeslot_idx]
+                                        # Try to find another slot for the existing event
+                                        moved_existing = False
+                                        for alt_room in range(len(self.rooms)):
+                                            for alt_time in range(len(self.timeslots)):
+                                                if (chromosome[alt_room][alt_time] is None and
+                                                    alt_time % input_data.hours != 4):
+                                                    chromosome[alt_room][alt_time] = existing_event_id
+                                                    moved_existing = True
+                                                    break
+                                            if moved_existing:
+                                                break
+                                        
+                                        if moved_existing:
+                                            chromosome[room_idx][timeslot_idx] = missing_event_id
+                                            placed = True
+                                            break
+                                    else:
+                                        # Slot is empty, place here
+                                        chromosome[room_idx][timeslot_idx] = missing_event_id
+                                        placed = True
+                                        break
+                            if placed:
+                                break
+        
+        return chromosome
 
-best_solution, fitness_history, generation, diversity_history = de.run(200)
-print(best_solution)
+    def count_course_occurrences(self, chromosome, student_group):
+        """
+        Count how many times each course appears for a specific student group
+        """
+        course_counts = {}
+        
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event and event.student_group.id == student_group.id:
+                        course_id = event.course_id
+                        course_counts[course_id] = course_counts.get(course_id, 0) + 1
+        
+        return course_counts
+
+    def diagnose_course_allocations(self, chromosome):
+        """
+        Diagnostic method to check course allocations for debugging
+        """
+        print("\n=== COURSE ALLOCATION DIAGNOSIS ===")
+        
+        # Count total scheduled events
+        scheduled_events = set()
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    scheduled_events.add(event_id)
+        
+        print(f"Total events: {len(self.events_list)}")
+        print(f"Scheduled events: {len(scheduled_events)}")
+        print(f"Missing events: {len(self.events_list) - len(scheduled_events)}")
+        
+        # Check each student group
+        for student_group in self.student_groups:
+            print(f"\nStudent Group: {student_group.name}")
+            course_counts = self.count_course_occurrences(chromosome, student_group)
+            
+            total_expected = sum(student_group.hours_required)
+            total_actual = sum(course_counts.values())
+            
+            print(f"  Total hours: Expected {total_expected}, Got {total_actual}")
+            
+            for i, course_id in enumerate(student_group.courseIDs):
+                expected = student_group.hours_required[i]
+                actual = course_counts.get(course_id, 0)
+                status = "✓" if actual == expected else "✗"
+                print(f"  {course_id}: Expected {expected}, Got {actual} {status}")
+        
+        print("=== END DIAGNOSIS ===\n")
+
+# Create DE instance and run optimization
+print("Starting Differential Evolution")
+de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
+best_solution, fitness_history, generation, diversity_history = de.run(350)
+print("Differential Evolution completed")
 
 
 import dash
@@ -463,7 +945,7 @@ def render_tables(n_clicks):
 
 # Run the Dash app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
 
 
     # import time

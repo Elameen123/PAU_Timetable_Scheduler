@@ -303,6 +303,7 @@
       "STA 111",
       "MTH101",
       "PHY101",
+      "PAU-CSC 111",
       "PHY 107",
       "PAU-CSC 192",
       "COS 101"
@@ -311,6 +312,7 @@
       "gokoacha@pau.edu.ng",
       "cifegwu@pau.edu.ng",
       "rbalogun@pau.edu.ng",
+      "muduehi@pau.edu.ng",
       "rbalogun@pau.edu.ng",
       "iogboh@pau.edu.ng",
       "ponobhayedo@pau.edu.ng"
@@ -319,9 +321,10 @@
       3,
       2,
       2,
-      1,
+      3,
+      3,
       2,
-      1
+      3
     ]
   },
   {
@@ -332,6 +335,7 @@
       "STA 111",
       "MTH101",
       "PHY101",
+      "PAU-CSC 111",
       "PHY 107",
       "PAU-CSC 192",
       "COS 101"
@@ -340,6 +344,7 @@
       "gokoacha@pau.edu.ng",
       "cifegwu@pau.edu.ng",
       "rbalogun@pau.edu.ng",
+      "muduehi@pau.edu.ng",
       "rbalogun@pau.edu.ng",
       "iogboh@pau.edu.ng",
       "ponobhayedo@pau.edu.ng"
@@ -348,9 +353,10 @@
       3,
       2,
       2,
-      1,
+      3,
+      3,
       2,
-      1
+      3
     ]
   },
   {
@@ -1097,129 +1103,6 @@
     ],
     "hours_required": [
       2
-    ]
-  },
-  {
-    "id": "MSC Media and Communication",
-    "name": "MSC Media and Communication",
-    "no_students": 0,
-    "courseIDs": [
-      "COM 601",
-      "COM 602",
-      "COM 603",
-      "COM 604",
-      "COM 653",
-      "COM 600",
-      "COM 607",
-      "COM 611",
-      "COM 655"
-    ],
-    "teacherIDS": [
-      "nokorie@pau.edu.ng",
-      "iobiaya@pau.edu.ng",
-      "aagina@pau.edu.ng",
-      "nokpara@pau.edu.ng",
-      null,
-      "nokorie@pau.edu.ng",
-      "iobiaya@pau.edu.ng",
-      "oowodunni@pau.edu.ng",
-      "jsawyerr@pau.edu.ng"
-    ],
-    "hours_required": [
-      3,
-      3,
-      3,
-      3,
-      3,
-      6,
-      3,
-      3,
-      3
-    ]
-  },
-  {
-    "id": "Msc Data Science",
-    "name": "Msc Data Science",
-    "no_students": 0,
-    "courseIDs": [
-      "DAT 601",
-      "DAT 605",
-      "DAT 607",
-      "DAT 609",
-      "DAT 613"
-    ],
-    "teacherIDS": [
-      "cigah@pau.edu.ng",
-      null,
-      "posatohanmwem@pau.edu.ng",
-      "aoluwole@pau.edu.ng",
-      "koyebode@pau.edu.ng"
-    ],
-    "hours_required": [
-      3,
-      3,
-      3,
-      3,
-      3
-    ]
-  },
-  {
-    "id": "Msc Economics",
-    "name": "Msc Economics",
-    "no_students": 0,
-    "courseIDs": [
-      "ECO 810",
-      "ECO 811",
-      "ECO 812",
-      "ECO 815",
-      "ECO 816",
-      "ECO 818",
-      "ECO 820",
-      "ECO 821",
-      "ECO 822",
-      "ECO 823",
-      "DAT 604",
-      "ECO 826",
-      "ECO 827",
-      "ECO 829",
-      "ECO 832",
-      "ECO 843"
-    ],
-    "teacherIDS": [
-      "aoyefusi@pau.edu.ng",
-      "peregha@pau.edu.ng",
-      "oevans@pau.edu.ng",
-      "emesagan@pau.edu.ng",
-      "eosuji@pau.edu.ng",
-      "fanetor@pau.edu.ng",
-      "aoyefusi@pau.edu.ng",
-      "peregha@pau.edu.ng",
-      "peregha@pau.edu.ng",
-      "oevans@pau.edu.ng",
-      null,
-      "emesagan@pau.edu.ng",
-      "eosuji@pau.edu.ng",
-      "fanetor@pau.edu.ng",
-      null,
-      "aolowookere@pau.edu.ng"
-    ],
-    "hours_required": [
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      3,
-      6,
-      3
     ]
   }
 ]

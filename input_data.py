@@ -7,6 +7,11 @@ from entitities.Class import Class
 import json
 from enums import Size, RoomType
 from entitities.time_slot import TimeSlot
+from pathlib import Path
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+DATA_DIR = SCRIPT_DIR / "data"
 
 
 class inputData():
@@ -25,14 +30,14 @@ class inputData():
         self.courses.append(Course(name, code, credits, student_groupsID, facultyId, required_room_type))
         # print(Course(name, code, credits, student_groupsID).name)
 
-    def addRoom(self, Id: str, name:str, capacity:int, room_type:str):
-        self.rooms.append(Room(Id, name, capacity, room_type))
+    def addRoom(self, Id: str, name:str, capacity:int, room_type:str, building:str):
+        self.rooms.append(Room(Id, name, capacity, room_type, building))
 
     def addStudentGroup(self, id: str, name:str, no_students: int, courseIDs: str, teacherIDS: str, hours_required:List[int]):
         self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, teacherIDS, hours_required))
 
-    def addFaculty(self, id:str, name:str, department:str, courseID: str):
-        self.faculties.append(Faculty(id, name, department, courseID))
+    def addFaculty(self, id:str, name:str, department:str, courseID: str, avail_days: list = [], avail_times: list = []):
+        self.faculties.append(Faculty(id, name, department, courseID, avail_days, avail_times))
 
     # def addConstraint(self, constraint: Constraint):
     #     self.constraints.append(constraint)
@@ -100,28 +105,28 @@ class inputData():
 input_data = inputData()
 
 # Read course data from JSON file
-with open('data/course-data.json') as file:
+with open( DATA_DIR / 'course-data.json') as file:
     course_data = json.load(file)
     for course in course_data:
         input_data.addCourse(course['name'], course['code'], course['credits'], course['student_groupsID'], course['facultyId'], course['required_room_type'])
 
 # Read room data from JSON file
-with open('data/rooms-data.json') as file:
+with open( DATA_DIR / 'rooms-data.json') as file:
     room_data = json.load(file)
     for room in room_data:
-        input_data.addRoom(room['Id'], room['name'], room['capacity'], room['room_type'])
+        input_data.addRoom(room['Id'], room['name'], room['capacity'], room['room_type'], room['building'])
 
 # Read student group data from JSON file
-with open('data/studentgroup-data.json') as file:
+with open( DATA_DIR / 'studentgroup-data.json') as file:
     student_group_data = json.load(file)
     for student_group in student_group_data:
         input_data.addStudentGroup(student_group['id'], student_group['name'], student_group['no_students'], student_group['courseIDs'], student_group['teacherIDS'], student_group['hours_required'])
 
 # Read faculty data from JSON file
-with open('data/faculty-data.json') as file:
+with open( DATA_DIR / 'faculty-data.json') as file:
     faculty_data = json.load(file)
     for faculty in faculty_data:
-        input_data.addFaculty(faculty['id'], faculty['name'], faculty['department'], faculty['courseID'])
+        input_data.addFaculty(faculty['id'], faculty['name'], faculty['department'], faculty['courseID'], faculty.get('avail_days', []), faculty.get('avail_times', []))
 
 # timeslot
 # [print(time_slot.day, time_slot.start_time) for time_slot in input_data.create_time_slots(7, 5, 9)]

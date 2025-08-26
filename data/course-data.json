@@ -165,9 +165,20 @@
     "required_room_type": "Phy Lab"
   },
   {
+    "name": "Introduction to Software Packages",
+    "code": "PAU-CSC 111",
+    "credits": 3,
+    "student_groupsID": [
+      "CSC 100 - 1",
+      "CSC 100 - 2"
+    ],
+    "facultyId": "muduehi@pau.edu.ng",
+    "required_room_type": "Comp Lab"
+  },
+  {
     "name": "General Practical Physics I",
     "code": "PHY 107",
-    "credits": 1,
+    "credits": 3,
     "student_groupsID": [
       "CSC 100 - 1",
       "CSC 100 - 2"
@@ -189,7 +200,7 @@
   {
     "name": "Introduction to Computer Sciences",
     "code": "COS 101",
-    "credits": 1,
+    "credits": 3,
     "student_groupsID": [
       "CSC 100 - 1",
       "CSC 100 - 2"
@@ -1244,306 +1255,6 @@
       "MEE 500"
     ],
     "facultyId": null,
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Theoretical Foundation of Studies in Communication",
-    "code": "COM 601",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "nokorie@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Communication and Writing Skills",
-    "code": "COM 602",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "iobiaya@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Communication Research Methods",
-    "code": "COM 603",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "aagina@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Professional Ethics",
-    "code": "COM 604",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "nokpara@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "New Media & Marketing Communication",
-    "code": "COM 653",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": null,
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Dissertation",
-    "code": "COM 600",
-    "credits": 6,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "nokorie@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Topical Seminar in Media and Communication",
-    "code": "COM 607",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "iobiaya@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Leadership Strategies in the Media",
-    "code": "COM 611",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "oowodunni@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Public Relations Strategies",
-    "code": "COM 655",
-    "credits": 3,
-    "student_groupsID": [
-      "MSC Media and Communication"
-    ],
-    "facultyId": "jsawyerr@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Fundamentals of Data Science and Analytics",
-    "code": "DAT 601",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Data Science"
-    ],
-    "facultyId": "cigah@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Database Modelling and Database Systems",
-    "code": "DAT 605",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Data Science"
-    ],
-    "facultyId": null,
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Foundational Mathematics for Data Science",
-    "code": "DAT 607",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Data Science"
-    ],
-    "facultyId": "posatohanmwem@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Research Methodology for Data Science",
-    "code": "DAT 609",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Data Science"
-    ],
-    "facultyId": "aoluwole@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Programming for Data Science",
-    "code": "DAT 613",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Data Science"
-    ],
-    "facultyId": "koyebode@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Microeconomics I",
-    "code": "ECO 810",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "aoyefusi@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Macroeconomics I",
-    "code": "ECO 811",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "peregha@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Quantitative Technique I (Mathematical Economics)",
-    "code": "ECO 812",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "oevans@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Energy and Environmental Economics I",
-    "code": "ECO 815",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "emesagan@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "International Economics (Trade) I",
-    "code": "ECO 816",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "eosuji@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Development Economics I",
-    "code": "ECO 818",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "fanetor@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Microeconomics II",
-    "code": "ECO 820",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "aoyefusi@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Advanced Macroeconomics II",
-    "code": "ECO 821",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "peregha@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Quantitative Technique II (Econometrics)",
-    "code": "ECO 822",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "peregha@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Research Methods in Economics",
-    "code": "ECO 823",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "oevans@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Machine Learning",
-    "code": "DAT 604",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": null,
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Energy and Environmental Economics II",
-    "code": "ECO 826",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "emesagan@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "International Economics (International Finance) II",
-    "code": "ECO 827",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "eosuji@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Development Economics II",
-    "code": "ECO 829",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "fanetor@pau.edu.ng",
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Dissertation",
-    "code": "ECO 832",
-    "credits": 6,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": null,
-    "required_room_type": "Classroom"
-  },
-  {
-    "name": "Financial Economics II",
-    "code": "ECO 843",
-    "credits": 3,
-    "student_groupsID": [
-      "Msc Economics"
-    ],
-    "facultyId": "aolowookere@pau.edu.ng",
     "required_room_type": "Classroom"
   }
 ]

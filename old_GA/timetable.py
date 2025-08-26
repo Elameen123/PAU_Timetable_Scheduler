@@ -45,12 +45,12 @@ classes = Timetable.periods_list
 # print(classes)
 
 # Example: Display assigned rooms for each class (no hardcoded indices)
-for idx, class_obj in enumerate(classes):
-    if class_obj is not None:
-        # Assign a room from input_data.rooms (e.g., round-robin or based on your logic)
-        room_idx = idx % len(input_data.rooms)
-        room_obj = input_data.rooms[room_idx]
-        room_display = getattr(room_obj, "name", getattr(room_obj, "Id", str(room_idx)))
-        print(f"Class: {class_obj.course_id}, Room: {room_display}")
+# for idx, class_obj in enumerate(classes):
+#     if class_obj is not None:
+#         # Assign a room from input_data.rooms (e.g., round-robin or based on your logic)
+#         room_idx = idx % len(input_data.rooms)
+#         room_obj = input_data.rooms[room_idx]
+#         room_display = getattr(room_obj, "name", getattr(room_obj, "Id", str(room_idx)))
+#         print(f"Class: {class_obj.course_id}, Room: {room_display}")
 
 
