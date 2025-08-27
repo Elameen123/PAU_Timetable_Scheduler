@@ -113,19 +113,21 @@ class Constraints:
 
     def check_break_time_constraint(self, chromosome):
         """
-        Ensure no classes are scheduled during break time (13:00 - 14:00)
+        Ensure no classes are scheduled during break time (13:00 - 14:00) on Mon, Wed, Fri.
         Break time corresponds to timeslot index 4 on each day (9:00, 10:00, 11:00, 12:00, 13:00)
         """
         penalty = 0
         break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
         
         for day in range(input_data.days):  # For each day
-            break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
-            
-            for room_idx in range(len(self.rooms)):
-                if chromosome[room_idx][break_timeslot] is not None:
-                    penalty += 100  # Reduced from 1000 to 100
-                    
+            # Apply break constraint only on Monday (0), Wednesday (2), and Friday (4)
+            if day in [0, 2, 4]:
+                break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
+                
+                for room_idx in range(len(self.rooms)):
+                    if chromosome[room_idx][break_timeslot] is not None:
+                        penalty += 100
+                        
         return penalty
 
     def check_building_assignments(self, chromosome):
@@ -213,7 +215,8 @@ class Constraints:
                         # Use the correct course identifier
                         course = input_data.getCourse(class_event.course_id)
                         course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
-                        course_day_key = (course_id, day_idx)
+                        # The key now includes the student group to correctly handle multiple groups taking the same course
+                        course_day_key = (course_id, day_idx, class_event.student_group.id)
                         
                         if course_day_key not in course_day_rooms:
                             course_day_rooms[course_day_key] = set()
@@ -250,22 +253,55 @@ class Constraints:
         return penalty
 
     def check_consecutive_timeslots(self, chromosome):
+        """
+        - 2-credit courses MUST be in 2 consecutive slots.
+        - 3-credit courses MUST have at least a 2-hour block.
+        - Penalizes the single hour of a 3-credit course if it's not consecutive with the block.
+        """
         penalty = 0
-
+        
+        # Group events by course and student group to analyze their schedule
+        course_schedule = {} # {(course_id, student_group_id): [timeslot_indices]}
+        
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
-                class_event_idx = chromosome[room_idx][timeslot_idx]
-                if class_event_idx is not None:
-                    class_event = self.events_map.get(class_event_idx)
-                    if class_event is not None:
-                        course = input_data.getCourse(class_event.course_id)
-                        
-                        # S2: Multi-hour lectures should be scheduled in consecutive timeslots
-                        if course and course.credits > 1:
-                            # Check if next timeslot for same course is consecutive
-                            # This is a simplified check - you may need more complex logic
-                            # based on your specific requirements
-                            penalty += 0.05
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        course = input_data.getCourse(event.course_id)
+                        if course:
+                            key = (course.code, event.student_group.id)
+                            if key not in course_schedule:
+                                course_schedule[key] = []
+                            course_schedule[key].append(timeslot_idx)
+
+        for (course_id, student_group_id), timeslots in course_schedule.items():
+            course = input_data.getCourse(course_id)
+            if not course or course.credits <= 1:
+                continue
+
+            # Sort timeslots to check for consecutiveness
+            timeslots.sort()
+            
+            if course.credits == 2:
+                # H: 2-credit courses MUST be consecutive
+                if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
+                    penalty += 50 # Severe penalty for breaking a 2-hour block
+            
+            elif course.credits == 3:
+                # H: 3-credit courses MUST have at least a 2-hour block
+                if len(timeslots) == 3:
+                    is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
+                                    (timeslots[2] - timeslots[1] == 1)
+                    if not is_block_of_2:
+                        penalty += 50 # Severe penalty if no 2-hour block exists
+                    
+                    # S: Prefer all 3 hours to be consecutive
+                    is_block_of_3 = (timeslots[1] - timeslots[0] == 1) and \
+                                    (timeslots[2] - timeslots[1] == 1)
+                    if not is_block_of_3:
+                        penalty += 0.1 # Small penalty for the separated hour
 
         return penalty
 
@@ -353,6 +389,66 @@ class Constraints:
 
         # Fitness is a combination of penalties and costs
         return penalty + cost
+        
+    def get_all_conflicts(self, chromosome):
+        """
+        Identifies all conflicts in a given chromosome to guide the crossover process.
+        Returns a dictionary of conflicts.
+        """
+        conflicts = {
+            'student_group': [],
+            'lecturer': [],
+            'room': []
+        }
+
+        # Check for student group and lecturer clashes
+        for timeslot_idx in range(len(self.timeslots)):
+            student_group_watch = {}
+            lecturer_watch = {}
+            simultaneous_events = chromosome[:, timeslot_idx]
+
+            for room_idx, event_id in enumerate(simultaneous_events):
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        # Student group conflicts
+                        sg_id = event.student_group.id
+                        if sg_id in student_group_watch:
+                            conflicts['student_group'].append({
+                                'timeslot': timeslot_idx,
+                                'student_group': sg_id,
+                                'positions': [student_group_watch[sg_id], (room_idx, timeslot_idx)]
+                            })
+                        else:
+                            student_group_watch[sg_id] = (room_idx, timeslot_idx)
+
+                        # Lecturer conflicts
+                        fac_id = event.faculty_id
+                        if fac_id in lecturer_watch:
+                            conflicts['lecturer'].append({
+                                'timeslot': timeslot_idx,
+                                'lecturer': fac_id,
+                                'positions': [lecturer_watch[fac_id], (room_idx, timeslot_idx)]
+                            })
+                        else:
+                            lecturer_watch[fac_id] = (room_idx, timeslot_idx)
+
+        # Check for room capacity/type conflicts
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    room = self.rooms[room_idx]
+                    course = input_data.getCourse(event.course_id)
+                    if event and course:
+                        if room.room_type != course.required_room_type or event.student_group.no_students > room.capacity:
+                            conflicts['room'].append({
+                                'position': (room_idx, timeslot_idx),
+                                'details': f"Room {room.name} (cap {room.capacity}, type {room.room_type}) vs Course {course.code} (students {event.student_group.no_students}, type {course.required_room_type})"
+                            })
+
+        return conflicts
         
     def get_constraint_violations(self, chromosome):
         """

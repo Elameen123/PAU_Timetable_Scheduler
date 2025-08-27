@@ -2,7 +2,7 @@
   {
     "Id": "Classroom_1",
     "name": "Classroom 1",
-    "capacity": 40,
+    "capacity": 60,
     "room_type": "Classroom",
     "building": "SST"
   },
@@ -44,28 +44,28 @@
   {
     "Id": "Classroom_2",
     "name": "Classroom 2",
-    "capacity": 50,
+    "capacity": 60,
     "room_type": "Classroom",
     "building": "SST"
   },
   {
     "Id": "Classroom_3",
     "name": "Classroom 3",
-    "capacity": 50,
+    "capacity": 60,
     "room_type": "Classroom",
     "building": "SST"
   },
   {
     "Id": "Classroom_4",
     "name": "Classroom 4",
-    "capacity": 50,
+    "capacity": 60,
     "room_type": "Classroom",
     "building": "SST"
   },
   {
     "Id": "Classroom_5",
     "name": "Classroom 5",
-    "capacity": 50,
+    "capacity": 60,
     "room_type": "Classroom",
     "building": "SST"
   },
@@ -128,14 +128,14 @@
   {
     "Id": "Materials_Lab",
     "name": "Materials Lab",
-    "capacity": 30,
+    "capacity": 50,
     "room_type": "Materials Lab",
     "building": "SST"
   },
   {
     "Id": "Mechanics_Lab",
     "name": "Mechanics Lab",
-    "capacity": 30,
+    "capacity": 50,
     "room_type": "Mechanics Lab",
     "building": "SST"
   },
@@ -170,14 +170,14 @@
   {
     "Id": "Oshogbo",
     "name": "Oshogbo",
-    "capacity": 35,
+    "capacity": 45,
     "room_type": "Classroom",
     "building": "TYD"
   },
   {
     "Id": "Umuahia",
     "name": "Umuahia",
-    "capacity": 35,
+    "capacity": 45,
     "room_type": "Classroom",
     "building": "TYD"
   },
@@ -198,14 +198,14 @@
   {
     "Id": "Uyo",
     "name": "Uyo",
-    "capacity": 35,
+    "capacity": 40,
     "room_type": "Classroom",
     "building": "TYD"
   },
   {
     "Id": "Lokoja",
     "name": "Lokoja",
-    "capacity": 35,
+    "capacity": 40,
     "room_type": "Classroom",
     "building": "TYD"
   },
@@ -261,14 +261,14 @@
   {
     "Id": "Ado-Ekiti",
     "name": "Ado-Ekiti",
-    "capacity": 30,
+    "capacity": 50,
     "room_type": "Classroom",
     "building": "TYD"
   },
   {
     "Id": "Maiduguri",
     "name": "Maiduguri",
-    "capacity": 30,
+    "capacity": 50,
     "room_type": "Classroom",
     "building": "TYD"
   }
