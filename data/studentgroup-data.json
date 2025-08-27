@@ -298,7 +298,7 @@
   {
     "id": "CSC 100 - 1",
     "name": "Computer Science - Year  1/Stream 1",
-    "no_students": 50,
+    "no_students": 45,
     "courseIDs": [
       "STA 111",
       "MTH101",
@@ -474,7 +474,7 @@
   {
     "id": "CSC 400 - 2",
     "name": "Computer Science - Year  4/Stream 2",
-    "no_students": 50,
+    "no_students": 45,
     "courseIDs": [
       "CSC 401",
       "CSC 403",
@@ -535,7 +535,7 @@
   {
     "id": "ECO 200",
     "name": "Economics - Year 2",
-    "no_students": 50,
+    "no_students": 40,
     "courseIDs": [],
     "teacherIDS": [],
     "hours_required": []
@@ -853,7 +853,7 @@
   {
     "id": "MCM 100",
     "name": "Mass Communication - Year 1",
-    "no_students": 50,
+    "no_students": 30,
     "courseIDs": [
       "CMS 101",
       "MCM 101",
@@ -1068,7 +1068,7 @@
   {
     "id": "FIN 300",
     "name": "Finance - Year 3",
-    "no_students": 40,
+    "no_students": 35,
     "courseIDs": [
       "FIN 301",
       "FIN 302",
@@ -1094,7 +1094,7 @@
   {
     "id": "FIN 400",
     "name": "Finance - Year 4",
-    "no_students": 50,
+    "no_students": 35,
     "courseIDs": [
       "FIN 401"
     ],
