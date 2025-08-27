@@ -444,44 +444,51 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         trial_vector = target_vector.copy()
+
+        # Identify all unique, non-None events in both parents
+        target_events = set(e for e in target_vector.flatten() if e is not None)
+        mutant_events = set(e for e in mutant_vector.flatten() if e is not None)
+
+        # Find events to be added from mutant (genes in mutant but not in target)
+        events_to_add = mutant_events - target_events
         
-        # Standard Crossover with enhanced conflict checking
-        for r_idx in range(len(self.rooms)):
-            for t_idx in range(len(self.timeslots)):
-                if random.random() < self.CR:
-                    gene_from_mutant = mutant_vector[r_idx][t_idx]
-                    
-                    if gene_from_mutant is not None:
-                        event = self.events_map.get(gene_from_mutant)
-                        if not event: continue
+        # Find events that can be removed from trial (genes in target but not in mutant)
+        # These are potential slots to be overwritten.
+        events_to_remove = target_events - mutant_events
+        
+        # Create a list of positions for events that can be removed
+        removable_positions = []
+        for r in range(len(self.rooms)):
+            for t in range(len(self.timeslots)):
+                if trial_vector[r, t] in events_to_remove:
+                    removable_positions.append((r, t))
+        
+        random.shuffle(removable_positions)
 
-                        # Check for availability before placing the gene
-                        is_student_free = self._is_student_group_available(trial_vector, event.student_group.id, t_idx)
-                        is_lecturer_free = self._is_lecturer_available(trial_vector, event.faculty_id, t_idx)
-                        
-                        if is_student_free and is_lecturer_free:
-                            # If the slot in trial is occupied, remove the old event first
-                            gene_from_trial = trial_vector[r_idx][t_idx]
-                            if gene_from_trial is not None:
-                                # This spot is taken, can't place here without causing a room clash
-                                # We will let the repair function handle this later if needed
-                                pass
-                            else:
-                                # Slot is free, but we must remove the mutant gene from its old position
-                                # to avoid duplicates before placing it here.
-                                self.remove_previous_event_assignment(trial_vector, gene_from_mutant)
-                                trial_vector[r_idx][t_idx] = gene_from_mutant
+        # For each event that needs to be added, try to place it in a removable slot
+        for event_id in events_to_add:
+            if removable_positions:
+                # Take a position of a gene that can be removed
+                r, t = removable_positions.pop()
+                # Replace it with the new gene
+                trial_vector[r, t] = event_id
+            else:
+                # If we run out of removable positions, break. 
+                # The repair function will handle any remaining inconsistencies.
+                break
+        
+        # Apply a standard crossover element to maintain some DE characteristics
+        # This adds diversity beyond just swapping missing/extra genes.
+        num_rooms, num_timeslots = target_vector.shape
+        j_rand = random.randrange(num_timeslots)
+        for r_idx in range(num_rooms):
+            for t_idx in range(num_timeslots):
+                if random.random() < self.CR or t_idx == j_rand:
+                    # Only crossover if the mutant gene is not None, to avoid creating empty slots unnecessarily
+                    if mutant_vector[r_idx, t_idx] is not None:
+                        trial_vector[r_idx, t_idx] = mutant_vector[r_idx, t_idx]
 
-        # Always repair to ensure completeness and fix any remaining issues
-        trial_vector = self.verify_and_repair_course_allocations(trial_vector)
         return trial_vector
-    
-    def remove_previous_event_assignment(self, chromosome, gene):
-        for room_idx in range(len(self.rooms)):
-            for timeslot_idx in range(len(self.timeslots)):
-                if chromosome[room_idx][timeslot_idx] is not None and chromosome[room_idx][timeslot_idx] == gene:
-                    chromosome[room_idx][timeslot_idx] = None
-                    return
 
     
     def evaluate_fitness(self, chromosome):
