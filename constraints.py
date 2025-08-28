@@ -1,13 +1,51 @@
 from input_data import input_data
 import random
 
+import re
+
 class Constraints:
     def __init__(self, input_data):
+        self.input_data = input_data
+        self.validate_faculty_data() # Validate data on initialization
         self.rooms = input_data.rooms
         self.timeslots = input_data.create_time_slots(no_hours_per_day=input_data.hours, no_days_per_week=input_data.days, day_start_time=9)
         self.student_groups = input_data.student_groups
         self.courses = input_data.courses
         self.events_list, self.events_map = self.create_events()
+
+    def validate_faculty_data(self):
+        """
+        Validates the format of avail_days and avail_times for all faculty members.
+        Raises a ValueError if any format is incorrect.
+        """
+        time_format_regex = re.compile(r'^\d{2}:\d{2}-\d{2}:\d{2}$')
+        valid_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "All"]
+
+        for faculty in self.input_data.faculties:
+            # Validate avail_times
+            if isinstance(faculty.avail_times, str) and faculty.avail_times.upper() != 'ALL':
+                if not time_format_regex.match(faculty.avail_times):
+                    raise ValueError(
+                        f"FATAL: Invalid 'avail_times' format for faculty '{faculty.name}' (ID: {faculty.id}). "
+                        f"Expected 'HH:MM-HH:MM' or 'ALL', but got '{faculty.avail_times}'. Please correct the input data."
+                    )
+            
+            # Validate avail_days
+            days_to_check = []
+            if isinstance(faculty.avail_days, str):
+                if faculty.avail_days.upper() == 'ALL':
+                    days_to_check = ["All"]
+                else:
+                    days_to_check = [d.strip() for d in faculty.avail_days.split(',')]
+            elif isinstance(faculty.avail_days, list):
+                days_to_check = faculty.avail_days
+
+            for day in days_to_check:
+                if day.capitalize() not in valid_days:
+                    raise ValueError(
+                        f"FATAL: Invalid 'avail_days' value for faculty '{faculty.name}' (ID: {faculty.id}). "
+                        f"Found invalid day '{day}'. Valid days are {valid_days}. Please correct the input data."
+                    )
     
     def create_events(self):
         """Create events list and mapping similar to genetic algorithm"""
@@ -90,6 +128,62 @@ class Constraints:
                             else:
                                 lecturer_watch.add(faculty_id)
 
+        return penalty
+
+    def check_lecturer_schedule_constraints(self, chromosome):
+        """
+        Checks if courses are scheduled according to the lecturer's available days and times.
+        """
+        penalty = 0
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event and class_event.faculty_id is not None:
+                        faculty = input_data.getFaculty(class_event.faculty_id)
+                        if not faculty:
+                            continue
+
+                        timeslot = self.timeslots[timeslot_idx]
+                        day_idx = timeslot_idx // input_data.hours
+                        day_abbr = days_map.get(day_idx)
+
+                        # 1. Check available days
+                        is_available_day = False
+                        if isinstance(faculty.avail_days, str):
+                            if faculty.avail_days.upper() == "ALL":
+                                is_available_day = True
+                            else:
+                                avail_days = [d.strip().capitalize() for d in faculty.avail_days.split(',')]
+                                if day_abbr in avail_days:
+                                    is_available_day = True
+                        elif isinstance(faculty.avail_days, list):
+                            avail_days = [d.strip().capitalize() for d in faculty.avail_days]
+                            if "All" in avail_days or day_abbr in avail_days:
+                                is_available_day = True
+
+                        if not is_available_day:
+                            penalty += 10
+                            continue
+
+                        # 2. Check available times
+                        if isinstance(faculty.avail_times, str) and faculty.avail_times.upper() != "ALL":
+                            try:
+                                start_avail_str, end_avail_str = faculty.avail_times.split('-')
+                                start_avail_h = int(start_avail_str.split(':')[0])
+                                end_avail_h = int(end_avail_str.split(':')[0])
+                                
+                                slot_start_h = int(timeslot.start_time.split(':')[0])
+
+                                # The end hour is exclusive. e.g., 09:00-12:00 means 9, 10, 11 are valid.
+                                if not (start_avail_h <= slot_start_h < end_avail_h):
+                                    penalty += 10
+                            except (ValueError, IndexError):
+                                # This should not be reached if validation is done correctly, but as a safeguard:
+                                penalty += 10 # Penalize malformed strings that slip through
         return penalty
 
     def check_room_time_conflict(self, chromosome):
@@ -381,6 +475,7 @@ class Constraints:
         penalty += self.check_same_course_same_room_per_day(chromosome)  # H6: Same course same room per day
         penalty += self.check_break_time_constraint(chromosome)  # H7: No classes during break time
         penalty += self.check_course_allocation_completeness(chromosome)  # H8: All courses allocated correctly
+        penalty += self.check_lecturer_schedule_constraints(chromosome) # H9: Lecturer schedule constraints
         
         # Check for soft constraint violations (S1-S3)
         cost += self.check_single_event_per_day(chromosome)  # S1
@@ -463,10 +558,10 @@ class Constraints:
             'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome),
             'break_time_constraint': self.check_break_time_constraint(chromosome),
             'course_allocation_completeness': self.check_course_allocation_completeness(chromosome),
+            'lecturer_schedule_constraints': self.check_lecturer_schedule_constraints(chromosome),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
             'consecutive_timeslots': self.check_consecutive_timeslots(chromosome),
-            'spread_events': self.check_spread_events(chromosome),
-            'course_allocation_completeness': self.check_course_allocation_completeness(chromosome)
+            'spread_events': self.check_spread_events(chromosome)
         }
         violations['total'] = sum(violations.values())
         return violations
