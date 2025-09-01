@@ -7,6 +7,10 @@ from input_data import input_data
 import numpy as np
 from constraints import Constraints
 import re
+import dash
+from dash import dcc, html, Input, Output, State, clientside_callback
+from dash.dependencies import ALL
+import json
 
 # population initialization using input_data
 class DifferentialEvolution:
@@ -984,7 +988,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(40)
+best_solution, fitness_history, generation, diversity_history = de.run(1)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
@@ -1037,83 +1041,734 @@ for constraint, points in sorted_violations:
 print(f"\nCalculated Total: {violations.get('total', 'N/A')}")
 print("--- End of Fitness Breakdown ---\n")
 
+# Get the timetable data from the DE optimization
+all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
 
+# Convert student_group objects to dictionaries for JSON serialization
+for timetable_data in all_timetables:
+    if hasattr(timetable_data['student_group'], 'name'):
+        timetable_data['student_group'] = {
+            'name': timetable_data['student_group'].name,
+            'id': getattr(timetable_data['student_group'], 'id', None)
+        }
 
-import dash
-from dash import dash_table
-from dash import dcc, html, Input, Output
-import pandas as pd
+# Try to load saved timetable if it exists
+def load_saved_timetable():
+    import json
+    import os
+    import traceback
+    
+    save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
+    
+    if os.path.exists(save_path):
+        try:
+            with open(save_path, 'r', encoding='utf-8') as f:
+                saved_data = json.load(f)
+            
+            file_size = os.path.getsize(save_path)
+            print(f"📁 Loaded saved timetable: {len(saved_data)} groups, {file_size} bytes")
+            
+            return saved_data
+        except Exception as e:
+            print(f"❌ Error loading saved timetable: {e}")
+            traceback.print_exc()
+    
+    return None
+
+def clear_saved_timetable():
+    """Clear the saved timetable file to start fresh on next run"""
+    import os
+    save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
+    backup_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data_backup.json')
+    
+    try:
+        if os.path.exists(save_path):
+            os.remove(save_path)
+            print("🗑️ Cleared saved timetable file")
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+            print("🗑️ Cleared backup timetable file")
+    except Exception as e:
+        print(f"❌ Error clearing saved files: {e}")
+
+# Load saved data if available, otherwise use freshly optimized data
+print("\n=== LOADING TIMETABLE DATA ===")
+# On fresh startup, always use the newly optimized data from DE
+# Only load saved data during Dash session for persistence
+print("✅ Using freshly optimized timetable data")
+print(f"   Generated {len(all_timetables)} student groups from DE optimization")
+print("=== TIMETABLE DATA LOADING COMPLETE ===\n")
+
+days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+hours = [f"{9 + i}:00" for i in range(input_data.hours)]
+
+# Session tracker to know if we've made any swaps
+session_has_swaps = False
 
 app = dash.Dash(__name__)
 
-# Layout for the Dash app
+# Add CSS styles to the app for drag and drop functionality
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            * {
+                font-family: 'Poppins', sans-serif;
+            }
+            .cell {
+                padding: 12px 10px;
+                border: 1px solid #e0e0e0;
+                border-radius: 3px;
+                cursor: grab;
+                min-height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 400;
+                font-size: 12px;
+                transition: all 0.2s ease;
+                user-select: none;
+                line-height: 1.2;
+                text-align: center;
+                background-color: white;
+            }
+            .cell:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                border-color: #ccc;
+            }
+            .cell.dragging {
+                opacity: 0.6;
+                transform: rotate(2deg);
+                cursor: grabbing;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+            .cell.drag-over {
+                background-color: #fff3cd !important;
+                border-color: #ffc107 !important;
+                transform: scale(1.02);
+                box-shadow: 0 2px 8px rgba(255, 193, 7, 0.6);
+            }
+            .cell.break-time {
+                background-color: #ff5722 !important;
+                color: white;
+                cursor: not-allowed;
+                font-weight: 500;
+            }
+            .cell.break-time:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .student-group-container {
+                margin-bottom: 30px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 15px;
+                background-color: #fafafa;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                max-width: 1200px;
+                margin: 0 auto 30px auto;
+            }
+            .dropdown-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 15px;
+            }
+            table {
+                font-family: 'Poppins', sans-serif;
+                font-size: 12px;
+                border-collapse: separate;
+                border-spacing: 0;
+                width: 100%;
+                background-color: white;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            }
+            th {
+                background-color: #11214D !important;
+                color: white !important;
+                padding: 12px 10px !important;
+                font-size: 13px !important;
+                font-weight: 600 !important;
+                text-align: center !important;
+                border: 1px solid #0d1a3d !important;
+                font-family: 'Poppins', sans-serif !important;
+            }
+            td {
+                padding: 0 !important;
+                border: 1px solid #e0e0e0 !important;
+                background-color: white;
+            }
+            .time-cell {
+                background-color: #11214D !important;
+                color: white !important;
+                padding: 12px 10px !important;
+                font-weight: 600 !important;
+                text-align: center !important;
+                font-size: 12px !important;
+                border: 1px solid #0d1a3d !important;
+                font-family: 'Poppins', sans-serif !important;
+            }
+            .timetable-title {
+                color: #11214D;
+                font-weight: 600;
+                margin-bottom: 20px;
+                font-size: 20px;
+                font-family: 'Poppins', sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 app.layout = html.Div([
-    html.H1("DE Timetable Output"),
-    html.Div(id='tables-container')
+    # Title and dropdown on the same line
+    html.Div([
+        html.H1("Interactive Drag & Drop Timetable - DE Optimization Results", 
+                style={"color": "#11214D", "fontWeight": "600", "fontSize": "24px", 
+                      "fontFamily": "Poppins, sans-serif", "margin": "0", "flex": "1"}),
+        
+        dcc.Dropdown(
+            id='student-group-dropdown',
+            options=[{'label': timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) 
+                              else timetable_data['student_group'].name, 'value': idx} 
+                    for idx, timetable_data in enumerate(all_timetables)],
+            value=0,
+            style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
+        )
+    ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+             "marginTop": "30px", "marginBottom": "30px", "maxWidth": "1200px", 
+             "margin": "30px auto", "padding": "0 15px"}),
+    
+    # Store for timetable data
+    dcc.Store(id="all-timetables-store", data=all_timetables),
+    
+    # Store for communicating swaps
+    dcc.Store(id="swap-data", data=None),
+    
+    # Hidden div to trigger the setup
+    html.Div(id="trigger", style={"display": "none"}),
+    
+    # Timetable container
+    html.Div(id="timetable-container"),
+    
+    # Button to save current timetable state
+    html.Div([
+        html.Button("Save Current Timetable", id="save-button", 
+                   style={"backgroundColor": "#11214D", "color": "white", "padding": "10px 20px", 
+                         "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
+                         "fontWeight": "600", "boxShadow": "0 1px 3px rgba(0,0,0,0.1)",
+                         "transition": "all 0.2s ease", "fontFamily": "Poppins, sans-serif"}),
+        html.Div(id="save-status", style={"marginTop": "12px", "fontWeight": "600", 
+                                         "fontFamily": "Poppins, sans-serif", "fontSize": "12px"})
+    ], style={"textAlign": "center", "marginTop": "30px", "maxWidth": "1200px", "margin": "30px auto 0 auto"}),
+    
+    # Feedback area
+    html.Div(id="feedback", style={
+        "marginTop": "20px", 
+        "textAlign": "center", 
+        "fontSize": "16px", 
+        "fontWeight": "bold",
+        "minHeight": "30px",
+        "maxWidth": "1200px",
+        "margin": "20px auto 0 auto"
+    })
 ])
 
-# Callback to generate tables dynamically
 @app.callback(
-    Output('tables-container', 'children'),
-    [Input('tables-container', 'n_clicks')]
+    [Output("timetable-container", "children"),
+     Output("trigger", "children")],
+    [Input("all-timetables-store", "data"),
+     Input("student-group-dropdown", "value")]
 )
-def render_tables(n_clicks):
-    all_timetables = de.print_all_timetables(best_solution, input_data.days, input_data.hours, 9)
-    # print(all_timetables)
-    tables = []
-    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+def create_timetable(all_timetables_data, selected_group_idx):
+    # Only load saved data if we're in an active session and there have been changes
+    # Don't load on fresh startup - use the fresh DE results
+    global all_timetables
     
-    for timetable_data in all_timetables:
-        table = dash_table.DataTable(
-            columns=[{"name": "Time", "id": "Time"}] + [{"name": day, "id": day} for day in days_of_week],
-            data=[dict(zip(["Time"] + days_of_week, row)) for row in timetable_data["timetable"]],
-            style_cell={
-                'textAlign': 'center',
-                'height': 'auto',
-                'whiteSpace': 'normal',
-            },
-            style_data_conditional=[
-                {
-                    'if': {'column_id': 'Monday'},
-                    'backgroundColor': 'lightblue',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Tuesday'},
-                    'backgroundColor': 'lightgreen',
-                    'color': 'black',
-                },
-                  {
-                    'if': {'column_id': 'Wednesday'},
-                    'backgroundColor': 'lavender',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Thursday'},
-                    'backgroundColor': 'lightcyan',
-                    'color': 'black',
-                },
-                {
-                    'if': {'column_id': 'Friday'},
-                    'backgroundColor': 'lightyellow',
-                    'color': 'black',
-                },
-                # Add more styles for other days as needed
-            ],
-            tooltip_data=[
-                {
-                    day: {'value': 'Room info goes here', 'type': 'markdown'} for day in days_of_week
-                } for row in timetable_data["timetable"]
-            ],
-            tooltip_duration=None
-        )
+    if selected_group_idx is None or not all_timetables_data:
+        return html.Div("No data available"), "trigger"
+    
+    # Get the selected student group data
+    timetable_data = all_timetables_data[selected_group_idx]
+    student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
+    timetable_rows = timetable_data['timetable']
+    
+    # Create table rows
+    rows = []
+    
+    # Header row
+    header_cells = [html.Th("Time", style={
+        "backgroundColor": "#11214D", 
+        "color": "white", 
+        "padding": "12px 10px",
+        "fontWeight": "600",
+        "fontSize": "13px",
+        "textAlign": "center",
+        "border": "1px solid #0d1a3d",
+        "fontFamily": "Poppins, sans-serif"
+    })]
+    
+    for day in days_of_week:
+        header_cells.append(html.Th(day, style={
+            "backgroundColor": "#11214D", 
+            "color": "white", 
+            "padding": "12px 10px",
+            "fontWeight": "600",
+            "fontSize": "13px",
+            "textAlign": "center",
+            "border": "1px solid #0d1a3d",
+            "fontFamily": "Poppins, sans-serif"
+        }))
+    
+    rows.append(html.Thead(html.Tr(header_cells)))
+    
+    # Data rows
+    body_rows = []
+    
+    for row_idx in range(len(timetable_rows)):
+        cells = [html.Td(timetable_rows[row_idx][0], className="time-cell")]  # Time column with special class
+        
+        for col_idx in range(1, len(timetable_rows[row_idx])):  # Skip time column
+            cell_content = timetable_rows[row_idx][col_idx] if timetable_rows[row_idx][col_idx] else "FREE"
+            cell_id = {"type": "cell", "group": selected_group_idx, "row": row_idx, "col": col_idx-1}
+            
+            # Check if this is a break time
+            is_break = cell_content == "BREAK"
+            cell_class = "cell break-time" if is_break else "cell"
+            
+            # Make break times non-draggable
+            draggable = "false" if is_break else "true"
+            
+            cells.append(
+                html.Td(
+                    html.Div(
+                        cell_content,
+                        id=cell_id,
+                        className=cell_class,
+                        draggable=draggable,
+                        n_clicks=0
+                    ),
+                    style={"padding": "0", "border": "1px solid #e0e0e0"}
+                )
+            )
+        
+        body_rows.append(html.Tr(cells))
+    
+    rows.append(html.Tbody(body_rows))
+    
+    table = html.Table(rows, style={
+        "width": "100%",
+        "borderCollapse": "separate",
+        "borderSpacing": "0",
+        "backgroundColor": "white",
+        "borderRadius": "6px",
+        "overflow": "hidden",
+        "fontSize": "12px",
+        "boxShadow": "0 2px 6px rgba(0,0,0,0.08)",
+        "fontFamily": "Poppins, sans-serif"
+    })
+    
+    return html.Div([
+        html.H2(f"Timetable for {student_group_name}", 
+               className="timetable-title",
+               style={"textAlign": "center", "color": "#11214D", "marginBottom": "20px", 
+                     "fontWeight": "600", "fontSize": "20px", "fontFamily": "Poppins, sans-serif"}),
+        table
+    ], className="student-group-container"), "trigger"
 
-        tables.append(html.Div([
-            html.H3(f"Timetable for {timetable_data['student_group'].name}"), 
-            table
-        ]))
+# Client-side callback for drag and drop functionality
+clientside_callback(
+    """
+    function(trigger) {
+        console.log('Setting up drag and drop...');
+        
+        // Global variables for drag state
+        window.draggedElement = null;
+        window.dragStartData = null;
+        
+        function setupDragAndDrop() {
+            const cells = document.querySelectorAll('.cell');
+            console.log('Found', cells.length, 'draggable cells');
+            
+            cells.forEach(function(cell) {
+                // Clear existing listeners
+                cell.ondragstart = null;
+                cell.ondragover = null;
+                cell.ondragenter = null;
+                cell.ondragleave = null;
+                cell.ondrop = null;
+                cell.ondragend = null;
+                
+                cell.ondragstart = function(e) {
+                    console.log('Drag started');
+                    
+                    // Prevent dragging break times
+                    if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
+                        console.log('Cannot drag break time');
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    window.draggedElement = this;
+                    
+                    // Get row and col from the element's ID
+                    const idStr = this.id;
+                    try {
+                        const idObj = JSON.parse(idStr);
+                        window.dragStartData = {
+                            group: idObj.group,
+                            row: idObj.row,
+                            col: idObj.col,
+                            content: this.textContent.trim()
+                        };
+                        console.log('Drag data:', window.dragStartData);
+                    } catch (e) {
+                        console.error('Could not parse ID:', idStr);
+                        return false;
+                    }
+                    
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', this.id);
+                };
+                
+                cell.ondragover = function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    return false;
+                };
+                
+                cell.ondragenter = function(e) {
+                    e.preventDefault();
+                    // Don't allow dropping on break times
+                    if (this !== window.draggedElement && 
+                        !this.classList.contains('break-time') && 
+                        this.textContent.trim() !== 'BREAK') {
+                        this.classList.add('drag-over');
+                    }
+                    return false;
+                };
+                
+                cell.ondragleave = function(e) {
+                    this.classList.remove('drag-over');
+                };
+                
+                cell.ondrop = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Drop detected');
+                    
+                    // Prevent dropping on break times
+                    if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
+                        console.log('Cannot drop on break time');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    if (window.draggedElement && this !== window.draggedElement) {
+                        // Get target data
+                        const targetIdStr = this.id;
+                        try {
+                            const targetIdObj = JSON.parse(targetIdStr);
+                            const targetData = {
+                                group: targetIdObj.group,
+                                row: targetIdObj.row,
+                                col: targetIdObj.col,
+                                content: this.textContent.trim()
+                            };
+                            
+                            console.log('Swapping:', window.dragStartData, 'with:', targetData);
+                            
+                            // Perform the swap
+                            const tempContent = window.draggedElement.textContent;
+                            window.draggedElement.textContent = this.textContent;
+                            this.textContent = tempContent;
+                            
+                            // Trigger callback to update backend data
+                            window.dash_clientside.set_props("swap-data", {
+                                data: {
+                                    source: window.dragStartData,
+                                    target: targetData,
+                                    timestamp: Date.now()
+                                }
+                            });
+                            
+                            // Update feedback
+                            const feedback = document.getElementById('feedback');
+                            if (feedback) {
+                                feedback.innerHTML = '✅ Swapped "' + window.dragStartData.content + '" with "' + targetData.content + '"';
+                                feedback.style.color = 'green';
+                                feedback.style.backgroundColor = '#e8f5e8';
+                                feedback.style.padding = '10px';
+                                feedback.style.borderRadius = '5px';
+                                feedback.style.border = '2px solid #4caf50';
+                            }
+                            
+                            console.log('Swap completed successfully');
+                            
+                        } catch (e) {
+                            console.error('Could not parse target ID:', targetIdStr);
+                        }
+                    }
+                    
+                    this.classList.remove('drag-over');
+                    return false;
+                };
+                
+                cell.ondragend = function(e) {
+                    console.log('Drag ended');
+                    this.classList.remove('dragging');
+                    
+                    // Clean up all drag-over classes
+                    const cells = document.querySelectorAll('.cell');
+                    cells.forEach(function(c) {
+                        c.classList.remove('drag-over');
+                    });
+                    
+                    window.draggedElement = null;
+                    window.dragStartData = null;
+                };
+            });
+        }
+        
+        // Setup immediately
+        setTimeout(setupDragAndDrop, 100);
+        
+        // Also setup when DOM changes
+        const observer = new MutationObserver(function(mutations) {
+            let shouldSetup = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    for (let i = 0; i < mutation.addedNodes.length; i++) {
+                        const node = mutation.addedNodes[i];
+                        if (node.nodeType === 1 && (node.classList.contains('cell') || node.querySelector('.cell'))) {
+                            shouldSetup = true;
+                            break;
+                        }
+                    }
+                }
+            });
+            if (shouldSetup) {
+                setTimeout(setupDragAndDrop, 100);
+            }
+        });
+        
+        const container = document.getElementById('timetable-container');
+        if (container) {
+            observer.observe(container, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        console.log('Drag and drop setup complete');
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("feedback", "style"),
+    Input("trigger", "children"),
+    prevent_initial_call=False
+)
+
+# Callback to handle swaps and update the backend data
+@app.callback(
+    Output("all-timetables-store", "data"),
+    Input("swap-data", "data"),
+    State("all-timetables-store", "data"),
+    prevent_initial_call=True
+)
+def handle_swap(swap_data, current_timetables):
+    global all_timetables, session_has_swaps
     
-    return tables
+    if not swap_data or not current_timetables:
+        return current_timetables
+    
+    try:
+        source = swap_data['source']
+        target = swap_data['target']
+        
+        # Make sure both swaps are in the same group
+        if source['group'] != target['group']:
+            print("Cannot swap between different student groups")
+            return current_timetables
+        
+        # Prevent swapping with BREAK times
+        if source['content'] == 'BREAK' or target['content'] == 'BREAK':
+            print("Cannot swap with BREAK time")
+            return current_timetables
+        
+        # Mark that we've made swaps in this session
+        session_has_swaps = True
+        
+        group_idx = source['group']
+        
+        # Update the timetable data
+        timetable_rows = current_timetables[group_idx]['timetable']
+        
+        # Get the current content (skip time column, so add 1 to col index)
+        source_content = timetable_rows[source['row']][source['col'] + 1]
+        target_content = timetable_rows[target['row']][target['col'] + 1]
+        
+        # Perform the swap
+        timetable_rows[source['row']][source['col'] + 1] = target_content
+        timetable_rows[target['row']][target['col'] + 1] = source_content
+        
+        print(f"Backend swap completed: {source_content} <-> {target_content}")
+        
+        # Update the global all_timetables variable to ensure persistence
+        all_timetables[group_idx]['timetable'] = timetable_rows
+        
+        # Also update the current_timetables to return
+        current_timetables[group_idx]['timetable'] = timetable_rows
+        
+        # Debug: Print some info about what we're about to save
+        print(f"DEBUG: About to save data for group {group_idx}")
+        print(f"DEBUG: Source row {source['row']}, col {source['col']}: '{current_timetables[group_idx]['timetable'][source['row']][source['col'] + 1]}'")
+        print(f"DEBUG: Target row {target['row']}, col {target['col']}: '{current_timetables[group_idx]['timetable'][target['row']][target['col'] + 1]}'")
+        
+        # Auto-save the changes to maintain persistence
+        try:
+            import os
+            import json
+            import time
+            import shutil
+            import traceback
+            
+            save_dir = os.path.join(os.path.dirname(__file__), 'data')
+            os.makedirs(save_dir, exist_ok=True)  # Use exist_ok=True to avoid errors
+            save_path = os.path.join(save_dir, 'timetable_data.json')
+            
+            # Add timestamp to track saves
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"[{timestamp}] Attempting to auto-save swap: {source['content']} <-> {target['content']}")
+            print(f"Auto-save path: {save_path}")
+            print(f"Number of student groups: {len(current_timetables)}")
+            
+            # Create a backup before saving
+            backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
+            if os.path.exists(save_path):
+                shutil.copy2(save_path, backup_path)
+                print(f"Created backup at: {backup_path}")
+            
+            # Force a file flush and sync to ensure data is written to disk
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(current_timetables, f, indent=2, default=str, ensure_ascii=False)
+                f.flush()  # Force write to disk
+                os.fsync(f.fileno())  # Force OS to write to physical storage
+            
+            # Verify the file was written successfully
+            if os.path.exists(save_path):
+                file_size = os.path.getsize(save_path)
+                print(f"✅ Auto-saved successfully! File size: {file_size} bytes")
+                
+                # Verify we can read it back and check the specific swapped data
+                with open(save_path, 'r', encoding='utf-8') as f:
+                    test_load = json.load(f)
+                print(f"✅ Verification: Can read back {len(test_load)} student groups")
+                
+                # Verify the actual swap was saved
+                saved_source = test_load[group_idx]['timetable'][source['row']][source['col'] + 1]
+                saved_target = test_load[group_idx]['timetable'][target['row']][target['col'] + 1]
+                print(f"✅ Verification: Saved source = '{saved_source}', target = '{saved_target}'")
+                
+            else:
+                print("❌ ERROR: Auto-save file was not created!")
+                
+        except Exception as auto_save_error:
+            print(f"❌ Auto-save failed with error: {auto_save_error}")
+            import traceback
+            traceback.print_exc()
+        
+        return current_timetables
+        
+    except Exception as e:
+        print(f"Error handling swap: {e}")
+        return current_timetables
+
+# Callback to handle saving the current timetable state
+@app.callback(
+    Output("save-status", "children"),
+    Input("save-button", "n_clicks"),
+    State("all-timetables-store", "data"),
+    prevent_initial_call=True
+)
+def save_timetable(n_clicks, current_timetables):
+    if n_clicks and current_timetables:
+        try:
+            # Update the global variable
+            global all_timetables
+            all_timetables = current_timetables
+            
+            # Save to JSON file for persistence
+            import json
+            import os
+            
+            # Create a data directory if it doesn't exist
+            save_dir = os.path.join(os.path.dirname(__file__), 'data')
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+            
+            # Save the timetable data
+            save_path = os.path.join(save_dir, 'timetable_data.json')
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(current_timetables, f, indent=2, default=str, ensure_ascii=False)
+            
+            print("Timetable state saved to file")
+            print(f"Current timetables contain {len(all_timetables)} student groups")
+            print(f"Saved to: {save_path}")
+            
+            return html.Div([
+                html.Span("✅ Timetable saved successfully!", style={"color": "green", "fontWeight": "bold"}),
+                html.Br(),
+                html.Small(f"Saved to: {save_path}", style={"color": "gray"})
+            ])
+            
+        except Exception as e:
+            print(f"Error saving timetable: {e}")
+            return html.Div([
+                html.Span("❌ Error saving timetable!", style={"color": "red", "fontWeight": "bold"}),
+                html.Br(),
+                html.Small(f"Error: {str(e)}", style={"color": "red"})
+            ])
+    
+    return ""
+
+# Callback to refresh timetable data from file on page load
+@app.callback(
+    Output("all-timetables-store", "data", allow_duplicate=True),
+    Input("student-group-dropdown", "value"),
+    prevent_initial_call='initial_duplicate'
+)
+def refresh_timetable_data(selected_group_idx):
+    # Only load saved data if we've made swaps in this session
+    global session_has_swaps, all_timetables
+    
+    if session_has_swaps:
+        fresh_saved_data = load_saved_timetable()
+        if fresh_saved_data:
+            print(f"🔄 Session has swaps - loading saved data: {len(fresh_saved_data)} student groups")
+            return fresh_saved_data
+    
+    # Otherwise, use the current all_timetables (fresh DE results)
+    print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
+    return all_timetables
 
 # Run the Dash app
 if __name__ == '__main__':
