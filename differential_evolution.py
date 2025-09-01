@@ -43,8 +43,8 @@ class DifferentialEvolution:
         for student_group in self.student_groups:
             group_name = student_group.name.lower()
             if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
+                'engineering', 'eng', 'computer science', 'software engineering', 'data science',
+                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
             ]):
                 self.engineering_groups.add(student_group.id)
         

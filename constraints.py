@@ -240,8 +240,8 @@ class Constraints:
             group_name = student_group.name.lower()
             # Check for engineering, computer science, software engineering keywords
             if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
+                'engineering', 'eng', 'computer science', 'software engineering', 'data science',
+                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
             ]):
                 engineering_groups.append(student_group.id)
         
