@@ -11,6 +11,9 @@ import dash
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
 import json
+import os
+import shutil
+import traceback
 
 # population initialization using input_data
 class DifferentialEvolution:
@@ -40,8 +43,8 @@ class DifferentialEvolution:
         for student_group in self.student_groups:
             group_name = student_group.name.lower()
             if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
+                'engineering', 'eng', 'computer science', 'software engineering', 'data science',
+                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
             ]):
                 self.engineering_groups.add(student_group.id)
         
@@ -1052,6 +1055,17 @@ for timetable_data in all_timetables:
             'id': getattr(timetable_data['student_group'], 'id', None)
         }
 
+# Load rooms data for classroom selection
+import json
+rooms_data = []
+try:
+    with open(os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json'), 'r', encoding='utf-8') as f:
+        rooms_data = json.load(f)
+    print(f"📚 Loaded {len(rooms_data)} rooms for classroom selection")
+except Exception as e:
+    print(f"❌ Error loading rooms data: {e}")
+    rooms_data = []
+
 # Try to load saved timetable if it exists
 def load_saved_timetable():
     import json
@@ -1104,6 +1118,73 @@ hours = [f"{9 + i}:00" for i in range(input_data.hours)]
 
 # Session tracker to know if we've made any swaps
 session_has_swaps = False
+
+def has_any_room_conflicts(all_timetables_data):
+    """Check if there are any room conflicts across all student groups"""
+    if not all_timetables_data:
+        return False
+    
+    # Check each time slot across all groups
+    for group_idx in range(len(all_timetables_data)):
+        conflicts = detect_room_conflicts(all_timetables_data, group_idx)
+        if conflicts:
+            return True
+    
+    return False
+
+def extract_room_from_cell(cell_content):
+    """Extract room name from cell content like 'Course: CPE 305, Lecturer: Dr. Smith, Room: Classroom 1'"""
+    if not cell_content or cell_content in ["FREE", "BREAK"]:
+        return None
+    
+    # Look for Room: pattern
+    import re
+    room_match = re.search(r'Room:\s*(.+?)(?:,|$)', cell_content)
+    if room_match:
+        return room_match.group(1).strip()
+    return None
+
+def detect_room_conflicts(all_timetables_data, current_group_idx):
+    """Detect room conflicts across all student groups at each time slot"""
+    conflicts = {}
+    
+    if not all_timetables_data:
+        return conflicts
+    
+    # Get all time slots from the current group's timetable
+    current_timetable = all_timetables_data[current_group_idx]['timetable']
+    
+    for row_idx in range(len(current_timetable)):
+        for col_idx in range(1, len(current_timetable[row_idx])):  # Skip time column
+            timeslot_key = f"{row_idx}_{col_idx-1}"
+            room_usage = {}  # room_name -> [(group_idx, group_name, course_info), ...]
+            
+            # Check all groups for this time slot
+            for group_idx, timetable_data in enumerate(all_timetables_data):
+                timetable_rows = timetable_data['timetable']
+                if row_idx < len(timetable_rows) and col_idx < len(timetable_rows[row_idx]):
+                    cell_content = timetable_rows[row_idx][col_idx]
+                    room_name = extract_room_from_cell(cell_content)
+                    
+                    if room_name:
+                        if room_name not in room_usage:
+                            room_usage[room_name] = []
+                        
+                        group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
+                        room_usage[room_name].append((group_idx, group_name, cell_content))
+            
+            # Check for conflicts (same room used by multiple groups)
+            for room_name, usage_list in room_usage.items():
+                if len(usage_list) > 1:
+                    # There's a conflict - mark all groups using this room at this time
+                    for group_idx, group_name, cell_content in usage_list:
+                        if group_idx == current_group_idx:
+                            conflicts[timeslot_key] = {
+                                'room': room_name,
+                                'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
+                            }
+    
+    return conflicts
 
 app = dash.Dash(__name__)
 
@@ -1165,6 +1246,160 @@ app.index_string = '''
                 transform: none;
                 box-shadow: none;
             }
+            .cell.room-conflict {
+                background-color: #ffebee !important;
+                color: #d32f2f !important;
+                border-color: #f44336 !important;
+                font-weight: 600 !important;
+            }
+            .cell.room-conflict:hover {
+                background-color: #ffcdd2 !important;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
+            .room-selection-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                padding: 25px;
+                z-index: 1000;
+                max-width: 450px;
+                width: 90%;
+                max-height: 70vh;
+                overflow-y: auto;
+                font-family: 'Poppins', sans-serif;
+            }
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+            .modal-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #11214D;
+                margin: 0;
+            }
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: #666;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 50%;
+                transition: all 0.2s ease;
+            }
+            .modal-close:hover {
+                background-color: #f5f5f5;
+                color: #333;
+            }
+            .room-search {
+                width: calc(100% - 32px);
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 14px;
+                font-family: 'Poppins', sans-serif;
+                margin-bottom: 15px;
+                transition: border-color 0.2s ease;
+                box-sizing: border-box;
+            }
+            .room-search:focus {
+                outline: none;
+                border-color: #11214D;
+            }
+            .room-options {
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+            }
+            .room-option {
+                padding: 12px 16px;
+                border-bottom: 1px solid #f0f0f0;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+                font-size: 13px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .room-option:last-child {
+                border-bottom: none;
+            }
+            .room-option:hover {
+                background-color: #f8f9fa;
+            }
+            .room-option.available {
+                color: #2e7d32;
+                font-weight: 500;
+            }
+            .room-option.occupied {
+                color: #d32f2f;
+                font-weight: 500;
+            }
+            .room-option.selected {
+                background-color: #e3f2fd;
+                border-left: 4px solid #11214D;
+            }
+            .room-info {
+                font-size: 11px;
+                color: #666;
+            }
+            .conflict-warning {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                background: #ffebee;
+                border: 2px solid #f44336;
+                border-radius: 8px;
+                padding: 15px;
+                max-width: 350px;
+                z-index: 1001;
+                font-family: 'Poppins', sans-serif;
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+            }
+            .conflict-warning-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+            }
+            .conflict-warning-title {
+                font-weight: 600;
+                color: #d32f2f;
+                font-size: 14px;
+            }
+            .conflict-warning-close {
+                background: none;
+                border: none;
+                font-size: 18px;
+                color: #d32f2f;
+                cursor: pointer;
+                padding: 2px;
+            }
+            .conflict-warning-content {
+                color: #b71c1c;
+                font-size: 12px;
+                line-height: 1.4;
+            }
             .student-group-container {
                 margin-bottom: 30px;
                 border: 1px solid #e0e0e0;
@@ -1223,6 +1458,71 @@ app.index_string = '''
                 font-size: 20px;
                 font-family: 'Poppins', sans-serif;
             }
+            .timetable-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+            .nav-arrows {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .nav-arrow {
+                background: #11214D;
+                color: white;
+                border: none;
+                border-radius: 15%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.2s ease;
+                font-family: 'Poppins', sans-serif;
+            }
+            .nav-arrow:hover {
+                background: #0d1a3d;
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(17, 33, 77, 0.3);
+            }
+            .nav-arrow:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .save-error {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ffebee;
+                border: 2px solid #f44336;
+                border-radius: 8px;
+                padding: 15px 20px;
+                max-width: 400px;
+                z-index: 1001;
+                font-family: 'Poppins', sans-serif;
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+                text-align: center;
+            }
+            .save-error-title {
+                font-weight: 600;
+                color: #d32f2f;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+            .save-error-content {
+                color: #b71c1c;
+                font-size: 12px;
+                line-height: 1.4;
+            }
         </style>
     </head>
     <body>
@@ -1258,14 +1558,67 @@ app.layout = html.Div([
     # Store for timetable data
     dcc.Store(id="all-timetables-store", data=all_timetables),
     
+    # Store for rooms data
+    dcc.Store(id="rooms-data-store", data=rooms_data),
+    
     # Store for communicating swaps
     dcc.Store(id="swap-data", data=None),
+    
+    # Store for room changes
+    dcc.Store(id="room-change-data", data=None),
     
     # Hidden div to trigger the setup
     html.Div(id="trigger", style={"display": "none"}),
     
     # Timetable container
     html.Div(id="timetable-container"),
+    
+    # Room selection modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Select Classroom", className="modal-title"),
+                html.Button("×", className="modal-close", id="modal-close-btn")
+            ], className="modal-header"),
+            
+            dcc.Input(
+                id="room-search-input",
+                type="text",
+                placeholder="Search classrooms...",
+                className="room-search"
+            ),
+            
+            html.Div(id="room-options-container", className="room-options"),
+            
+            html.Div([
+                html.Button("Cancel", id="room-cancel-btn", 
+                           style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", 
+                                 "border": "1px solid #ddd", "borderRadius": "5px", "marginRight": "10px",
+                                 "cursor": "pointer", "fontFamily": "Poppins, sans-serif"}),
+                html.Button("Confirm", id="room-confirm-btn", 
+                           style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="room-selection-modal", style={"display": "none"})
+    ]),
+    
+    # Conflict warning popup (initially hidden)
+    html.Div([
+        html.Div([
+            html.Span("⚠️ Classroom Conflict", className="conflict-warning-title"),
+            html.Button("×", className="conflict-warning-close", id="conflict-close-btn")
+        ], className="conflict-warning-header"),
+        html.Div(id="conflict-warning-text", className="conflict-warning-content")
+    ], className="conflict-warning", id="conflict-warning", style={"display": "none"}),
+    
+    # Save error popup (initially hidden)
+    html.Div([
+        html.Div("❌ Cannot Save Timetable", className="save-error-title"),
+        html.Div("Please resolve all classroom conflicts before saving the timetable.", className="save-error-content")
+    ], className="save-error", id="save-error", style={"display": "none"}),
     
     # Button to save current timetable state
     html.Div([
@@ -1309,6 +1662,9 @@ def create_timetable(all_timetables_data, selected_group_idx):
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
     timetable_rows = timetable_data['timetable']
     
+    # Detect room conflicts across all time slots
+    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    
     # Create table rows
     rows = []
     
@@ -1350,10 +1706,21 @@ def create_timetable(all_timetables_data, selected_group_idx):
             
             # Check if this is a break time
             is_break = cell_content == "BREAK"
-            cell_class = "cell break-time" if is_break else "cell"
             
-            # Make break times non-draggable
-            draggable = "false" if is_break else "true"
+            # Check for room conflicts
+            timeslot_key = f"{row_idx}_{col_idx-1}"
+            has_conflict = timeslot_key in room_conflicts
+            
+            # Determine cell class
+            if is_break:
+                cell_class = "cell break-time"
+                draggable = "false"
+            elif has_conflict:
+                cell_class = "cell room-conflict"
+                draggable = "true"
+            else:
+                cell_class = "cell"
+                draggable = "true"
             
             cells.append(
                 html.Td(
@@ -1385,22 +1752,54 @@ def create_timetable(all_timetables_data, selected_group_idx):
     })
     
     return html.Div([
-        html.H2(f"Timetable for {student_group_name}", 
-               className="timetable-title",
-               style={"textAlign": "center", "color": "#11214D", "marginBottom": "20px", 
-                     "fontWeight": "600", "fontSize": "20px", "fontFamily": "Poppins, sans-serif"}),
+        html.Div([
+            html.H2(f"Timetable for {student_group_name}", 
+                   className="timetable-title",
+                   style={"color": "#11214D", "fontWeight": "600", "fontSize": "20px", 
+                         "fontFamily": "Poppins, sans-serif", "margin": "0"}),
+            html.Div([
+                html.Button("‹", className="nav-arrow", id="prev-group-btn",
+                           disabled=selected_group_idx == 0),
+                html.Button("›", className="nav-arrow", id="next-group-btn", 
+                           disabled=selected_group_idx == len(all_timetables_data) - 1)
+            ], className="nav-arrows")
+        ], className="timetable-header"),
         table
     ], className="student-group-container"), "trigger"
 
-# Client-side callback for drag and drop functionality
+# Callback to handle navigation arrows
+@app.callback(
+    Output("student-group-dropdown", "value"),
+    [Input("prev-group-btn", "n_clicks"),
+     Input("next-group-btn", "n_clicks")],
+    [State("student-group-dropdown", "value"),
+     State("all-timetables-store", "data")],
+    prevent_initial_call=True
+)
+def handle_navigation(prev_clicks, next_clicks, current_value, all_timetables_data):
+    ctx = dash.callback_context
+    if not ctx.triggered or not all_timetables_data:
+        return current_value
+    
+    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if button_id == "prev-group-btn" and current_value > 0:
+        return current_value - 1
+    elif button_id == "next-group-btn" and current_value < len(all_timetables_data) - 1:
+        return current_value + 1
+    
+    return current_value
+
+# Client-side callback for drag and drop functionality and double-click room selection
 clientside_callback(
     """
     function(trigger) {
-        console.log('Setting up drag and drop...');
+        console.log('Setting up drag and drop and double-click functionality...');
         
         // Global variables for drag state
         window.draggedElement = null;
         window.dragStartData = null;
+        window.selectedCell = null;
         
         function setupDragAndDrop() {
             const cells = document.querySelectorAll('.cell');
@@ -1414,6 +1813,53 @@ clientside_callback(
                 cell.ondragleave = null;
                 cell.ondrop = null;
                 cell.ondragend = null;
+                cell.ondblclick = null;
+                
+                // Double-click handler for room selection
+                cell.ondblclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Double-click detected on cell');
+                    
+                    // Don't allow room selection for break times or free slots
+                    if (this.classList.contains('break-time') || 
+                        this.textContent.trim() === 'BREAK' || 
+                        this.textContent.trim() === 'FREE') {
+                        console.log('Cannot select room for break time or free slot');
+                        return;
+                    }
+                    
+                    // Store the selected cell
+                    window.selectedCell = this;
+                    
+                    // Show room selection modal
+                    const modal = document.getElementById('room-selection-modal');
+                    const overlay = document.getElementById('modal-overlay');
+                    
+                    if (modal && overlay) {
+                        modal.style.display = 'block';
+                        overlay.style.display = 'block';
+                        
+                        // Trigger room options loading
+                        window.dash_clientside.set_props("room-change-data", {
+                            data: {
+                                action: 'show_modal',
+                                cell_id: this.id,
+                                cell_content: this.textContent.trim(),
+                                timestamp: Date.now()
+                            }
+                        });
+                        
+                        // Focus on search input
+                        setTimeout(function() {
+                            const searchInput = document.getElementById('room-search-input');
+                            if (searchInput) {
+                                searchInput.focus();
+                            }
+                        }, 100);
+                    }
+                };
                 
                 cell.ondragstart = function(e) {
                     console.log('Drag started');
@@ -1548,8 +1994,52 @@ clientside_callback(
             });
         }
         
+        // Setup modal close handlers
+        function setupModalHandlers() {
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const roomCancelBtn = document.getElementById('room-cancel-btn');
+            const overlay = document.getElementById('modal-overlay');
+            const conflictCloseBtn = document.getElementById('conflict-close-btn');
+            
+            function closeModal() {
+                const modal = document.getElementById('room-selection-modal');
+                const overlay = document.getElementById('modal-overlay');
+                if (modal && overlay) {
+                    modal.style.display = 'none';
+                    overlay.style.display = 'none';
+                }
+                window.selectedCell = null;
+            }
+            
+            function closeConflictWarning() {
+                const warning = document.getElementById('conflict-warning');
+                if (warning) {
+                    warning.style.display = 'none';
+                }
+            }
+            
+            if (modalCloseBtn) {
+                modalCloseBtn.onclick = closeModal;
+            }
+            
+            if (roomCancelBtn) {
+                roomCancelBtn.onclick = closeModal;
+            }
+            
+            if (overlay) {
+                overlay.onclick = closeModal;
+            }
+            
+            if (conflictCloseBtn) {
+                conflictCloseBtn.onclick = closeConflictWarning;
+            }
+        }
+        
         // Setup immediately
-        setTimeout(setupDragAndDrop, 100);
+        setTimeout(function() {
+            setupDragAndDrop();
+            setupModalHandlers();
+        }, 100);
         
         // Also setup when DOM changes
         const observer = new MutationObserver(function(mutations) {
@@ -1566,7 +2056,10 @@ clientside_callback(
                 }
             });
             if (shouldSetup) {
-                setTimeout(setupDragAndDrop, 100);
+                setTimeout(function() {
+                    setupDragAndDrop();
+                    setupModalHandlers();
+                }, 100);
             }
         });
         
@@ -1578,7 +2071,7 @@ clientside_callback(
             });
         }
         
-        console.log('Drag and drop setup complete');
+        console.log('Drag and drop and double-click setup complete');
         return window.dash_clientside.no_update;
     }
     """,
@@ -1587,9 +2080,349 @@ clientside_callback(
     prevent_initial_call=False
 )
 
-# Callback to handle swaps and update the backend data
+# Client-side callback for room option selection highlighting
+clientside_callback(
+    """
+    function(children) {
+        if (!children) return window.dash_clientside.no_update;
+        
+        // Add click handlers for room options
+        setTimeout(function() {
+            const roomOptions = document.querySelectorAll('.room-option');
+            
+            roomOptions.forEach(function(option) {
+                option.onclick = function() {
+                    // Remove selected class from all options
+                    roomOptions.forEach(function(opt) {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                };
+            });
+        }, 100);
+        
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("room-options-container", "style"),
+    Input("room-options-container", "children"),
+    prevent_initial_call=True
+)
+
+# Client-side callback to close modal after room confirmation
+clientside_callback(
+    """
+    function(n_clicks) {
+        if (n_clicks) {
+            // Close the modal
+            const modal = document.getElementById('room-selection-modal');
+            const overlay = document.getElementById('modal-overlay');
+            
+            if (modal && overlay) {
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+            
+            // Clear the selected cell
+            window.selectedCell = null;
+            
+            // Show success feedback
+            const feedback = document.getElementById('feedback');
+            if (feedback) {
+                feedback.innerHTML = '✅ Classroom updated successfully';
+                feedback.style.color = 'green';
+                feedback.style.backgroundColor = '#e8f5e8';
+                feedback.style.padding = '10px';
+                feedback.style.borderRadius = '5px';
+                feedback.style.border = '2px solid #4caf50';
+            }
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("room-confirm-btn", "style"),
+    Input("room-confirm-btn", "n_clicks"),
+    prevent_initial_call=True
+)
+
+# Client-side callback to auto-hide save error popup
+clientside_callback(
+    """
+    function(style) {
+        if (style && style.display === 'block') {
+            // Auto-hide after 4 seconds
+            setTimeout(function() {
+                const saveError = document.getElementById('save-error');
+                if (saveError) {
+                    saveError.style.display = 'none';
+                }
+            }, 4000);
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("save-error", "children"),
+    Input("save-error", "style"),
+    prevent_initial_call=True
+)
+
+# Callback to handle room selection modal and search
 @app.callback(
-    Output("all-timetables-store", "data"),
+    [Output("room-options-container", "children"),
+     Output("room-selection-modal", "style"),
+     Output("modal-overlay", "style")],
+    [Input("room-change-data", "data"),
+     Input("room-search-input", "value")],
+    [State("all-timetables-store", "data"),
+     State("rooms-data-store", "data"),
+     State("student-group-dropdown", "value")],
+    prevent_initial_call=True
+)
+def handle_room_modal(room_change_data, search_value, all_timetables_data, rooms_data, selected_group_idx):
+    if not room_change_data or room_change_data.get('action') != 'show_modal':
+        return dash.no_update, dash.no_update, dash.no_update
+    
+    if not rooms_data or not all_timetables_data:
+        return html.Div("No rooms data available"), {"display": "block"}, {"display": "block"}
+    
+    # Parse cell information
+    try:
+        cell_id_str = room_change_data['cell_id']
+        cell_id = json.loads(cell_id_str)
+        row_idx = cell_id['row']
+        col_idx = cell_id['col']
+    except:
+        return html.Div("Error parsing cell data"), {"display": "block"}, {"display": "block"}
+    
+    # Get current room usage for this time slot across all groups
+    current_room_usage = get_room_usage_at_timeslot(all_timetables_data, row_idx, col_idx)
+    
+    # Filter rooms based on search
+    filtered_rooms = rooms_data
+    if search_value:
+        search_lower = search_value.lower()
+        filtered_rooms = [room for room in rooms_data 
+                         if search_lower in room['name'].lower() or 
+                            search_lower in room.get('building', '').lower() or
+                            search_lower in room.get('room_type', '').lower()]
+    
+    # Create room options
+    room_options = []
+    for room in filtered_rooms:
+        room_name = room['name']
+        is_available = room_name not in current_room_usage
+        
+        # Determine styling
+        if is_available:
+            option_class = "room-option available"
+        else:
+            option_class = "room-option occupied"
+        
+        # Create conflict info if room is occupied
+        conflict_info = ""
+        if not is_available:
+            conflicting_groups = current_room_usage[room_name]
+            conflict_info = f" (Used by: {', '.join(conflicting_groups)})"
+        
+        room_options.append(
+            html.Div([
+                html.Div([
+                    html.Span(room_name, style={"fontWeight": "600"}),
+                    html.Span(conflict_info, style={"fontSize": "11px", "color": "#666", "marginLeft": "8px"})
+                ], style={"display": "flex", "alignItems": "center", "flexWrap": "wrap"}),
+                html.Div([
+                    html.Span(f"Cap: {room['capacity']}", className="room-info"),
+                    html.Span(f" | {room['building']}", className="room-info"),
+                    html.Span(f" | {room.get('room_type', 'N/A')}", className="room-info")
+                ])
+            ], 
+            className=option_class,
+            id={"type": "room-option", "room_id": room['Id'], "room_name": room_name},
+            n_clicks=0)
+        )
+    
+    return room_options, {"display": "block"}, {"display": "block"}
+
+def get_room_usage_at_timeslot(all_timetables_data, row_idx, col_idx):
+    """Get which rooms are being used at a specific time slot and by which groups"""
+    room_usage = {}  # room_name -> [group_names]
+    
+    for timetable_data in all_timetables_data:
+        timetable_rows = timetable_data['timetable']
+        if row_idx < len(timetable_rows) and (col_idx + 1) < len(timetable_rows[row_idx]):
+            cell_content = timetable_rows[row_idx][col_idx + 1]  # +1 to skip time column
+            room_name = extract_room_from_cell(cell_content)
+            
+            if room_name:
+                group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
+                if room_name not in room_usage:
+                    room_usage[room_name] = []
+                room_usage[room_name].append(group_name)
+    
+    return room_usage
+
+# Callback to handle room option selection
+@app.callback(
+    Output("room-change-data", "data", allow_duplicate=True),
+    [Input({"type": "room-option", "room_id": ALL, "room_name": ALL}, "n_clicks")],
+    [State({"type": "room-option", "room_id": ALL, "room_name": ALL}, "id"),
+     State("room-change-data", "data"),
+     State("all-timetables-store", "data")],
+    prevent_initial_call=True
+)
+def handle_room_selection(n_clicks_list, room_ids, current_room_data, all_timetables_data):
+    if not any(n_clicks_list) or not current_room_data:
+        return dash.no_update
+    
+    # Find which room was clicked
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update
+    
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    try:
+        triggered_room = json.loads(triggered_id)
+        selected_room_name = triggered_room['room_name']
+    except:
+        return dash.no_update
+    
+    # Update the room change data
+    return {
+        **current_room_data,
+        'action': 'room_selected',
+        'selected_room': selected_room_name,
+        'timestamp': current_room_data.get('timestamp', 0) + 1
+    }
+
+# Callback to handle room confirmation and update timetable
+@app.callback(
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("conflict-warning", "style"),
+     Output("conflict-warning-text", "children")],
+    [Input("room-confirm-btn", "n_clicks")],
+    [State("room-change-data", "data"),
+     State("all-timetables-store", "data"),
+     State("student-group-dropdown", "value"),
+     State("rooms-data-store", "data")],
+    prevent_initial_call=True
+)
+def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selected_group_idx, rooms_data):
+    if not n_clicks or not room_change_data or room_change_data.get('action') != 'room_selected':
+        return dash.no_update, dash.no_update, dash.no_update
+    
+    global session_has_swaps
+    session_has_swaps = True
+    
+    try:
+        # Parse cell information
+        cell_id_str = room_change_data['cell_id']
+        cell_id = json.loads(cell_id_str)
+        row_idx = cell_id['row']
+        col_idx = cell_id['col']
+        selected_room = room_change_data['selected_room']
+        
+        # Update the current group's timetable
+        updated_timetables = json.loads(json.dumps(all_timetables_data))  # Deep copy
+        current_group_timetable = updated_timetables[selected_group_idx]['timetable']
+        
+        # Get the original cell content and extract course info
+        original_content = current_group_timetable[row_idx][col_idx + 1]
+        
+        # Update room in the cell content
+        updated_content = update_room_in_cell_content(original_content, selected_room)
+        current_group_timetable[row_idx][col_idx + 1] = updated_content
+        
+        # Find and update consecutive classes of the same course
+        course_code = extract_course_code_from_cell(original_content)
+        if course_code:
+            update_consecutive_course_rooms(updated_timetables, selected_group_idx, course_code, selected_room, row_idx, col_idx)
+        
+        # Check for conflicts after the update
+        room_usage = get_room_usage_at_timeslot(updated_timetables, row_idx, col_idx)
+        conflict_warning_style = {"display": "none"}
+        conflict_warning_text = ""
+        
+        if selected_room in room_usage and len(room_usage[selected_room]) > 1:
+            # There's a conflict
+            other_groups = [group for group in room_usage[selected_room] 
+                           if group != updated_timetables[selected_group_idx]['student_group']['name']]
+            
+            conflict_warning_style = {"display": "block"}
+            conflict_warning_text = f"This classroom is already in use by: {', '.join(other_groups)}"
+        
+        # Auto-save the changes
+        save_timetable_to_file(updated_timetables)
+        
+        return updated_timetables, conflict_warning_style, conflict_warning_text
+        
+    except Exception as e:
+        print(f"Error in room change: {e}")
+        return dash.no_update, {"display": "block"}, f"Error updating room: {str(e)}"
+
+def extract_course_code_from_cell(cell_content):
+    """Extract course code from cell content"""
+    if not cell_content or cell_content in ["FREE", "BREAK"]:
+        return None
+    
+    # Look for Course: pattern
+    import re
+    course_match = re.search(r'Course:\s*([^,]+)', cell_content)
+    if course_match:
+        return course_match.group(1).strip()
+    return None
+
+def update_room_in_cell_content(cell_content, new_room):
+    """Update the room name in cell content"""
+    if not cell_content or cell_content in ["FREE", "BREAK"]:
+        return cell_content
+    
+    import re
+    # Replace the room part
+    updated_content = re.sub(r'Room:\s*[^,]*', f'Room: {new_room}', cell_content)
+    return updated_content
+
+def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new_room, current_row, current_col):
+    """Update consecutive classes of the same course to use the same room"""
+    timetable_rows = timetables_data[group_idx]['timetable']
+    
+    # Check same day (same column) for consecutive hours
+    for row_idx in range(len(timetable_rows)):
+        if row_idx != current_row:  # Skip the cell we just updated
+            cell_content = timetable_rows[row_idx][current_col + 1]
+            if extract_course_code_from_cell(cell_content) == course_code:
+                # This is the same course, update the room
+                updated_content = update_room_in_cell_content(cell_content, new_room)
+                timetable_rows[row_idx][current_col + 1] = updated_content
+
+def save_timetable_to_file(timetables_data):
+    """Save timetable data to file"""
+    try:
+        save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
+        backup_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data_backup.json')
+        
+        # Create backup
+        if os.path.exists(save_path):
+            shutil.copy2(save_path, backup_path)
+        
+        # Save new data
+        with open(save_path, 'w', encoding='utf-8') as f:
+            json.dump(timetables_data, f, indent=2, ensure_ascii=False)
+        
+        # Force file system sync
+        if hasattr(os, 'fsync'):
+            f.flush()
+            os.fsync(f.fileno())
+        
+        print(f"✅ Auto-saved timetable changes")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error auto-saving timetable: {e}")
+        return False
+@app.callback(
+    Output("all-timetables-store", "data", allow_duplicate=True),
     Input("swap-data", "data"),
     State("all-timetables-store", "data"),
     prevent_initial_call=True
@@ -1704,13 +2537,25 @@ def handle_swap(swap_data, current_timetables):
 
 # Callback to handle saving the current timetable state
 @app.callback(
-    Output("save-status", "children"),
+    [Output("save-status", "children"),
+     Output("save-error", "style")],
     Input("save-button", "n_clicks"),
     State("all-timetables-store", "data"),
     prevent_initial_call=True
 )
 def save_timetable(n_clicks, current_timetables):
     if n_clicks and current_timetables:
+        # Check for room conflicts before saving
+        if has_any_room_conflicts(current_timetables):
+            # Show error popup and prevent saving
+            return (
+                html.Div([
+                    html.Span("❌ Cannot save - resolve conflicts first", 
+                             style={"color": "#d32f2f", "fontWeight": "bold"})
+                ]),
+                {"display": "block"}
+            )
+        
         try:
             # Update the global variable
             global all_timetables
@@ -1734,21 +2579,27 @@ def save_timetable(n_clicks, current_timetables):
             print(f"Current timetables contain {len(all_timetables)} student groups")
             print(f"Saved to: {save_path}")
             
-            return html.Div([
-                html.Span("✅ Timetable saved successfully!", style={"color": "green", "fontWeight": "bold"}),
-                html.Br(),
-                html.Small(f"Saved to: {save_path}", style={"color": "gray"})
-            ])
+            return (
+                html.Div([
+                    html.Span("✅ Timetable saved successfully!", style={"color": "green", "fontWeight": "bold"}),
+                    html.Br(),
+                    html.Small(f"Saved to: {save_path}", style={"color": "gray"})
+                ]),
+                {"display": "none"}
+            )
             
         except Exception as e:
             print(f"Error saving timetable: {e}")
-            return html.Div([
-                html.Span("❌ Error saving timetable!", style={"color": "red", "fontWeight": "bold"}),
-                html.Br(),
-                html.Small(f"Error: {str(e)}", style={"color": "red"})
-            ])
+            return (
+                html.Div([
+                    html.Span("❌ Error saving timetable!", style={"color": "red", "fontWeight": "bold"}),
+                    html.Br(),
+                    html.Small(f"Error: {str(e)}", style={"color": "red"})
+                ]),
+                {"display": "none"}
+            )
     
-    return ""
+    return ("", {"display": "none"})
 
 # Callback to refresh timetable data from file on page load
 @app.callback(
