@@ -106,83 +106,118 @@ class DifferentialEvolution:
                 continue
 
             # Decide on a split strategy based on course credits
+            split_strategies = []
             if hours_required == 3:
                 # Must have at least 2 consecutive hours. Prefer 3.
-                split_strategy = random.choice([(3,), (2, 1), (3,)]) # Weight towards (3,)
+                split_strategies = [(3,), (2, 1)] # Try 3-hour block first, then 2+1
             elif hours_required == 2:
                 # Must be 2 consecutive hours.
-                split_strategy = (2,)
+                split_strategies = [(2,)]
             else:
-                split_strategy = (hours_required,)
+                split_strategies = [(hours_required,)]
 
-            event_idx_counter = 0
-            course_key = (student_group_id, course_id)
-            course_days_used[course_key] = set()
-            
-            is_course_placed_in_non_sst = False
-
-            for block_hours in split_strategy:
-                placed = False
-                block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
-                event_idx_counter += block_hours
-
-                # Prioritize days with fewer hours and those not yet used by this course
-                available_days = [d for d in range(input_data.days) if d not in course_days_used[course_key]]
-                sorted_days = sorted(available_days, key=lambda d: hours_per_day_for_group[student_group_id][d])
-
-                for day_idx in sorted_days:
-                    day_start = day_idx * input_data.hours
-                    day_end = (day_idx + 1) * input_data.hours
-                    
-                    possible_slots = []
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            # Apply building constraints
-                            room_building = self.room_building_cache[room_idx]
-                            is_engineering = student_group.id in self.engineering_groups
-                            needs_computer_lab = (
-                                course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
-                                room.room_type.lower() in ['comp lab', 'computer_lab'] or
-                                ('lab' in course.name.lower() and any(k in course.name.lower() for k in ['computer', 'programming', 'software']))
-                            )
-
-                            building_allowed = True
-                            if needs_computer_lab:
-                                pass  # Computer labs can be in any building
-                            elif is_engineering:
-                                if room_building != 'SST' and non_sst_course_count_for_group[student_group_id] >= 2:
-                                    building_allowed = False
-                            elif room_building == 'SST': # Non-engineering
-                                building_allowed = False
-                            
-                            if building_allowed:
-                                # Find consecutive slots
-                                for timeslot_start in range(day_start, day_end):
-                                    if timeslot_start + block_hours > day_end:
-                                        continue
-                                    
-                                    # Use the new, more specific check
-                                    if all(self.is_slot_available_for_event(chromosome, room_idx, timeslot_start + i, self.events_list[block_event_indices[i]]) for i in range(block_hours)):
-                                        possible_slots.append((room_idx, timeslot_start))
-                    
-                    if possible_slots:
-                        room_idx, timeslot_start = random.choice(possible_slots)
-                        for i in range(block_hours):
-                            chromosome[room_idx, timeslot_start + i] = block_event_indices[i]
-                        
-                        # Update trackers
-                        hours_per_day_for_group[student_group_id][day_idx] += block_hours
-                        course_days_used[course_key].add(day_idx)
-                        
-                        if not is_course_placed_in_non_sst and self.room_building_cache[room_idx] != 'SST' and not needs_computer_lab and is_engineering:
-                            non_sst_course_count_for_group[student_group_id] += 1
-                            is_course_placed_in_non_sst = True
-                        
-                        placed = True
-                        break  # Move to the next block
-                
-                if placed:
+            course_placed = False
+            for split_strategy in split_strategies:
+                if course_placed:
                     break
+
+                event_idx_counter = 0
+                course_key = (student_group_id, course_id)
+                course_days_used[course_key] = set()
+                
+                is_course_placed_in_non_sst = False
+                all_blocks_placed = True
+
+                for block_hours in split_strategy:
+                    placed = False
+                    block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
+                    event_idx_counter += block_hours
+
+                    # Prioritize days with fewer hours and those not yet used by this course
+                    available_days = [d for d in range(input_data.days) if d not in course_days_used[course_key]]
+                    sorted_days = sorted(available_days, key=lambda d: hours_per_day_for_group[student_group_id][d])
+
+                    for day_idx in sorted_days:
+                        day_start = day_idx * input_data.hours
+                        day_end = (day_idx + 1) * input_data.hours
+                        
+                        possible_slots = []
+                        for room_idx, room in enumerate(self.rooms):
+                            if self.is_room_suitable(room, course):
+                                # Apply building constraints
+                                room_building = self.room_building_cache[room_idx]
+                                is_engineering = student_group.id in self.engineering_groups
+                                needs_computer_lab = (
+                                    course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
+                                    room.room_type.lower() in ['comp lab', 'computer_lab'] or
+                                    ('lab' in course.name.lower() and any(k in course.name.lower() for k in ['computer', 'programming', 'software']))
+                                )
+
+                                building_allowed = True
+                                if needs_computer_lab:
+                                    pass  # Computer labs can be in any building
+                                elif is_engineering:
+                                    if room_building != 'SST' and non_sst_course_count_for_group[student_group_id] >= 2:
+                                        building_allowed = False
+                                elif room_building == 'SST': # Non-engineering
+                                    building_allowed = False
+                                
+                                if building_allowed:
+                                    # Find consecutive slots
+                                    for timeslot_start in range(day_start, day_end):
+                                        if timeslot_start + block_hours > day_end:
+                                            continue
+                                        
+                                        # Check if the entire block is valid and placeable
+                                        is_block_placeable = True
+                                        for i in range(block_hours):
+                                            timeslot_to_check = timeslot_start + i
+                                            event_for_slot = self.events_list[block_event_indices[i]]
+                                            
+                                            # Check 1: Room suitable, not break, lecturer schedule allows
+                                            if not self.is_slot_available_for_event(chromosome, room_idx, timeslot_to_check, event_for_slot):
+                                                is_block_placeable = False
+                                                break
+                                            
+                                            # Check 2: Student group is free
+                                            if not self._is_student_group_available(chromosome, event_for_slot.student_group.id, timeslot_to_check):
+                                                is_block_placeable = False
+                                                break
+                                                
+                                            # Check 3: Lecturer is free
+                                            if event_for_slot.faculty_id and not self._is_lecturer_available(chromosome, event_for_slot.faculty_id, timeslot_to_check):
+                                                is_block_placeable = False
+                                                break
+                                        
+                                        if is_block_placeable:
+                                            possible_slots.append((room_idx, timeslot_start))
+                        
+                        if possible_slots:
+                            room_idx, timeslot_start = random.choice(possible_slots)
+                            for i in range(block_hours):
+                                chromosome[room_idx, timeslot_start + i] = block_event_indices[i]
+                            
+                            # Update trackers
+                            hours_per_day_for_group[student_group_id][day_idx] += block_hours
+                            course_days_used[course_key].add(day_idx)
+                            
+                            if not is_course_placed_in_non_sst and self.room_building_cache[room_idx] != 'SST' and not needs_computer_lab and is_engineering:
+                                non_sst_course_count_for_group[student_group_id] += 1
+                                is_course_placed_in_non_sst = True
+                            
+                            placed = True
+                            break  # Move to the next block
+                    
+                    if not placed:
+                        all_blocks_placed = False
+                        break # Failed to place this block, break from day loop
+                
+                if not all_blocks_placed:
+                    break # Failed to place all blocks for this strategy
+
+                if all_blocks_placed:
+                    course_placed = True
+                    break # Successfully placed with this strategy, move to next course
 
         # Final verification to place any unassigned events
         chromosome = self.verify_and_repair_course_allocations(chromosome)
@@ -991,12 +1026,14 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(1)
+best_solution, fitness_history, generation, diversity_history = de.run(50)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
 final_fitness = de.evaluate_fitness(best_solution)
-violations = de.constraints.get_constraint_violations(best_solution)
+print("\n--- Running Debugging on Final Solution ---")
+violations = de.constraints.get_constraint_violations(best_solution, debug=True)
+print("--- Debugging Complete ---\n")
 
 print("\n--- Final Timetable Fitness Breakdown ---")
 print(f"Total Fitness Score: {final_fitness:.2f}\n")
@@ -2509,23 +2546,23 @@ def handle_swap(swap_data, current_timetables):
             # Verify the file was written successfully
             if os.path.exists(save_path):
                 file_size = os.path.getsize(save_path)
-                print(f"✅ Auto-saved successfully! File size: {file_size} bytes")
+                print(f"[SUCCESS] Auto-saved successfully! File size: {file_size} bytes")
                 
                 # Verify we can read it back and check the specific swapped data
                 with open(save_path, 'r', encoding='utf-8') as f:
                     test_load = json.load(f)
-                print(f"✅ Verification: Can read back {len(test_load)} student groups")
+                print(f"[VERIFICATION] Can read back {len(test_load)} student groups")
                 
                 # Verify the actual swap was saved
                 saved_source = test_load[group_idx]['timetable'][source['row']][source['col'] + 1]
                 saved_target = test_load[group_idx]['timetable'][target['row']][target['col'] + 1]
-                print(f"✅ Verification: Saved source = '{saved_source}', target = '{saved_target}'")
+                print(f"[VERIFICATION] Saved source = '{saved_source}', target = '{saved_target}'")
                 
             else:
-                print("❌ ERROR: Auto-save file was not created!")
+                print("[ERROR] Auto-save file was not created!")
                 
         except Exception as auto_save_error:
-            print(f"❌ Auto-save failed with error: {auto_save_error}")
+            print(f"[ERROR] Auto-save failed with error: {auto_save_error}")
             import traceback
             traceback.print_exc()
         
