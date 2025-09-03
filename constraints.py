@@ -455,13 +455,14 @@ class Constraints:
 
         return penalty
 
-    def check_consecutive_timeslots(self, chromosome):
+    def check_consecutive_timeslots(self, chromosome, debug=False):
         """
         - 2-credit courses MUST be in 2 consecutive slots.
         - 3-credit courses MUST have at least a 2-hour block.
         - Penalizes the single hour of a 3-credit course if it's not consecutive with the block.
         """
         penalty = 0
+        violations = []
         
         # Group events by course and student group to analyze their schedule
         course_schedule = {} # {(course_id, student_group_id): [timeslot_indices]}
@@ -481,6 +482,7 @@ class Constraints:
 
         for (course_id, student_group_id), timeslots in course_schedule.items():
             course = input_data.getCourse(course_id)
+            student_group = self.input_data.getStudentGroup(student_group_id)
             if not course or course.credits <= 1:
                 continue
 
@@ -491,6 +493,13 @@ class Constraints:
                 # H: 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
                     penalty += 50 # Severe penalty for breaking a 2-hour block
+                    if debug:
+                        violation_info = (
+                            f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
+                            f"'{student_group.name}' is a {course.credits}-hour course but is not scheduled consecutively."
+                        )
+                        if violation_info not in violations:
+                            violations.append(violation_info)
             
             elif course.credits == 3:
                 # H: 3-credit courses MUST have at least a 2-hour block
@@ -499,12 +508,32 @@ class Constraints:
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
                         penalty += 50 # Severe penalty if no 2-hour block exists
+                        if debug:
+                            violation_info = (
+                                f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
+                                f"'{student_group.name}' is a {course.credits}-hour course and does not have a 2-hour consecutive block."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
                     
                     # S: Prefer all 3 hours to be consecutive
                     is_block_of_3 = (timeslots[1] - timeslots[0] == 1) and \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_3:
                         penalty += 0.1 # Small penalty for the separated hour
+                        if debug and is_block_of_2: # It's a soft violation only
+                            violation_info = (
+                                f"Consecutive Slot Violation (Soft): Course '{course.name}' ({course.code}) for group "
+                                f"'{student_group.name}' ({course.credits}-hour) has a 2-hour block but is not fully consecutive."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Consecutive Slot Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------\n")
 
         return penalty
 
@@ -696,7 +725,7 @@ class Constraints:
             'course_allocation_completeness': self.check_course_allocation_completeness(chromosome, debug=debug),
             'lecturer_schedule_constraints': self.check_lecturer_schedule_constraints(chromosome, debug=debug),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
-            'consecutive_timeslots': self.check_consecutive_timeslots(chromosome),
+            'consecutive_timeslots': self.check_consecutive_timeslots(chromosome, debug=debug),
             'spread_events': self.check_spread_events(chromosome)
         }
         violations['total'] = sum(violations.values())
