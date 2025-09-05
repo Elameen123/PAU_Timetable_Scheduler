@@ -65,8 +65,7 @@
     "credits": 3,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "aokoeguale@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -77,8 +76,7 @@
     "credits": 3,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "glakinbofa@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -89,8 +87,7 @@
     "credits": 2,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "ssoyele@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -101,8 +98,7 @@
     "credits": 2,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "jbenson@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -113,8 +109,7 @@
     "credits": 2,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "sjohn@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -125,8 +120,7 @@
     "credits": 3,
     "student_groupsID": [
       "MCM 400",
-      "FMM 400",
-      "ISM 400"
+      "FMM 400"
     ],
     "facultyId": "fogungbe@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -570,7 +564,7 @@
   },
   {
     "name": "Internship",
-    "code": "BUS 401",
+    "code": "BUS 499",
     "credits": 3,
     "student_groupsID": [
       "BUA 400"

@@ -10,6 +10,7 @@ import re
 import dash
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
+import dash.exceptions
 import json
 import os
 import shutil
@@ -88,14 +89,15 @@ class DifferentialEvolution:
                 events_by_group_course[key] = []
             events_by_group_course[key].append(idx)
 
+        # --- STRATEGY: Prioritize placing larger courses first ("big rocks first") ---
+        course_items = sorted(
+            events_by_group_course.items(),
+            key=lambda item: len(item[1]),
+            reverse=True
+        )
+
         # Trackers for optimized placement
         hours_per_day_for_group = {sg.id: [0] * input_data.days for sg in self.student_groups}
-        non_sst_course_count_for_group = {sg.id: 0 for sg in self.student_groups}
-        course_days_used = {}
-
-        # Randomize course processing order for population diversity
-        course_items = list(events_by_group_course.items())
-        random.shuffle(course_items)
 
         for (student_group_id, course_id), event_indices in course_items:
             course = input_data.getCourse(course_id)
@@ -105,87 +107,114 @@ class DifferentialEvolution:
             if hours_required == 0:
                 continue
 
-            # Decide on a split strategy based on course credits
-            if hours_required == 3:
-                # Must have at least 2 consecutive hours. Prefer 3.
-                split_strategy = random.choice([(3,), (2, 1), (3,)]) # Weight towards (3,)
-            elif hours_required == 2:
-                # Must be 2 consecutive hours.
-                split_strategy = (2,)
-            else:
-                split_strategy = (hours_required,)
+            # --- STRATEGY: Stricter split strategies to enforce consecutive constraints ---
+            split_strategies = []
+            if hours_required >= 4: # 4-hour courses and above
+                split_strategies = [(4,), (2, 2), (3, 1)]
+            elif hours_required == 3: # 3-hour courses
+                split_strategies = [(3,), (2, 1)]
+            elif hours_required == 2: # 2-hour courses
+                split_strategies = [(2,)] # MUST be consecutive
+            else: # 1-hour courses
+                split_strategies = [(1,)]
 
-            event_idx_counter = 0
-            course_key = (student_group_id, course_id)
-            course_days_used[course_key] = set()
-            
-            is_course_placed_in_non_sst = False
-
-            for block_hours in split_strategy:
-                placed = False
-                block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
-                event_idx_counter += block_hours
-
-                # Prioritize days with fewer hours and those not yet used by this course
-                available_days = [d for d in range(input_data.days) if d not in course_days_used[course_key]]
-                sorted_days = sorted(available_days, key=lambda d: hours_per_day_for_group[student_group_id][d])
-
-                for day_idx in sorted_days:
-                    day_start = day_idx * input_data.hours
-                    day_end = (day_idx + 1) * input_data.hours
-                    
-                    possible_slots = []
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            # Apply building constraints
-                            room_building = self.room_building_cache[room_idx]
-                            is_engineering = student_group.id in self.engineering_groups
-                            needs_computer_lab = (
-                                course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
-                                room.room_type.lower() in ['comp lab', 'computer_lab'] or
-                                ('lab' in course.name.lower() and any(k in course.name.lower() for k in ['computer', 'programming', 'software']))
-                            )
-
-                            building_allowed = True
-                            if needs_computer_lab:
-                                pass  # Computer labs can be in any building
-                            elif is_engineering:
-                                if room_building != 'SST' and non_sst_course_count_for_group[student_group_id] >= 2:
-                                    building_allowed = False
-                            elif room_building == 'SST': # Non-engineering
-                                building_allowed = False
-                            
-                            if building_allowed:
-                                # Find consecutive slots
-                                for timeslot_start in range(day_start, day_end):
-                                    if timeslot_start + block_hours > day_end:
-                                        continue
-                                    
-                                    # Use the new, more specific check
-                                    if all(self.is_slot_available_for_event(chromosome, room_idx, timeslot_start + i, self.events_list[block_event_indices[i]]) for i in range(block_hours)):
-                                        possible_slots.append((room_idx, timeslot_start))
-                    
-                    if possible_slots:
-                        room_idx, timeslot_start = random.choice(possible_slots)
-                        for i in range(block_hours):
-                            chromosome[room_idx, timeslot_start + i] = block_event_indices[i]
-                        
-                        # Update trackers
-                        hours_per_day_for_group[student_group_id][day_idx] += block_hours
-                        course_days_used[course_key].add(day_idx)
-                        
-                        if not is_course_placed_in_non_sst and self.room_building_cache[room_idx] != 'SST' and not needs_computer_lab and is_engineering:
-                            non_sst_course_count_for_group[student_group_id] += 1
-                            is_course_placed_in_non_sst = True
-                        
-                        placed = True
-                        break  # Move to the next block
-                
-                if placed:
+            course_placed = False
+            for split_strategy in split_strategies:
+                if course_placed:
                     break
 
-        # Final verification to place any unassigned events
+                placements_for_strategy = []
+                all_blocks_found = True
+                temp_chromosome = chromosome.copy()
+                
+                event_idx_counter = 0
+                
+                temp_hours_per_day = hours_per_day_for_group[student_group_id][:]
+                temp_course_days_used = set()
+
+                for block_hours in split_strategy:
+                    placed = False
+                    block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
+                    
+                    available_days = [d for d in range(input_data.days) if d not in temp_course_days_used]
+                    sorted_days = sorted(available_days, key=lambda d: temp_hours_per_day[d])
+
+                    for day_idx in sorted_days:
+                        day_start = day_idx * input_data.hours
+                        day_end = (day_idx + 1) * input_data.hours
+                        
+                        possible_slots = []
+                        for room_idx, room in enumerate(self.rooms):
+                            # --- STRATEGY: Enforce building constraints during placement ---
+                            is_engineering_group = student_group.id in self.engineering_groups
+                            room_building = self.room_building_cache.get(room_idx, 'UNKNOWN')
+                            
+                            # Non-engineering groups cannot use SST rooms
+                            if not is_engineering_group and room_building == 'SST':
+                                continue # Skip this room entirely for this group
+
+                            if self.is_room_suitable(room, course):
+                                for timeslot_start in range(day_start, day_end - block_hours + 1):
+                                    is_block_placeable = True
+                                    for i in range(block_hours):
+                                        ts = timeslot_start + i
+                                        event_for_slot = self.events_list[block_event_indices[i]]
+                                        if not (self.is_slot_available_for_event(temp_chromosome, room_idx, ts, event_for_slot) and
+                                                self._is_student_group_available(temp_chromosome, student_group_id, ts) and
+                                                self._is_lecturer_available(temp_chromosome, event_for_slot.faculty_id, ts)):
+                                            is_block_placeable = False
+                                            break
+                                    
+                                    if is_block_placeable:
+                                        possible_slots.append((room_idx, timeslot_start))
+                        
+                        if possible_slots:
+                            # Prefer slots that don't cause building conflicts if possible
+                            preferred_slots = []
+                            for r_idx, t_start in possible_slots:
+                                room_bldg = self.room_building_cache.get(r_idx, 'UNKNOWN')
+                                is_eng_grp = student_group.id in self.engineering_groups
+                                if is_eng_grp and room_bldg != 'SST':
+                                    pass # This is a potential soft conflict
+                                else:
+                                    preferred_slots.append((r_idx, t_start))
+                            
+                            if preferred_slots:
+                                room_idx, timeslot_start = random.choice(preferred_slots)
+                            else: # If all options cause a soft conflict, just pick one
+                                room_idx, timeslot_start = random.choice(possible_slots)
+
+                            for i in range(block_hours):
+                                ts = timeslot_start + i
+                                event_id = block_event_indices[i]
+                                placements_for_strategy.append((room_idx, ts, event_id))
+                                temp_chromosome[room_idx, ts] = event_id
+                            
+                            temp_hours_per_day[day_idx] += block_hours
+                            temp_course_days_used.add(day_idx)
+                            placed = True
+                            event_idx_counter += block_hours
+                            break 
+                    
+                    if not placed:
+                        all_blocks_found = False
+                        break
+                
+                if all_blocks_found:
+                    for r, t, e_id in placements_for_strategy:
+                        chromosome[r, t] = e_id
+                    
+                    hours_per_day_for_group[student_group_id] = temp_hours_per_day
+                    
+                    course_placed = True
+                    break
+
+        # Final verification to place any unassigned events, now more aggressive
         chromosome = self.verify_and_repair_course_allocations(chromosome)
+        
+        # Final pass to ensure multi-hour courses are consecutive
+        chromosome = self.ensure_consecutive_slots(chromosome)
+        
         return chromosome
 
     def find_consecutive_slots(self, chromosome, course):
@@ -258,42 +287,55 @@ class DifferentialEvolution:
             if faculty:
                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
                 day_abbr = days_map.get(day)
+                slot_hour = self.timeslots[timeslot_idx].start_time + 9
 
                 # Check day availability
                 is_day_ok = False
-                if isinstance(faculty.avail_days, str):
-                    if faculty.avail_days.upper() == "ALL":
-                        is_day_ok = True
-                    else:
-                        avail_days = [d.strip().capitalize() for d in faculty.avail_days.split(',')]
-                        if day_abbr in avail_days:
-                            is_day_ok = True
-                elif isinstance(faculty.avail_days, list):
-                    avail_days = [d.strip().capitalize() for d in faculty.avail_days]
-                    if "All" in avail_days or day_abbr in avail_days:
+                avail_days = faculty.avail_days
+                if not avail_days or (isinstance(avail_days, str) and avail_days.upper() == "ALL"):
+                    is_day_ok = True
+                else:
+                    if isinstance(avail_days, str):
+                        avail_days_list = [d.strip().capitalize() for d in avail_days.split(',')]
+                    else: # is a list
+                        avail_days_list = [d.strip().capitalize() for d in avail_days]
+                    if "All" in avail_days_list or day_abbr in avail_days_list:
                         is_day_ok = True
                 
                 if not is_day_ok:
                     return False
 
-                # Check time availability
-                if isinstance(faculty.avail_times, str) and faculty.avail_times.upper() != "ALL":
-                    try:
-                        start_avail_str, end_avail_str = faculty.avail_times.split('-')
-                        start_avail_h = int(start_avail_str.split(':')[0])
-                        end_avail_h = int(end_avail_str.split(':')[0])
-                        
-                        timeslot_obj = self.timeslots[timeslot_idx]
-                        slot_start_h = int(timeslot_obj.start_time.split(':')[0])
-
-                        # Corrected logic: The slot is valid if its start time is strictly less than the lecturer's end time.
-                        # e.g., if available until 17:00 (end_avail_h=17), the 16:00-17:00 slot (slot_start_h=16) is valid.
-                        if not (start_avail_h <= slot_start_h < end_avail_h):
-                            return False
-                    except (ValueError, IndexError):
-                        # This case should be prevented by the initial validation,
-                        # but we return False as a safeguard.
-                        return False
+                # Check time availability (Corrected Logic)
+                is_time_ok = False
+                avail_times = faculty.avail_times
+                if not avail_times or (isinstance(avail_times, str) and avail_times.upper() == "ALL") or \
+                   (isinstance(avail_times, list) and any(str(t).strip().upper() == 'ALL' for t in avail_times)):
+                    is_time_ok = True
+                else:
+                    time_list = avail_times if isinstance(avail_times, list) else [avail_times]
+                    for time_spec in time_list:
+                        time_spec_str = str(time_spec).strip()
+                        if '-' in time_spec_str:
+                            try:
+                                start_str, end_str = time_spec_str.split('-')
+                                start_h = int(start_str.split(':')[0])
+                                end_h = int(end_str.split(':')[0])
+                                if start_h <= slot_hour < end_h:
+                                    is_time_ok = True
+                                    break
+                            except (ValueError, IndexError):
+                                continue
+                        else:
+                            try:
+                                h = int(time_spec_str.split(':')[0])
+                                if h == slot_hour:
+                                    is_time_ok = True
+                                    break
+                            except (ValueError, IndexError):
+                                continue
+                
+                if not is_time_ok:
+                    return False
 
         return True
 
@@ -408,51 +450,109 @@ class DifferentialEvolution:
 
     def mutate(self, target_idx):
         mutant_vector = self.population[target_idx].copy()
+        
+        # Increase mutation attempts to encourage exploration
+        mutation_attempts = random.randint(3, 8)
 
-        # Strategy 1: Targeted Clash Resolution
-        if random.random() < 0.7: # High probability to focus on fixing clashes
-            clash_timeslot = self.find_clash(mutant_vector)
-            if clash_timeslot is not None:
-                # Identify one of the clashing events at this timeslot to move
-                events_in_clash = [mutant_vector[r][clash_timeslot] for r in range(len(self.rooms)) if mutant_vector[r][clash_timeslot] is not None]
-                
-                if events_in_clash:
-                    event_id_to_move = random.choice(events_in_clash)
+        for _ in range(mutation_attempts):
+            strategy = random.choice(['resolve_clash', 'safe_swap', 'safe_move'])
+
+            # Strategy 1: Find a clash and try to resolve it by moving one event
+            if strategy == 'resolve_clash':
+                clash_timeslot = self.find_clash(mutant_vector)
+                if clash_timeslot is not None:
+                    # Find events involved in the clash
+                    events_in_slot = [(r, mutant_vector[r, clash_timeslot]) for r in range(len(self.rooms)) if mutant_vector[r, clash_timeslot] is not None]
+                    if not events_in_slot: continue
+                    
+                    # Pick one event to move
+                    room_to_move_from, event_id_to_move = random.choice(events_in_slot)
                     event_to_move = self.events_map.get(event_id_to_move)
+                    if not event_to_move: continue
 
-                    if event_to_move:
-                        # Find original position and remove it
-                        for r_idx in range(len(self.rooms)):
-                            if mutant_vector[r_idx][clash_timeslot] == event_id_to_move:
-                                mutant_vector[r_idx][clash_timeslot] = None
-                                break
-                        
-                        # Find a new, completely valid slot for this event
-                        possible_slots = []
-                        course = input_data.getCourse(event_to_move.course_id)
-                        for r_idx, room in enumerate(self.rooms):
-                            if self.is_room_suitable(room, course):
-                                for t_idx in range(len(self.timeslots)):
-                                    # Use the comprehensive check to ensure lecturer schedule is respected
-                                    if (self.is_slot_available_for_event(mutant_vector, r_idx, t_idx, event_to_move) and
-                                        self._is_student_group_available(mutant_vector, event_to_move.student_group.id, t_idx)):
-                                        possible_slots.append((r_idx, t_idx))
-                        
-                        if possible_slots:
-                            r, t = random.choice(possible_slots)
-                            mutant_vector[r][t] = event_id_to_move
-                        # If no slot is found, repair will handle it, but we've at least resolved the clash
+                    # Find a new, valid, empty slot for this event
+                    new_pos = self.find_safe_empty_slot_for_event(mutant_vector, event_to_move, ignore_pos=(room_to_move_from, clash_timeslot))
+                    if new_pos:
+                        new_r, new_t = new_pos
+                        mutant_vector[new_r, new_t] = event_id_to_move
+                        mutant_vector[room_to_move_from, clash_timeslot] = None
+                        continue # Move successful, try another mutation
 
-        # Strategy 2: Perform a few swaps to introduce small variations
-        if random.random() < 0.2: # Lower probability for random swaps
-            for _ in range(random.randint(1, 2)):
+            # Strategy 2: Swap two existing events if it's safe
+            elif strategy == 'safe_swap':
                 occupied_slots = np.argwhere(mutant_vector != None)
                 if len(occupied_slots) < 2: continue
+                
                 idx1, idx2 = random.sample(range(len(occupied_slots)), 2)
                 pos1, pos2 = tuple(occupied_slots[idx1]), tuple(occupied_slots[idx2])
-                mutant_vector[pos1], mutant_vector[pos2] = mutant_vector[pos2], mutant_vector[pos1]
+                
+                event1_id, event2_id = mutant_vector[pos1], mutant_vector[pos2]
+                event1, event2 = self.events_map.get(event1_id), self.events_map.get(event2_id)
+                
+                if not event1 or not event2: continue
+
+                # Check if swapping is feasible
+                course1, course2 = self.input_data.getCourse(event1.course_id), self.input_data.getCourse(event2.course_id)
+                
+                # Check room suitability
+                room1_ok_for_event2 = self.is_room_suitable(self.rooms[pos1[0]], course2)
+                room2_ok_for_event1 = self.is_room_suitable(self.rooms[pos2[0]], course1)
+
+                if room1_ok_for_event2 and room2_ok_for_event1:
+                    # Check clash constraints for the swap
+                    # Is event2 OK at pos1's timeslot?
+                    clash_free_at_pos1 = not self.constraints.check_student_group_clash_at_slot(mutant_vector, event2.student_group.id, pos1[1], ignore_room_idx=pos2[0]) and \
+                                         not self.constraints.check_lecturer_clash_at_slot(mutant_vector, event2.faculty_id, pos1[1], ignore_room_idx=pos2[0])
+                    
+                    # Is event1 OK at pos2's timeslot?
+                    clash_free_at_pos2 = not self.constraints.check_student_group_clash_at_slot(mutant_vector, event1.student_group.id, pos2[1], ignore_room_idx=pos1[0]) and \
+                                         not self.constraints.check_lecturer_clash_at_slot(mutant_vector, event1.faculty_id, pos2[1], ignore_room_idx=pos1[0])
+
+                    if clash_free_at_pos1 and clash_free_at_pos2:
+                        mutant_vector[pos1], mutant_vector[pos2] = event2_id, event1_id
+                        continue
+
+            # Strategy 3: Move a single event to a new, safe, empty location
+            elif strategy == 'safe_move':
+                occupied_slots = np.argwhere(mutant_vector != None)
+                if not len(occupied_slots): continue
+                
+                pos_to_move = tuple(random.choice(occupied_slots))
+                event_id_to_move = mutant_vector[pos_to_move]
+                event_to_move = self.events_map.get(event_id_to_move)
+                if not event_to_move: continue
+
+                # Find a new, valid, empty slot
+                new_pos = self.find_safe_empty_slot_for_event(mutant_vector, event_to_move, ignore_pos=pos_to_move)
+                if new_pos:
+                    new_r, new_t = new_pos
+                    mutant_vector[new_r, new_t] = event_id_to_move
+                    mutant_vector[pos_to_move] = None
+                    continue
 
         return mutant_vector
+
+    def find_safe_empty_slot_for_event(self, chromosome, event, ignore_pos=None):
+        """Finds a random empty slot that is safe for the given event."""
+        course = self.input_data.getCourse(event.course_id)
+        if not course: return None
+
+        possible_slots = []
+        for r_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, course):
+                for t_idx in range(len(self.timeslots)):
+                    if (r_idx, t_idx) == ignore_pos: continue
+                    
+                    # Check if slot is physically empty and available (break time, etc.)
+                    if chromosome[r_idx, t_idx] is None and self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
+                        # Check for potential clashes if we place the event here
+                        student_clash = self.constraints.check_student_group_clash_at_slot(chromosome, event.student_group.id, t_idx, ignore_room_idx=ignore_pos[0] if ignore_pos else -1)
+                        lecturer_clash = self.constraints.check_lecturer_clash_at_slot(chromosome, event.faculty_id, t_idx, ignore_room_idx=ignore_pos[0] if ignore_pos else -1)
+                        
+                        if not student_clash and not lecturer_clash:
+                            possible_slots.append((r_idx, t_idx))
+        
+        return random.choice(possible_slots) if possible_slots else None
 
     def ensure_valid_solution(self, mutant_vector):
         """Ensure same course on same day appears in same room and handle course splits."""
@@ -506,6 +606,9 @@ class DifferentialEvolution:
         # Repair course allocations to ensure all events are scheduled
         mutant_vector = self.verify_and_repair_course_allocations(mutant_vector)
         
+        # Final pass to ensure multi-hour courses are consecutive
+        mutant_vector = self.ensure_consecutive_slots(mutant_vector)
+        
         return mutant_vector
     
     def count_non_none(self, arr):
@@ -514,61 +617,26 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         """
-        Performs an enhanced Strategic Crossover.
-        It attempts to fix multiple conflicts in the target by using genes from the mutant.
+        Performs a standard binomial (or uniform) crossover for Differential Evolution.
+        This creates a trial vector by mixing genes from the target and mutant vectors
+        based on the crossover rate (CR). This is more exploratory than the previous
+        strategic crossover and helps to escape local optima.
         """
         trial_vector = target_vector.copy()
-        conflicts = self.constraints.get_all_conflicts(trial_vector)
+        num_rooms, num_timeslots = target_vector.shape
         
-        # Combine all hard conflicts to be resolved
-        all_clashes = conflicts.get('student_group', []) + conflicts.get('lecturer', [])
-        
-        if not all_clashes:
-            # If no clashes, perform a more standard DE crossover
-            for r in range(len(self.rooms)):
-                for t in range(len(self.timeslots)):
-                    if random.random() < self.CR:
-                        trial_vector[r, t] = mutant_vector[r, t]
-            return trial_vector
+        # Ensure at least one gene from the mutant vector is picked (j_rand).
+        # This is a key part of the DE algorithm to ensure the trial vector is different from the target.
+        j_rand_r = random.randrange(num_rooms)
+        j_rand_t = random.randrange(num_timeslots)
 
-        # Create a set of positions that have clashes for quick lookup
-        clash_positions = set()
-        for clash in all_clashes:
-            for pos in clash['positions']:
-                clash_positions.add(tuple(pos))
-
-        # Iterate through the mutant and bring in non-conflicting genes
-        for r in range(len(self.rooms)):
-            for t in range(len(self.timeslots)):
-                # If the current position in the target has a clash
-                if (r, t) in clash_positions:
-                    mutant_gene = mutant_vector[r, t]
-                    target_gene = trial_vector[r, t]
-
-                    # If the mutant gene is different and not None
-                    if mutant_gene != target_gene and mutant_gene is not None:
-                        # Check if this new gene would introduce a new clash at this timeslot
-                        mutant_event = self.events_map.get(mutant_gene)
-                        if not mutant_event: continue
-
-                        is_safe_to_swap = True
-                        # Check against all other events in the same timeslot in the trial vector
-                        for r_check in range(len(self.rooms)):
-                            if r_check != r:
-                                existing_event_id = trial_vector[r_check, t]
-                                if existing_event_id is not None:
-                                    existing_event = self.events_map.get(existing_event_id)
-                                    if existing_event:
-                                        # Check for student group or lecturer clash with the new gene
-                                        if (existing_event.student_group.id == mutant_event.student_group.id or
-                                            existing_event.faculty_id == mutant_event.faculty_id):
-                                            is_safe_to_swap = False
-                                            break
-                        
-                        if is_safe_to_swap:
-                            # The swap is considered safe, so perform it
-                            trial_vector[r, t] = mutant_gene
-                            
+        for r in range(num_rooms):
+            for t in range(num_timeslots):
+                # The gene from the mutant is chosen if a random number is less than CR,
+                # or if it's the randomly chosen j_rand position.
+                if random.random() < self.CR or (r == j_rand_r and t == j_rand_t):
+                    trial_vector[r, t] = mutant_vector[r, t]
+                    
         return trial_vector
 
     
@@ -732,16 +800,14 @@ class DifferentialEvolution:
                 target_vector = self.population[i]
                 trial_vector = self.crossover(target_vector, mutant_vector)
                 
+                # Lamarckian Step: Repair the new trial vector *before* evaluation and selection.
+                # This ensures we are always comparing valid, repaired solutions.
+                trial_vector = self.verify_and_repair_course_allocations(trial_vector)
+                trial_vector = self.ensure_consecutive_slots(trial_vector)
+
                 # Step 3: Evaluation and Selection
-                old_fitness = self.evaluate_fitness(self.population[i])
                 self.select(i, trial_vector)
-                new_fitness = self.evaluate_fitness(self.population[i])
-                
-                # Ensure population member has all events after selection
-                self.population[i] = self.verify_and_repair_course_allocations(self.population[i])
-                
-                if new_fitness < old_fitness:
-                    generation_improved = True
+                # Post-selection repair is no longer needed as both trial and target are already repaired.
                 
             # Optimization: Find best solution more efficiently
             current_fitness = [self.evaluate_fitness(ind) for ind in self.population]
@@ -779,6 +845,7 @@ class DifferentialEvolution:
 
         # Final verification and repair of the best solution to ensure all courses are allocated
         best_solution = self.verify_and_repair_course_allocations(best_solution)
+        best_solution = self.ensure_consecutive_slots(best_solution)
         
         return best_solution, fitness_history, generation, diversity_history
 
@@ -841,98 +908,177 @@ class DifferentialEvolution:
             data.append({"student_group": student_group, "timetable": rows})
         return data
 
+    def ensure_consecutive_slots(self, chromosome):
+        """
+        Scans the timetable and attempts to repair any multi-hour courses
+        that have been split into non-consecutive slots.
+        """
+        # Group all scheduled events by course and student group
+        events_by_course = {}
+        for r_idx in range(len(self.rooms)):
+            for t_idx in range(len(self.timeslots)):
+                event_id = chromosome[r_idx, t_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if not event: continue
+                    
+                    course_key = (event.student_group.id, event.course_id)
+                    if course_key not in events_by_course:
+                        events_by_course[course_key] = []
+                    events_by_course[course_key].append({'event_id': event_id, 'pos': (r_idx, t_idx)})
+
+        for course_key, events in events_by_course.items():
+            hours_required = len(events)
+            if hours_required < 2:
+                continue # Not a multi-hour course that needs checking
+
+            # Check if the events are consecutive
+            positions = sorted([e['pos'] for e in events], key=lambda p: p[1])
+            is_consecutive = True
+            for i in range(len(positions) - 1):
+                # Check if they are in the same room and adjacent timeslots
+                if not (positions[i][0] == positions[i+1][0] and positions[i][1] + 1 == positions[i+1][1]):
+                    is_consecutive = False
+                    break
+            
+            if is_consecutive:
+                continue # This course is fine, move to the next one
+
+            # --- If not consecutive, attempt to repair ---
+            # 1. Find a new, valid, consecutive block of slots for the entire course
+            student_group_id, course_id = course_key
+            course = self.input_data.getCourse(course_id)
+            
+            possible_blocks = []
+            for r_idx, room in enumerate(self.rooms):
+                if self.is_room_suitable(room, course):
+                    for t_start in range(len(self.timeslots) - hours_required + 1):
+                        is_block_valid = True
+                        # Temporarily clear old positions to check availability
+                        temp_chromosome = chromosome.copy()
+                        for event_info in events:
+                            r, t = event_info['pos']
+                            temp_chromosome[r, t] = None
+                        
+                        for i in range(hours_required):
+                            t_check = t_start + i
+                            event_to_place = self.events_list[events[i]['event_id']]
+                            
+                            # Check if the new slot is valid for this event
+                            if not (self.is_slot_available_for_event(temp_chromosome, r_idx, t_check, event_to_place) and
+                                    self._is_student_group_available(temp_chromosome, student_group_id, t_check) and
+                                    self._is_lecturer_available(temp_chromosome, event_to_place.faculty_id, t_check)):
+                                is_block_valid = False
+                                break
+                        
+                        if is_block_valid:
+                            possible_blocks.append((r_idx, t_start))
+            
+            # 2. If a valid block is found, perform the move
+            if possible_blocks:
+                new_r, new_t_start = random.choice(possible_blocks)
+                
+                # Clear the old, non-consecutive event positions
+                for event_info in events:
+                    r, t = event_info['pos']
+                    chromosome[r, t] = None
+                
+                # Place the events in the new consecutive block
+                for i in range(hours_required):
+                    chromosome[new_r, new_t_start + i] = events[i]['event_id']
+
+        return chromosome
+
     def verify_and_repair_course_allocations(self, chromosome):
         """
-        Verify that all courses appear the correct number of times for each student group
-        and repair any missing allocations with minimal disruption.
+        A robust method to ensure every required event is scheduled exactly once.
+        This function first removes any extra events and then places any missing events.
         """
         max_repair_passes = 3
-        
-        for repair_pass in range(max_repair_passes):
-            scheduled_events = set()
-            for room_idx in range(len(self.rooms)):
-                for timeslot_idx in range(len(self.timeslots)):
-                    event_id = chromosome[room_idx][timeslot_idx]
+        for _ in range(max_repair_passes):
+            # --- Phase 1: Audit current schedule and identify discrepancies ---
+            
+            # Get a count of all currently scheduled events
+            scheduled_event_counts = {}
+            for r_idx in range(len(self.rooms)):
+                for t_idx in range(len(self.timeslots)):
+                    event_id = chromosome[r_idx, t_idx]
                     if event_id is not None:
-                        scheduled_events.add(event_id)
-            
-            missing_events = [event_id for event_id in range(len(self.events_list)) if event_id not in scheduled_events]
-            
-            if not missing_events:
-                break
-            
-            flexibility_level = repair_pass
-            
-            course_day_room_mapping = {}
-            for r_idx, t_idx in np.argwhere(chromosome != None):
-                event_id = chromosome[r_idx][t_idx]
-                event = self.events_map.get(event_id)
-                if event:
-                    course = input_data.getCourse(event.course_id)
-                    if course:
-                        day_idx = t_idx // input_data.hours
-                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
-                        course_day_key = (course_id, day_idx, event.student_group.id)
-                        course_day_room_mapping[course_day_key] = r_idx
+                        scheduled_event_counts[event_id] = scheduled_event_counts.get(event_id, 0) + 1
 
-            for missing_event_id in missing_events:
-                event = self.events_list[missing_event_id]
+            # --- Phase 2: Remove extra events ---
+            
+            # Find events that are scheduled more times than they should be (should always be 1)
+            extra_event_ids = {event_id for event_id, count in scheduled_event_counts.items() if count > 1}
+            
+            if extra_event_ids:
+                # Create a list of all positions of this duplicated event
+                positions_to_clear = []
+                for event_id in extra_event_ids:
+                    # Find all locations of this duplicated event
+                    locations = np.argwhere(chromosome == event_id)
+                    # Keep one, mark the rest for removal
+                    for i in range(1, len(locations)):
+                        positions_to_clear.append(tuple(locations[i]))
+                
+                # Remove the extra events from the chromosome
+                for r_idx, t_idx in positions_to_clear:
+                    chromosome[r_idx, t_idx] = None
+            
+            # --- Phase 3: Add missing events ---
+
+            # Get a fresh set of scheduled events after removals
+            scheduled_events = set(np.unique([e for e in chromosome.flatten() if e is not None]))
+            
+            # Identify all events that are required but not currently in the schedule
+            all_required_events = set(range(len(self.events_list)))
+            missing_events = list(all_required_events - scheduled_events)
+            random.shuffle(missing_events)
+
+            if not missing_events:
+                break # If nothing is missing, the repair is done for this pass
+
+            for event_id in missing_events:
+                event = self.events_list[event_id]
                 course = input_data.getCourse(event.course_id)
                 if not course: continue
-                
-                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+
                 placed = False
-
-                # Strategy 1: Place in the same room as other instances of the same course on the same day
-                if flexibility_level == 0:
-                    preferred_slots = []
-                    for day_idx in range(input_data.days):
-                        course_day_key = (course_id, day_idx, event.student_group.id)
-                        if course_day_key in course_day_room_mapping:
-                            preferred_room = course_day_room_mapping[course_day_key]
-                            day_start, day_end = day_idx * input_data.hours, (day_idx + 1) * input_data.hours
-                            for timeslot in range(day_start, day_end):
-                                # Use the comprehensive check here as well
-                                if (self.is_slot_available_for_event(chromosome, preferred_room, timeslot, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot)):
-                                    preferred_slots.append((preferred_room, timeslot))
-                    if preferred_slots:
-                        room_idx, timeslot_idx = random.choice(preferred_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
-                        placed = True
-
-                # Strategy 2: Find any valid slot that respects all hard constraints
-                if not placed:
-                    valid_slots = []
-                    for room_idx, room in enumerate(self.rooms):
+                
+                # Strategy: Find the best possible empty slot that doesn't cause new violations.
+                valid_slots = []
+                for r_idx, room in enumerate(self.rooms):
+                    if self.is_room_suitable(room, course):
+                        for t_idx in range(len(self.timeslots)):
+                            # Check if slot is empty and if placing the event respects all hard constraints
+                            if (chromosome[r_idx, t_idx] is None and
+                                self.is_slot_available_for_event(chromosome, r_idx, t_idx, event) and
+                                self._is_student_group_available(chromosome, event.student_group.id, t_idx) and
+                                self._is_lecturer_available(chromosome, event.faculty_id, t_idx)):
+                                valid_slots.append((r_idx, t_idx))
+                
+                if valid_slots:
+                    # Tier 1: If a "perfect" slot is found, place the event there.
+                    r, t = random.choice(valid_slots)
+                    chromosome[r, t] = event_id
+                    placed = True
+                else:
+                    # Tier 2: If no "perfect" slot is found, find any empty slot in a suitable room.
+                    # This prioritizes getting the event on the board, even if it causes other (fixable) violations.
+                    imperfect_slots = []
+                    for r_idx, room in enumerate(self.rooms):
                         if self.is_room_suitable(room, course):
-                            for timeslot_idx in range(len(self.timeslots)):
-                                if (self.is_slot_available_for_event(chromosome, room_idx, timeslot_idx, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot_idx)):
-                                    # Lecturer availability is already checked by is_slot_available_for_event
-                                    valid_slots.append((room_idx, timeslot_idx))
-                    if valid_slots:
-                        room_idx, timeslot_idx = random.choice(valid_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
-                        placed = True
-
-                # Strategy 3 (Final Pass): Only place in a valid, empty slot.
-                if not placed and flexibility_level >= 2:
-                    # This is a last resort. Find any valid and completely empty slot.
-                    # We avoid displacing other events here as it can cascade issues.
-                    valid_empty_slots = []
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            for timeslot_idx in range(len(self.timeslots)):
-                                if (chromosome[room_idx][timeslot_idx] is None and # Must be empty
-                                    self.is_slot_available_for_event(chromosome, room_idx, timeslot_idx, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot_idx)):
-                                    valid_empty_slots.append((room_idx, timeslot_idx))
+                            for t_idx in range(len(self.timeslots)):
+                                # Just check if the slot is physically empty and respects lecturer schedule/break time
+                                if chromosome[r_idx, t_idx] is None and self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
+                                    imperfect_slots.append((r_idx, t_idx))
                     
-                    if valid_empty_slots:
-                        room_idx, timeslot_idx = random.choice(valid_empty_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
+                    if imperfect_slots:
+                        r, t = random.choice(imperfect_slots)
+                        chromosome[r, t] = event_id
                         placed = True
+                # If still no slot is found (highly unlikely), it will remain missing.
+
         return chromosome
 
     def count_course_occurrences(self, chromosome, student_group):
@@ -991,12 +1137,14 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(1)
+best_solution, fitness_history, generation, diversity_history = de.run(5)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
 final_fitness = de.evaluate_fitness(best_solution)
-violations = de.constraints.get_constraint_violations(best_solution)
+print("\n--- Running Debugging on Final Solution ---")
+violations = de.constraints.get_constraint_violations(best_solution, debug=True)
+print("--- Debugging Complete ---\n")
 
 print("\n--- Final Timetable Fitness Breakdown ---")
 print(f"Total Fitness Score: {final_fitness:.2f}\n")
@@ -1033,13 +1181,77 @@ penalty_info = {
     'spread_events': "0.025 points per group with clustered events"
 }
 
-# Sort and print for clarity
-sorted_violations = sorted(violations.items(), key=lambda item: item[0] if item[0] != 'total' else 'zzz')
-for constraint, points in sorted_violations:
-    if constraint != 'total':
+# Define the desired order for printing constraints
+hard_constraint_order = [
+    'student_group_constraints',
+    'lecturer_availability',
+    'lecturer_schedule_constraints',
+    'consecutive_timeslots',
+    'course_allocation_completeness',
+    'same_course_same_room_per_day',
+    'room_constraints',
+    'room_time_conflict',
+    'break_time_constraint'
+]
+
+soft_constraint_order = [
+    'building_assignments',
+    'single_event_per_day',
+    'spread_events'
+]
+
+# Prepare lines for printing
+lines_to_print = {}
+max_len = 0
+
+all_constraints_in_violations = [c for c in hard_constraint_order if c in violations] + \
+                                [c for c in soft_constraint_order if c in violations]
+
+other_violated_constraints = {k: v for k, v in violations.items() if k not in set(hard_constraint_order + soft_constraint_order) and k != 'total'}
+all_constraints_in_violations += sorted(other_violated_constraints.keys())
+
+for constraint in all_constraints_in_violations:
+    if constraint in violations:
+        points = violations[constraint]
         display_name = descriptive_names.get(constraint, constraint.replace('_', ' ').title())
+        
+        # Format points to have a consistent look
+        if isinstance(points, float):
+            # Show 2 decimal places for floats, unless it's a round number
+            if points == int(points):
+                points_str = str(int(points))
+            else:
+                points_str = f"{points:.2f}"
+        else:
+            points_str = str(points)
+            
+        line_start = f"- {display_name}: {points_str}"
+        max_len = max(max_len, len(line_start))
+        
         penalty_str = penalty_info.get(constraint, "...")
-        print(f"- {display_name}: {points} ({penalty_str})")
+        lines_to_print[constraint] = (line_start, penalty_str)
+
+print("HARD CONSTRAINTS")
+for constraint in hard_constraint_order:
+    if constraint in lines_to_print:
+        line_start, penalty_str = lines_to_print[constraint]
+        # ljust pads the string to the right
+        print(f"{line_start.ljust(max_len + 4)}({penalty_str})")
+
+print("\nSOFT CONSTRAINTS")
+for constraint in soft_constraint_order:
+    if constraint in lines_to_print:
+        line_start, penalty_str = lines_to_print[constraint]
+        print(f"{line_start.ljust(max_len + 4)}({penalty_str})")
+
+# Print any other constraints that might not be in the main lists
+all_printed_constraints = set(hard_constraint_order + soft_constraint_order)
+other_constraints_to_print = {k: v for k, v in lines_to_print.items() if k not in all_printed_constraints}
+
+if other_constraints_to_print:
+    print("\nOTHER CONSTRAINTS")
+    for constraint, (line_start, penalty_str) in sorted(other_constraints_to_print.items()):
+        print(f"{line_start.ljust(max_len + 4)}({penalty_str})")
 
 print(f"\nCalculated Total: {violations.get('total', 'N/A')}")
 print("--- End of Fitness Breakdown ---\n")
@@ -1549,6 +1761,8 @@ app.layout = html.Div([
                               else timetable_data['student_group'].name, 'value': idx} 
                     for idx, timetable_data in enumerate(all_timetables)],
             value=0,
+            searchable=True,
+            clearable=False,
             style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
         )
     ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
@@ -1591,8 +1805,7 @@ app.layout = html.Div([
             
             html.Div(id="room-options-container", className="room-options"),
             
-            html.Div([
-                html.Button("Cancel", id="room-cancel-btn", 
+            html.Div([                html.Button("Cancel", id="room-cancel-btn", 
                            style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", 
                                  "border": "1px solid #ddd", "borderRadius": "5px", "marginRight": "10px",
                                  "cursor": "pointer", "fontFamily": "Poppins, sans-serif"}),
@@ -1646,10 +1859,10 @@ app.layout = html.Div([
 @app.callback(
     [Output("timetable-container", "children"),
      Output("trigger", "children")],
-    [Input("all-timetables-store", "data"),
-     Input("student-group-dropdown", "value")]
+    [Input("student-group-dropdown", "value")],
+    [State("all-timetables-store", "data")]
 )
-def create_timetable(all_timetables_data, selected_group_idx):
+def create_timetable(selected_group_idx, all_timetables_data):
     # Only load saved data if we're in an active session and there have been changes
     # Don't load on fresh startup - use the fresh DE results
     global all_timetables
@@ -1657,6 +1870,11 @@ def create_timetable(all_timetables_data, selected_group_idx):
     if selected_group_idx is None or not all_timetables_data:
         return html.Div("No data available"), "trigger"
     
+    # Ensure selected_group_idx is within bounds
+    if selected_group_idx >= len(all_timetables_data):
+        print(f"Selected group index {selected_group_idx} out of bounds (max: {len(all_timetables_data)-1})")
+        selected_group_idx = 0
+        
     # Get the selected student group data
     timetable_data = all_timetables_data[selected_group_idx]
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
@@ -1767,6 +1985,135 @@ def create_timetable(all_timetables_data, selected_group_idx):
         table
     ], className="student-group-container"), "trigger"
 
+# Callback to update timetable content when swaps occur (without changing dropdown)
+@app.callback(
+    Output("timetable-container", "children", allow_duplicate=True),
+    Input("all-timetables-store", "data"),
+    [State("student-group-dropdown", "value")],
+    prevent_initial_call=True
+)
+def update_timetable_content(all_timetables_data, selected_group_idx):
+    """Update timetable content when data changes (e.g., from swaps) without affecting navigation"""
+    print(f"📊 Update timetable content triggered - group: {selected_group_idx}")
+    
+    if selected_group_idx is None or not all_timetables_data:
+        print(f"📊 Preventing update - invalid data: group={selected_group_idx}, data_exists={bool(all_timetables_data)}")
+        raise dash.exceptions.PreventUpdate
+    
+    # CRITICAL FIX: Ensure we're working with the right group index
+    # Don't allow updates if the selected group index seems out of sync
+    if selected_group_idx >= len(all_timetables_data):
+        print(f"📊 Preventing update - group index {selected_group_idx} out of bounds (max: {len(all_timetables_data) - 1})")
+        raise dash.exceptions.PreventUpdate
+        
+    # Get the selected student group data
+    timetable_data = all_timetables_data[selected_group_idx]
+    student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
+    timetable_rows = timetable_data['timetable']
+    
+    # Detect room conflicts across all time slots
+    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    
+    # Create table rows (same logic as create_timetable but only return the container content)
+    rows = []
+    
+    # Header row
+    header_cells = [html.Th("Time", style={
+        "backgroundColor": "#11214D", 
+        "color": "white", 
+        "padding": "12px 10px",
+        "fontSize": "13px",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "border": "1px solid #0d1a3d",
+        "fontFamily": "Poppins, sans-serif"
+    })]
+    
+    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    for day in days_of_week:
+        header_cells.append(html.Th(day, style={
+            "backgroundColor": "#11214D",
+            "color": "white",
+            "padding": "12px 10px",
+            "fontSize": "13px",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "border": "1px solid #0d1a3d",
+            "fontFamily": "Poppins, sans-serif"
+        }))
+    
+    rows.append(html.Thead(html.Tr(header_cells)))
+    
+    # Data rows
+    body_rows = []
+    hours = [f"{9 + i}:00" for i in range(len(timetable_rows))]
+    
+    for row_idx in range(len(timetable_rows)):
+        row_cells = []
+        
+        # Time cell
+        row_cells.append(html.Td(hours[row_idx], className="time-cell"))
+        
+        # Data cells for each day
+        for col_idx in range(1, len(timetable_rows[row_idx])):
+            cell_content = timetable_rows[row_idx][col_idx] if timetable_rows[row_idx][col_idx] else "FREE"
+            
+            # Create cell ID for drag and drop (consistent with create_timetable format)
+            cell_id = {"type": "cell", "group": selected_group_idx, "row": row_idx, "col": col_idx - 1}
+            
+            # Determine cell styling
+            is_break = cell_content == "BREAK"
+            has_conflict = (row_idx, col_idx - 1) in room_conflicts
+            
+            if is_break:
+                cell_class = "cell break-time"
+                draggable = False
+            elif has_conflict:
+                cell_class = "cell room-conflict"  
+                draggable = True
+            else:
+                cell_class = "cell"
+                draggable = True
+            
+            row_cells.append(html.Td(
+                html.Div(
+                    cell_content,
+                    className=cell_class,
+                    id=cell_id,
+                    draggable=draggable,
+                    n_clicks=0
+                )
+            ))
+        
+        body_rows.append(html.Tr(row_cells))
+    
+    rows.append(html.Tbody(body_rows))
+    
+    table = html.Table(rows, style={
+        "width": "100%",
+        "borderCollapse": "separate",
+        "borderSpacing": "0",
+        "backgroundColor": "white",
+        "borderRadius": "6px",
+        "overflow": "hidden",
+        "fontSize": "12px",
+        "boxShadow": "0 2px 6px rgba(0,0,0,0.08)",
+        "fontFamily": "Poppins, sans-serif"
+    })
+    
+    return html.Div([
+        html.Div([
+            html.H2(f"Timetable for {student_group_name}", className="timetable-title"),
+            html.Div([
+                html.Button("‹", className="nav-arrow", id="prev-group-btn",
+                           disabled=selected_group_idx == 0),
+                html.Button("›", className="nav-arrow", id="next-group-btn", 
+                           disabled=selected_group_idx == len(all_timetables_data) - 1)
+            ], className="nav-arrows")
+        ], className="timetable-header"),
+        table
+    ], className="student-group-container")
+
 # Callback to handle navigation arrows
 @app.callback(
     Output("student-group-dropdown", "value"),
@@ -1779,16 +2126,42 @@ def create_timetable(all_timetables_data, selected_group_idx):
 def handle_navigation(prev_clicks, next_clicks, current_value, all_timetables_data):
     ctx = dash.callback_context
     if not ctx.triggered or not all_timetables_data:
-        return current_value
+        raise dash.exceptions.PreventUpdate
     
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    click_value = ctx.triggered[0]['value']
+    
+    # Add debugging to detect unexpected triggers
+    print(f"🔍 Navigation callback triggered by: {button_id}")
+    print(f"🔍 Context triggered: {ctx.triggered}")
+    print(f"🔍 Current value: {current_value}")
+    print(f"🔍 Click value: {click_value}")
+    
+    # CRITICAL FIX: Ignore navigation if click value is None or 0 (spurious triggers)
+    if click_value is None or click_value == 0:
+        print(f"🚫 Ignoring spurious navigation trigger - click value is {click_value}")
+        raise dash.exceptions.PreventUpdate
+    
+    # Ensure we have a valid current value
+    if current_value is None:
+        current_value = 0
+    
+    # Ensure current_value is within bounds
+    max_index = len(all_timetables_data) - 1
+    current_value = max(0, min(current_value, max_index))
     
     if button_id == "prev-group-btn" and current_value > 0:
-        return current_value - 1
-    elif button_id == "next-group-btn" and current_value < len(all_timetables_data) - 1:
-        return current_value + 1
+        new_value = current_value - 1
+        print(f"✅ Navigation: Moving from group {current_value} to {new_value} (prev)")
+        return new_value
+    elif button_id == "next-group-btn" and current_value < max_index:
+        new_value = current_value + 1
+        print(f"✅ Navigation: Moving from group {current_value} to {new_value} (next)")
+        return new_value
+    else:
+        print(f"❌ Navigation: Invalid navigation attempt - button: {button_id}, current: {current_value}, max: {max_index}")
     
-    return current_value
+    raise dash.exceptions.PreventUpdate
 
 # Client-side callback for drag and drop functionality and double-click room selection
 clientside_callback(
@@ -1805,6 +2178,11 @@ clientside_callback(
             const cells = document.querySelectorAll('.cell');
             console.log('Found', cells.length, 'draggable cells');
             
+            // Clear any existing global drag state when setting up
+            window.draggedElement = null;
+            window.dragStartData = null;
+            window.selectedCell = null;
+            
             cells.forEach(function(cell) {
                 // Clear existing listeners
                 cell.ondragstart = null;
@@ -1814,6 +2192,9 @@ clientside_callback(
                 cell.ondrop = null;
                 cell.ondragend = null;
                 cell.ondblclick = null;
+                
+                // Remove any existing drag-related classes
+                cell.classList.remove('dragging', 'drag-over');
                 
                 // Double-click handler for room selection
                 cell.ondblclick = function(e) {
@@ -1862,7 +2243,7 @@ clientside_callback(
                 };
                 
                 cell.ondragstart = function(e) {
-                    console.log('Drag started');
+                    console.log('Drag started on cell:', this.id);
                     
                     // Prevent dragging break times
                     if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
@@ -1870,6 +2251,10 @@ clientside_callback(
                         e.preventDefault();
                         return false;
                     }
+                    
+                    // Clear any previous drag state
+                    window.draggedElement = null;
+                    window.dragStartData = null;
                     
                     window.draggedElement = this;
                     
@@ -1881,11 +2266,14 @@ clientside_callback(
                             group: idObj.group,
                             row: idObj.row,
                             col: idObj.col,
-                            content: this.textContent.trim()
+                            content: this.textContent.trim(),
+                            cellId: idStr  // Store the exact cell ID for verification
                         };
-                        console.log('Drag data:', window.dragStartData);
+                        console.log('Drag data stored:', window.dragStartData);
                     } catch (e) {
                         console.error('Could not parse ID:', idStr);
+                        window.draggedElement = null;
+                        window.dragStartData = null;
                         return false;
                     }
                     
@@ -1919,7 +2307,7 @@ clientside_callback(
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    console.log('Drop detected');
+                    console.log('Drop detected on cell:', this.id);
                     
                     // Prevent dropping on break times
                     if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
@@ -1928,50 +2316,81 @@ clientside_callback(
                         return false;
                     }
                     
-                    if (window.draggedElement && this !== window.draggedElement) {
-                        // Get target data
-                        const targetIdStr = this.id;
-                        try {
-                            const targetIdObj = JSON.parse(targetIdStr);
-                            const targetData = {
-                                group: targetIdObj.group,
-                                row: targetIdObj.row,
-                                col: targetIdObj.col,
-                                content: this.textContent.trim()
-                            };
-                            
-                            console.log('Swapping:', window.dragStartData, 'with:', targetData);
-                            
-                            // Perform the swap
-                            const tempContent = window.draggedElement.textContent;
-                            window.draggedElement.textContent = this.textContent;
-                            this.textContent = tempContent;
-                            
-                            // Trigger callback to update backend data
-                            window.dash_clientside.set_props("swap-data", {
-                                data: {
-                                    source: window.dragStartData,
-                                    target: targetData,
-                                    timestamp: Date.now()
-                                }
-                            });
-                            
-                            // Update feedback
-                            const feedback = document.getElementById('feedback');
-                            if (feedback) {
-                                feedback.innerHTML = '✅ Swapped "' + window.dragStartData.content + '" with "' + targetData.content + '"';
-                                feedback.style.color = 'green';
-                                feedback.style.backgroundColor = '#e8f5e8';
-                                feedback.style.padding = '10px';
-                                feedback.style.borderRadius = '5px';
-                                feedback.style.border = '2px solid #4caf50';
-                            }
-                            
-                            console.log('Swap completed successfully');
-                            
-                        } catch (e) {
-                            console.error('Could not parse target ID:', targetIdStr);
+                    // Validate we have a valid drag operation
+                    if (!window.draggedElement || !window.dragStartData) {
+                        console.log('No valid drag operation in progress');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Don't drop on the same element
+                    if (this === window.draggedElement) {
+                        console.log('Cannot drop on the same element');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Verify the dragged element still exists and matches our stored data
+                    if (window.draggedElement.id !== window.dragStartData.cellId) {
+                        console.log('Drag state mismatch - aborting');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Get target data
+                    const targetIdStr = this.id;
+                    try {
+                        const targetIdObj = JSON.parse(targetIdStr);
+                        const targetData = {
+                            group: targetIdObj.group,
+                            row: targetIdObj.row,
+                            col: targetIdObj.col,
+                            content: this.textContent.trim(),
+                            cellId: targetIdStr
+                        };
+                        
+                        // Ensure both elements are in the same group
+                        if (window.dragStartData.group !== targetData.group) {
+                            console.log('Cannot swap between different groups');
+                            this.classList.remove('drag-over');
+                            return false;
                         }
+                        
+                        console.log('Swapping:', window.dragStartData, 'with:', targetData);
+                        
+                        // Perform the swap
+                        const tempContent = window.draggedElement.textContent;
+                        window.draggedElement.textContent = this.textContent;
+                        this.textContent = tempContent;
+                        
+                        // Trigger callback to update backend data
+                        window.dash_clientside.set_props("swap-data", {
+                            data: {
+                                source: window.dragStartData,
+                                target: targetData,
+                                timestamp: Date.now()
+                            }
+                        });
+                        
+                        // Update feedback
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) {
+                            feedback.innerHTML = '✅ Swapped "' + window.dragStartData.content + '" with "' + targetData.content + '"';
+                            feedback.style.color = 'green';
+                            feedback.style.backgroundColor = '#e8f5e8';
+                            feedback.style.padding = '10px';
+                            feedback.style.borderRadius = '5px';
+                            feedback.style.border = '2px solid #4caf50';
+                        }
+                        
+                        console.log('✅ Swap completed successfully - UI updated');
+                        
+                        // Clear drag state immediately after successful swap
+                        window.draggedElement = null;
+                        window.dragStartData = null;
+                        
+                    } catch (e) {
+                        console.error('Could not parse target ID:', targetIdStr, e);
                     }
                     
                     this.classList.remove('drag-over');
@@ -1979,17 +2398,22 @@ clientside_callback(
                 };
                 
                 cell.ondragend = function(e) {
-                    console.log('Drag ended');
+                    console.log('Drag ended - cleaning up');
+                    
+                    // Remove dragging class from this element
                     this.classList.remove('dragging');
                     
-                    // Clean up all drag-over classes
-                    const cells = document.querySelectorAll('.cell');
-                    cells.forEach(function(c) {
-                        c.classList.remove('drag-over');
+                    // Clean up all drag-over classes from all cells
+                    const allCells = document.querySelectorAll('.cell');
+                    allCells.forEach(function(c) {
+                        c.classList.remove('drag-over', 'dragging');
                     });
                     
+                    // Clear global drag state
                     window.draggedElement = null;
                     window.dragStartData = null;
+                    
+                    console.log('Drag state cleared');
                 };
             });
         }
@@ -2035,13 +2459,14 @@ clientside_callback(
             }
         }
         
-        // Setup immediately
+        // Setup immediately and after a short delay
         setTimeout(function() {
             setupDragAndDrop();
             setupModalHandlers();
         }, 100);
         
-        // Also setup when DOM changes
+        // Also setup when DOM changes (but debounce to prevent excessive calls)
+        let setupTimeout = null;
         const observer = new MutationObserver(function(mutations) {
             let shouldSetup = false;
             mutations.forEach(function(mutation) {
@@ -2056,10 +2481,22 @@ clientside_callback(
                 }
             });
             if (shouldSetup) {
-                setTimeout(function() {
-                    setupDragAndDrop();
-                    setupModalHandlers();
-                }, 100);
+                // Clear any existing timeout
+                if (setupTimeout) {
+                    clearTimeout(setupTimeout);
+                }
+                // Set a new timeout to debounce the setup calls
+                setupTimeout = setTimeout(function() {
+                    console.log('DOM changed - re-initializing drag and drop');
+                    // Only re-initialize if no drag operation is in progress
+                    if (!window.draggedElement && !window.dragStartData) {
+                        setupDragAndDrop();
+                        setupModalHandlers();
+                    } else {
+                        console.log('Skipping re-initialization - drag in progress');
+                    }
+                    setupTimeout = null;
+                }, 150);
             }
         });
         
@@ -2284,7 +2721,7 @@ def handle_room_selection(n_clicks_list, room_ids, current_room_data, all_timeta
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     try:
         triggered_room = json.loads(triggered_id)
-        selected_room_name = triggered_room['room_name']
+        selected_room_name = triggered_room['room_name'];
     except:
         return dash.no_update
     
@@ -2430,30 +2867,48 @@ def save_timetable_to_file(timetables_data):
 def handle_swap(swap_data, current_timetables):
     global all_timetables, session_has_swaps
     
+    print(f"🔄 Handle swap triggered with data: {swap_data}")
+    
     if not swap_data or not current_timetables:
-        return current_timetables
+        raise dash.exceptions.PreventUpdate
     
     try:
         source = swap_data['source']
         target = swap_data['target']
         
+        # Validate swap data structure
+        if not source or not target or 'group' not in source or 'group' not in target:
+            print("Invalid swap data structure")
+            raise dash.exceptions.PreventUpdate
+        
         # Make sure both swaps are in the same group
         if source['group'] != target['group']:
             print("Cannot swap between different student groups")
-            return current_timetables
+            raise dash.exceptions.PreventUpdate
         
         # Prevent swapping with BREAK times
-        if source['content'] == 'BREAK' or target['content'] == 'BREAK':
+        if source.get('content') == 'BREAK' or target.get('content') == 'BREAK':
             print("Cannot swap with BREAK time")
-            return current_timetables
-        
-        # Mark that we've made swaps in this session
-        session_has_swaps = True
+            raise dash.exceptions.PreventUpdate
         
         group_idx = source['group']
         
+        # Validate group index
+        if group_idx < 0 or group_idx >= len(current_timetables):
+            print(f"Invalid group index: {group_idx}")
+            raise dash.exceptions.PreventUpdate
+        
+        # Create a deep copy to avoid reference issues
+        updated_timetables = json.loads(json.dumps(current_timetables))
+        
         # Update the timetable data
-        timetable_rows = current_timetables[group_idx]['timetable']
+        timetable_rows = updated_timetables[group_idx]['timetable']
+        
+        # Validate row and column indices
+        if (source['row'] >= len(timetable_rows) or target['row'] >= len(timetable_rows) or
+            source['col'] + 1 >= len(timetable_rows[0]) or target['col'] + 1 >= len(timetable_rows[0])):
+            print("Invalid row or column index in swap data")
+            raise dash.exceptions.PreventUpdate
         
         # Get the current content (skip time column, so add 1 to col index)
         source_content = timetable_rows[source['row']][source['col'] + 1]
@@ -2463,77 +2918,54 @@ def handle_swap(swap_data, current_timetables):
         timetable_rows[source['row']][source['col'] + 1] = target_content
         timetable_rows[target['row']][target['col'] + 1] = source_content
         
-        print(f"Backend swap completed: {source_content} <-> {target_content}")
+        print(f"✅ Swap completed: '{source_content}' ↔ '{target_content}' (Group: {group_idx})")
+        
+        # Mark that we've made swaps in this session
+        session_has_swaps = True
         
         # Update the global all_timetables variable to ensure persistence
         all_timetables[group_idx]['timetable'] = timetable_rows
         
-        # Also update the current_timetables to return
-        current_timetables[group_idx]['timetable'] = timetable_rows
-        
-        # Debug: Print some info about what we're about to save
-        print(f"DEBUG: About to save data for group {group_idx}")
-        print(f"DEBUG: Source row {source['row']}, col {source['col']}: '{current_timetables[group_idx]['timetable'][source['row']][source['col'] + 1]}'")
-        print(f"DEBUG: Target row {target['row']}, col {target['col']}: '{current_timetables[group_idx]['timetable'][target['row']][target['col'] + 1]}'")
-        
         # Auto-save the changes to maintain persistence
         try:
             import os
-            import json
             import time
             import shutil
-            import traceback
             
             save_dir = os.path.join(os.path.dirname(__file__), 'data')
-            os.makedirs(save_dir, exist_ok=True)  # Use exist_ok=True to avoid errors
+            os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, 'timetable_data.json')
             
             # Add timestamp to track saves
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] Attempting to auto-save swap: {source['content']} <-> {target['content']}")
-            print(f"Auto-save path: {save_path}")
-            print(f"Number of student groups: {len(current_timetables)}")
+            print(f"[{timestamp}] Auto-saving swap")
             
             # Create a backup before saving
             backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
             if os.path.exists(save_path):
                 shutil.copy2(save_path, backup_path)
-                print(f"Created backup at: {backup_path}")
             
             # Force a file flush and sync to ensure data is written to disk
             with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(current_timetables, f, indent=2, default=str, ensure_ascii=False)
-                f.flush()  # Force write to disk
-                os.fsync(f.fileno())  # Force OS to write to physical storage
+                json.dump(updated_timetables, f, indent=2, ensure_ascii=False)
+                f.flush()
+                if hasattr(os, 'fsync'):
+                    os.fsync(f.fileno())
             
-            # Verify the file was written successfully
-            if os.path.exists(save_path):
-                file_size = os.path.getsize(save_path)
-                print(f"✅ Auto-saved successfully! File size: {file_size} bytes")
-                
-                # Verify we can read it back and check the specific swapped data
-                with open(save_path, 'r', encoding='utf-8') as f:
-                    test_load = json.load(f)
-                print(f"✅ Verification: Can read back {len(test_load)} student groups")
-                
-                # Verify the actual swap was saved
-                saved_source = test_load[group_idx]['timetable'][source['row']][source['col'] + 1]
-                saved_target = test_load[group_idx]['timetable'][target['row']][target['col'] + 1]
-                print(f"✅ Verification: Saved source = '{saved_source}', target = '{saved_target}'")
-                
-            else:
-                print("❌ ERROR: Auto-save file was not created!")
+            print(f"✅ Auto-save successful: {save_path}")
                 
         except Exception as auto_save_error:
-            print(f"❌ Auto-save failed with error: {auto_save_error}")
+            print(f"❌ Auto-save failed: {auto_save_error}")
             import traceback
             traceback.print_exc()
         
-        return current_timetables
+        return updated_timetables
         
     except Exception as e:
-        print(f"Error handling swap: {e}")
-        return current_timetables
+        print(f"❌ Error in handle_swap: {e}")
+        import traceback
+        traceback.print_exc()
+        raise dash.exceptions.PreventUpdate
 
 # Callback to handle saving the current timetable state
 @app.callback(
@@ -2562,7 +2994,6 @@ def save_timetable(n_clicks, current_timetables):
             all_timetables = current_timetables
             
             # Save to JSON file for persistence
-            import json
             import os
             
             # Create a data directory if it doesn't exist
@@ -2594,32 +3025,54 @@ def save_timetable(n_clicks, current_timetables):
                 html.Div([
                     html.Span("❌ Error saving timetable!", style={"color": "red", "fontWeight": "bold"}),
                     html.Br(),
-                    html.Small(f"Error: {str(e)}", style={"color": "red"})
+                        html.Small(f"Error: {str(e)}", style={"color": "red"})
                 ]),
                 {"display": "none"}
             )
     
     return ("", {"display": "none"})
 
-# Callback to refresh timetable data from file on page load
+# Callback to refresh timetable data from file on page load - DISABLED to prevent navigation conflicts
+# The refresh is now handled only when actual swaps occur in handle_swap callback
+# @app.callback(
+#     Output("all-timetables-store", "data", allow_duplicate=True),
+#     Input("student-group-dropdown", "value"),
+#     prevent_initial_call='initial_duplicate'
+# )
+# def refresh_timetable_data(selected_group_idx):
+#     # Only load saved data if we've made swaps in this session
+#     global session_has_swaps, all_timetables 
+#     
+#     if session_has_swaps:
+#         fresh_saved_data = load_saved_timetable()
+#         if fresh_saved_data:
+#             print(f"🔄 Session has swaps - loading saved data: {len(fresh_saved_data)} student groups")
+#             return fresh_saved_data
+#     
+#     # Otherwise, use the current all_timetables (fresh DE results)
+#     print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
+#     return all_timetables
+
+# Additional safeguard callback to prevent dropdown state issues
 @app.callback(
-    Output("all-timetables-store", "data", allow_duplicate=True),
+    Output("student-group-dropdown", "value", allow_duplicate=True),
     Input("student-group-dropdown", "value"),
-    prevent_initial_call='initial_duplicate'
+    State("all-timetables-store", "data"),
+    prevent_initial_call=True
 )
-def refresh_timetable_data(selected_group_idx):
-    # Only load saved data if we've made swaps in this session
-    global session_has_swaps, all_timetables
+def validate_dropdown_selection(selected_value, all_timetables_data):
+    """Ensure dropdown value is always valid and within bounds"""
+    if not all_timetables_data or selected_value is None:
+        return 0
     
-    if session_has_swaps:
-        fresh_saved_data = load_saved_timetable()
-        if fresh_saved_data:
-            print(f"🔄 Session has swaps - loading saved data: {len(fresh_saved_data)} student groups")
-            return fresh_saved_data
+    # Ensure the selected value is within valid range
+    max_index = len(all_timetables_data) - 1
+    if selected_value < 0 or selected_value > max_index:
+        print(f"🔧 Correcting invalid dropdown value {selected_value} to 0 (max: {max_index})")
+        return 0
     
-    # Otherwise, use the current all_timetables (fresh DE results)
-    print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
-    return all_timetables
+    # Value is valid, no change needed
+    raise dash.exceptions.PreventUpdate
 
 # Run the Dash app
 if __name__ == '__main__':

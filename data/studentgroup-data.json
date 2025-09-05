@@ -648,7 +648,7 @@
     "name": "Business Administration - Year 4",
     "no_students": 30,
     "courseIDs": [
-      "BUS 401",
+      "BUS 499",
       "BUS 401",
       "BUS 402",
       "BUS 405",
@@ -805,12 +805,6 @@
     "name": "ISMS - Year 4",
     "no_students": 25,
     "courseIDs": [
-      "COM 415",
-      "COM 405",
-      "COM 401",
-      "COM 403",
-      "COM 413",
-      "COM 409",
       "ISM 403",
       "ISM 405",
       "ISM 401",
@@ -820,12 +814,6 @@
       "ISM 410"
     ],
     "teacherIDS": [
-      "aokoeguale@pau.edu.ng",
-      "glakinbofa@pau.edu.ng",
-      "ssoyele@pau.edu.ng",
-      "jbenson@pau.edu.ng",
-      "sjohn@pau.edu.ng",
-      "fogungbe@pau.edu.ng",
       "afokonkwo@pau.edu.ng",
       "tvincent@pau.edu.ng",
       "jabiamuwe@pau.edu.ng",
@@ -835,12 +823,6 @@
       "danger@pau.edu.ng"
     ],
     "hours_required": [
-      3,
-      3,
-      2,
-      2,
-      2,
-      3,
       2,
       3,
       3,
