@@ -10,6 +10,7 @@ import re
 import dash
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
+import dash.exceptions
 import json
 import os
 import shutil
@@ -1136,7 +1137,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(50)
+best_solution, fitness_history, generation, diversity_history = de.run(5)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
@@ -1760,6 +1761,8 @@ app.layout = html.Div([
                               else timetable_data['student_group'].name, 'value': idx} 
                     for idx, timetable_data in enumerate(all_timetables)],
             value=0,
+            searchable=True,
+            clearable=False,
             style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
         )
     ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
@@ -1856,10 +1859,10 @@ app.layout = html.Div([
 @app.callback(
     [Output("timetable-container", "children"),
      Output("trigger", "children")],
-    [Input("all-timetables-store", "data"),
-     Input("student-group-dropdown", "value")]
+    [Input("student-group-dropdown", "value")],
+    [State("all-timetables-store", "data")]
 )
-def create_timetable(all_timetables_data, selected_group_idx):
+def create_timetable(selected_group_idx, all_timetables_data):
     # Only load saved data if we're in an active session and there have been changes
     # Don't load on fresh startup - use the fresh DE results
     global all_timetables
@@ -1867,6 +1870,11 @@ def create_timetable(all_timetables_data, selected_group_idx):
     if selected_group_idx is None or not all_timetables_data:
         return html.Div("No data available"), "trigger"
     
+    # Ensure selected_group_idx is within bounds
+    if selected_group_idx >= len(all_timetables_data):
+        print(f"Selected group index {selected_group_idx} out of bounds (max: {len(all_timetables_data)-1})")
+        selected_group_idx = 0
+        
     # Get the selected student group data
     timetable_data = all_timetables_data[selected_group_idx]
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
@@ -1977,6 +1985,135 @@ def create_timetable(all_timetables_data, selected_group_idx):
         table
     ], className="student-group-container"), "trigger"
 
+# Callback to update timetable content when swaps occur (without changing dropdown)
+@app.callback(
+    Output("timetable-container", "children", allow_duplicate=True),
+    Input("all-timetables-store", "data"),
+    [State("student-group-dropdown", "value")],
+    prevent_initial_call=True
+)
+def update_timetable_content(all_timetables_data, selected_group_idx):
+    """Update timetable content when data changes (e.g., from swaps) without affecting navigation"""
+    print(f"📊 Update timetable content triggered - group: {selected_group_idx}")
+    
+    if selected_group_idx is None or not all_timetables_data:
+        print(f"📊 Preventing update - invalid data: group={selected_group_idx}, data_exists={bool(all_timetables_data)}")
+        raise dash.exceptions.PreventUpdate
+    
+    # CRITICAL FIX: Ensure we're working with the right group index
+    # Don't allow updates if the selected group index seems out of sync
+    if selected_group_idx >= len(all_timetables_data):
+        print(f"📊 Preventing update - group index {selected_group_idx} out of bounds (max: {len(all_timetables_data) - 1})")
+        raise dash.exceptions.PreventUpdate
+        
+    # Get the selected student group data
+    timetable_data = all_timetables_data[selected_group_idx]
+    student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
+    timetable_rows = timetable_data['timetable']
+    
+    # Detect room conflicts across all time slots
+    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    
+    # Create table rows (same logic as create_timetable but only return the container content)
+    rows = []
+    
+    # Header row
+    header_cells = [html.Th("Time", style={
+        "backgroundColor": "#11214D", 
+        "color": "white", 
+        "padding": "12px 10px",
+        "fontSize": "13px",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "border": "1px solid #0d1a3d",
+        "fontFamily": "Poppins, sans-serif"
+    })]
+    
+    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    for day in days_of_week:
+        header_cells.append(html.Th(day, style={
+            "backgroundColor": "#11214D",
+            "color": "white",
+            "padding": "12px 10px",
+            "fontSize": "13px",
+            "fontWeight": "600",
+            "textAlign": "center",
+            "border": "1px solid #0d1a3d",
+            "fontFamily": "Poppins, sans-serif"
+        }))
+    
+    rows.append(html.Thead(html.Tr(header_cells)))
+    
+    # Data rows
+    body_rows = []
+    hours = [f"{9 + i}:00" for i in range(len(timetable_rows))]
+    
+    for row_idx in range(len(timetable_rows)):
+        row_cells = []
+        
+        # Time cell
+        row_cells.append(html.Td(hours[row_idx], className="time-cell"))
+        
+        # Data cells for each day
+        for col_idx in range(1, len(timetable_rows[row_idx])):
+            cell_content = timetable_rows[row_idx][col_idx] if timetable_rows[row_idx][col_idx] else "FREE"
+            
+            # Create cell ID for drag and drop (consistent with create_timetable format)
+            cell_id = {"type": "cell", "group": selected_group_idx, "row": row_idx, "col": col_idx - 1}
+            
+            # Determine cell styling
+            is_break = cell_content == "BREAK"
+            has_conflict = (row_idx, col_idx - 1) in room_conflicts
+            
+            if is_break:
+                cell_class = "cell break-time"
+                draggable = False
+            elif has_conflict:
+                cell_class = "cell room-conflict"  
+                draggable = True
+            else:
+                cell_class = "cell"
+                draggable = True
+            
+            row_cells.append(html.Td(
+                html.Div(
+                    cell_content,
+                    className=cell_class,
+                    id=cell_id,
+                    draggable=draggable,
+                    n_clicks=0
+                )
+            ))
+        
+        body_rows.append(html.Tr(row_cells))
+    
+    rows.append(html.Tbody(body_rows))
+    
+    table = html.Table(rows, style={
+        "width": "100%",
+        "borderCollapse": "separate",
+        "borderSpacing": "0",
+        "backgroundColor": "white",
+        "borderRadius": "6px",
+        "overflow": "hidden",
+        "fontSize": "12px",
+        "boxShadow": "0 2px 6px rgba(0,0,0,0.08)",
+        "fontFamily": "Poppins, sans-serif"
+    })
+    
+    return html.Div([
+        html.Div([
+            html.H2(f"Timetable for {student_group_name}", className="timetable-title"),
+            html.Div([
+                html.Button("‹", className="nav-arrow", id="prev-group-btn",
+                           disabled=selected_group_idx == 0),
+                html.Button("›", className="nav-arrow", id="next-group-btn", 
+                           disabled=selected_group_idx == len(all_timetables_data) - 1)
+            ], className="nav-arrows")
+        ], className="timetable-header"),
+        table
+    ], className="student-group-container")
+
 # Callback to handle navigation arrows
 @app.callback(
     Output("student-group-dropdown", "value"),
@@ -1989,16 +2126,42 @@ def create_timetable(all_timetables_data, selected_group_idx):
 def handle_navigation(prev_clicks, next_clicks, current_value, all_timetables_data):
     ctx = dash.callback_context
     if not ctx.triggered or not all_timetables_data:
-        return current_value
+        raise dash.exceptions.PreventUpdate
     
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    click_value = ctx.triggered[0]['value']
+    
+    # Add debugging to detect unexpected triggers
+    print(f"🔍 Navigation callback triggered by: {button_id}")
+    print(f"🔍 Context triggered: {ctx.triggered}")
+    print(f"🔍 Current value: {current_value}")
+    print(f"🔍 Click value: {click_value}")
+    
+    # CRITICAL FIX: Ignore navigation if click value is None or 0 (spurious triggers)
+    if click_value is None or click_value == 0:
+        print(f"🚫 Ignoring spurious navigation trigger - click value is {click_value}")
+        raise dash.exceptions.PreventUpdate
+    
+    # Ensure we have a valid current value
+    if current_value is None:
+        current_value = 0
+    
+    # Ensure current_value is within bounds
+    max_index = len(all_timetables_data) - 1
+    current_value = max(0, min(current_value, max_index))
     
     if button_id == "prev-group-btn" and current_value > 0:
-        return current_value - 1
-    elif button_id == "next-group-btn" and current_value < len(all_timetables_data) - 1:
-        return current_value + 1
+        new_value = current_value - 1
+        print(f"✅ Navigation: Moving from group {current_value} to {new_value} (prev)")
+        return new_value
+    elif button_id == "next-group-btn" and current_value < max_index:
+        new_value = current_value + 1
+        print(f"✅ Navigation: Moving from group {current_value} to {new_value} (next)")
+        return new_value
+    else:
+        print(f"❌ Navigation: Invalid navigation attempt - button: {button_id}, current: {current_value}, max: {max_index}")
     
-    return current_value
+    raise dash.exceptions.PreventUpdate
 
 # Client-side callback for drag and drop functionality and double-click room selection
 clientside_callback(
@@ -2015,6 +2178,11 @@ clientside_callback(
             const cells = document.querySelectorAll('.cell');
             console.log('Found', cells.length, 'draggable cells');
             
+            // Clear any existing global drag state when setting up
+            window.draggedElement = null;
+            window.dragStartData = null;
+            window.selectedCell = null;
+            
             cells.forEach(function(cell) {
                 // Clear existing listeners
                 cell.ondragstart = null;
@@ -2024,6 +2192,9 @@ clientside_callback(
                 cell.ondrop = null;
                 cell.ondragend = null;
                 cell.ondblclick = null;
+                
+                // Remove any existing drag-related classes
+                cell.classList.remove('dragging', 'drag-over');
                 
                 // Double-click handler for room selection
                 cell.ondblclick = function(e) {
@@ -2072,7 +2243,7 @@ clientside_callback(
                 };
                 
                 cell.ondragstart = function(e) {
-                    console.log('Drag started');
+                    console.log('Drag started on cell:', this.id);
                     
                     // Prevent dragging break times
                     if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
@@ -2080,6 +2251,10 @@ clientside_callback(
                         e.preventDefault();
                         return false;
                     }
+                    
+                    // Clear any previous drag state
+                    window.draggedElement = null;
+                    window.dragStartData = null;
                     
                     window.draggedElement = this;
                     
@@ -2091,11 +2266,14 @@ clientside_callback(
                             group: idObj.group,
                             row: idObj.row,
                             col: idObj.col,
-                            content: this.textContent.trim()
+                            content: this.textContent.trim(),
+                            cellId: idStr  // Store the exact cell ID for verification
                         };
-                        console.log('Drag data:', window.dragStartData);
+                        console.log('Drag data stored:', window.dragStartData);
                     } catch (e) {
                         console.error('Could not parse ID:', idStr);
+                        window.draggedElement = null;
+                        window.dragStartData = null;
                         return false;
                     }
                     
@@ -2129,7 +2307,7 @@ clientside_callback(
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    console.log('Drop detected');
+                    console.log('Drop detected on cell:', this.id);
                     
                     // Prevent dropping on break times
                     if (this.classList.contains('break-time') || this.textContent.trim() === 'BREAK') {
@@ -2138,50 +2316,81 @@ clientside_callback(
                         return false;
                     }
                     
-                    if (window.draggedElement && this !== window.draggedElement) {
-                        // Get target data
-                        const targetIdStr = this.id;
-                        try {
-                            const targetIdObj = JSON.parse(targetIdStr);
-                            const targetData = {
-                                group: targetIdObj.group,
-                                row: targetIdObj.row,
-                                col: targetIdObj.col,
-                                content: this.textContent.trim()
-                            };
-                            
-                            console.log('Swapping:', window.dragStartData, 'with:', targetData);
-                            
-                            // Perform the swap
-                            const tempContent = window.draggedElement.textContent;
-                            window.draggedElement.textContent = this.textContent;
-                            this.textContent = tempContent;
-                            
-                            // Trigger callback to update backend data
-                            window.dash_clientside.set_props("swap-data", {
-                                data: {
-                                    source: window.dragStartData,
-                                    target: targetData,
-                                    timestamp: Date.now()
-                                }
-                            });
-                            
-                            // Update feedback
-                            const feedback = document.getElementById('feedback');
-                            if (feedback) {
-                                feedback.innerHTML = '✅ Swapped "' + window.dragStartData.content + '" with "' + targetData.content + '"';
-                                feedback.style.color = 'green';
-                                feedback.style.backgroundColor = '#e8f5e8';
-                                feedback.style.padding = '10px';
-                                feedback.style.borderRadius = '5px';
-                                feedback.style.border = '2px solid #4caf50';
-                            }
-                            
-                            console.log('Swap completed successfully');
-                            
-                        } catch (e) {
-                            console.error('Could not parse target ID:', targetIdStr);
+                    // Validate we have a valid drag operation
+                    if (!window.draggedElement || !window.dragStartData) {
+                        console.log('No valid drag operation in progress');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Don't drop on the same element
+                    if (this === window.draggedElement) {
+                        console.log('Cannot drop on the same element');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Verify the dragged element still exists and matches our stored data
+                    if (window.draggedElement.id !== window.dragStartData.cellId) {
+                        console.log('Drag state mismatch - aborting');
+                        this.classList.remove('drag-over');
+                        return false;
+                    }
+                    
+                    // Get target data
+                    const targetIdStr = this.id;
+                    try {
+                        const targetIdObj = JSON.parse(targetIdStr);
+                        const targetData = {
+                            group: targetIdObj.group,
+                            row: targetIdObj.row,
+                            col: targetIdObj.col,
+                            content: this.textContent.trim(),
+                            cellId: targetIdStr
+                        };
+                        
+                        // Ensure both elements are in the same group
+                        if (window.dragStartData.group !== targetData.group) {
+                            console.log('Cannot swap between different groups');
+                            this.classList.remove('drag-over');
+                            return false;
                         }
+                        
+                        console.log('Swapping:', window.dragStartData, 'with:', targetData);
+                        
+                        // Perform the swap
+                        const tempContent = window.draggedElement.textContent;
+                        window.draggedElement.textContent = this.textContent;
+                        this.textContent = tempContent;
+                        
+                        // Trigger callback to update backend data
+                        window.dash_clientside.set_props("swap-data", {
+                            data: {
+                                source: window.dragStartData,
+                                target: targetData,
+                                timestamp: Date.now()
+                            }
+                        });
+                        
+                        // Update feedback
+                        const feedback = document.getElementById('feedback');
+                        if (feedback) {
+                            feedback.innerHTML = '✅ Swapped "' + window.dragStartData.content + '" with "' + targetData.content + '"';
+                            feedback.style.color = 'green';
+                            feedback.style.backgroundColor = '#e8f5e8';
+                            feedback.style.padding = '10px';
+                            feedback.style.borderRadius = '5px';
+                            feedback.style.border = '2px solid #4caf50';
+                        }
+                        
+                        console.log('✅ Swap completed successfully - UI updated');
+                        
+                        // Clear drag state immediately after successful swap
+                        window.draggedElement = null;
+                        window.dragStartData = null;
+                        
+                    } catch (e) {
+                        console.error('Could not parse target ID:', targetIdStr, e);
                     }
                     
                     this.classList.remove('drag-over');
@@ -2189,17 +2398,22 @@ clientside_callback(
                 };
                 
                 cell.ondragend = function(e) {
-                    console.log('Drag ended');
+                    console.log('Drag ended - cleaning up');
+                    
+                    // Remove dragging class from this element
                     this.classList.remove('dragging');
                     
-                    // Clean up all drag-over classes
-                    const cells = document.querySelectorAll('.cell');
-                    cells.forEach(function(c) {
-                        c.classList.remove('drag-over');
+                    // Clean up all drag-over classes from all cells
+                    const allCells = document.querySelectorAll('.cell');
+                    allCells.forEach(function(c) {
+                        c.classList.remove('drag-over', 'dragging');
                     });
                     
+                    // Clear global drag state
                     window.draggedElement = null;
                     window.dragStartData = null;
+                    
+                    console.log('Drag state cleared');
                 };
             });
         }
@@ -2245,13 +2459,14 @@ clientside_callback(
             }
         }
         
-        // Setup immediately
+        // Setup immediately and after a short delay
         setTimeout(function() {
             setupDragAndDrop();
             setupModalHandlers();
         }, 100);
         
-        // Also setup when DOM changes
+        // Also setup when DOM changes (but debounce to prevent excessive calls)
+        let setupTimeout = null;
         const observer = new MutationObserver(function(mutations) {
             let shouldSetup = false;
             mutations.forEach(function(mutation) {
@@ -2266,10 +2481,22 @@ clientside_callback(
                 }
             });
             if (shouldSetup) {
-                setTimeout(function() {
-                    setupDragAndDrop();
-                    setupModalHandlers();
-                }, 100);
+                // Clear any existing timeout
+                if (setupTimeout) {
+                    clearTimeout(setupTimeout);
+                }
+                // Set a new timeout to debounce the setup calls
+                setupTimeout = setTimeout(function() {
+                    console.log('DOM changed - re-initializing drag and drop');
+                    // Only re-initialize if no drag operation is in progress
+                    if (!window.draggedElement && !window.dragStartData) {
+                        setupDragAndDrop();
+                        setupModalHandlers();
+                    } else {
+                        console.log('Skipping re-initialization - drag in progress');
+                    }
+                    setupTimeout = null;
+                }, 150);
             }
         });
         
@@ -2640,30 +2867,48 @@ def save_timetable_to_file(timetables_data):
 def handle_swap(swap_data, current_timetables):
     global all_timetables, session_has_swaps
     
+    print(f"🔄 Handle swap triggered with data: {swap_data}")
+    
     if not swap_data or not current_timetables:
-        return current_timetables
+        raise dash.exceptions.PreventUpdate
     
     try:
         source = swap_data['source']
         target = swap_data['target']
         
+        # Validate swap data structure
+        if not source or not target or 'group' not in source or 'group' not in target:
+            print("Invalid swap data structure")
+            raise dash.exceptions.PreventUpdate
+        
         # Make sure both swaps are in the same group
         if source['group'] != target['group']:
             print("Cannot swap between different student groups")
-            return current_timetables
+            raise dash.exceptions.PreventUpdate
         
         # Prevent swapping with BREAK times
-        if source['content'] == 'BREAK' or target['content'] == 'BREAK':
+        if source.get('content') == 'BREAK' or target.get('content') == 'BREAK':
             print("Cannot swap with BREAK time")
-            return current_timetables
-        
-        # Mark that we've made swaps in this session
-        session_has_swaps = True
+            raise dash.exceptions.PreventUpdate
         
         group_idx = source['group']
         
+        # Validate group index
+        if group_idx < 0 or group_idx >= len(current_timetables):
+            print(f"Invalid group index: {group_idx}")
+            raise dash.exceptions.PreventUpdate
+        
+        # Create a deep copy to avoid reference issues
+        updated_timetables = json.loads(json.dumps(current_timetables))
+        
         # Update the timetable data
-        timetable_rows = current_timetables[group_idx]['timetable']
+        timetable_rows = updated_timetables[group_idx]['timetable']
+        
+        # Validate row and column indices
+        if (source['row'] >= len(timetable_rows) or target['row'] >= len(timetable_rows) or
+            source['col'] + 1 >= len(timetable_rows[0]) or target['col'] + 1 >= len(timetable_rows[0])):
+            print("Invalid row or column index in swap data")
+            raise dash.exceptions.PreventUpdate
         
         # Get the current content (skip time column, so add 1 to col index)
         source_content = timetable_rows[source['row']][source['col'] + 1]
@@ -2673,77 +2918,54 @@ def handle_swap(swap_data, current_timetables):
         timetable_rows[source['row']][source['col'] + 1] = target_content
         timetable_rows[target['row']][target['col'] + 1] = source_content
         
-        print(f"Backend swap completed: {source_content} <-> {target_content}")
+        print(f"✅ Swap completed: '{source_content}' ↔ '{target_content}' (Group: {group_idx})")
+        
+        # Mark that we've made swaps in this session
+        session_has_swaps = True
         
         # Update the global all_timetables variable to ensure persistence
         all_timetables[group_idx]['timetable'] = timetable_rows
         
-        # Also update the current_timetables to return
-        current_timetables[group_idx]['timetable'] = timetable_rows
-        
-        # Debug: Print some info about what we're about to save
-        print(f"DEBUG: About to save data for group {group_idx}")
-        print(f"DEBUG: Source row {source['row']}, col {source['col']}: '{current_timetables[group_idx]['timetable'][source['row']][source['col'] + 1]}'")
-        print(f"DEBUG: Target row {target['row']}, col {target['col']}: '{current_timetables[group_idx]['timetable'][target['row']][target['col'] + 1]}'")
-        
         # Auto-save the changes to maintain persistence
         try:
             import os
-            import json
             import time
             import shutil
-            import traceback
             
             save_dir = os.path.join(os.path.dirname(__file__), 'data')
-            os.makedirs(save_dir, exist_ok=True)  # Use exist_ok=True to avoid errors
+            os.makedirs(save_dir, exist_ok=True)
             save_path = os.path.join(save_dir, 'timetable_data.json')
             
             # Add timestamp to track saves
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] Attempting to auto-save swap: {source['content']} <-> {target['content']}")
-            print(f"Auto-save path: {save_path}")
-            print(f"Number of student groups: {len(current_timetables)}")
+            print(f"[{timestamp}] Auto-saving swap")
             
             # Create a backup before saving
             backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
             if os.path.exists(save_path):
                 shutil.copy2(save_path, backup_path)
-                print(f"Created backup at: {backup_path}")
             
             # Force a file flush and sync to ensure data is written to disk
             with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(current_timetables, f, indent=2, default=str, ensure_ascii=False)
-                f.flush()  # Force write to disk
-                os.fsync(f.fileno())  # Force OS to write to physical storage
+                json.dump(updated_timetables, f, indent=2, ensure_ascii=False)
+                f.flush()
+                if hasattr(os, 'fsync'):
+                    os.fsync(f.fileno())
             
-            # Verify the file was written successfully
-            if os.path.exists(save_path):
-                file_size = os.path.getsize(save_path)
-                print(f"[SUCCESS] Auto-saved successfully! File size: {file_size} bytes")
-                
-                # Verify we can read it back and check the specific swapped data
-                with open(save_path, 'r', encoding='utf-8') as f:
-                    test_load = json.load(f)
-                print(f"[VERIFICATION] Can read back {len(test_load)} student groups")
-                
-                # Verify the actual swap was saved
-                saved_source = test_load[group_idx]['timetable'][source['row']][source['col'] + 1]
-                saved_target = test_load[group_idx]['timetable'][target['row']][target['col'] + 1]
-                print(f"[VERIFICATION] Saved source = '{saved_source}', target = '{saved_target}'")
-                
-            else:
-                print("[ERROR] Auto-save file was not created!")
+            print(f"✅ Auto-save successful: {save_path}")
                 
         except Exception as auto_save_error:
-            print(f"[ERROR] Auto-save failed with error: {auto_save_error}")
+            print(f"❌ Auto-save failed: {auto_save_error}")
             import traceback
             traceback.print_exc()
         
-        return current_timetables
+        return updated_timetables
         
     except Exception as e:
-        print(f"Error handling swap: {e}")
-        return current_timetables
+        print(f"❌ Error in handle_swap: {e}")
+        import traceback
+        traceback.print_exc()
+        raise dash.exceptions.PreventUpdate
 
 # Callback to handle saving the current timetable state
 @app.callback(
@@ -2772,7 +2994,6 @@ def save_timetable(n_clicks, current_timetables):
             all_timetables = current_timetables
             
             # Save to JSON file for persistence
-            import json
             import os
             
             # Create a data directory if it doesn't exist
@@ -2811,25 +3032,47 @@ def save_timetable(n_clicks, current_timetables):
     
     return ("", {"display": "none"})
 
-# Callback to refresh timetable data from file on page load
+# Callback to refresh timetable data from file on page load - DISABLED to prevent navigation conflicts
+# The refresh is now handled only when actual swaps occur in handle_swap callback
+# @app.callback(
+#     Output("all-timetables-store", "data", allow_duplicate=True),
+#     Input("student-group-dropdown", "value"),
+#     prevent_initial_call='initial_duplicate'
+# )
+# def refresh_timetable_data(selected_group_idx):
+#     # Only load saved data if we've made swaps in this session
+#     global session_has_swaps, all_timetables 
+#     
+#     if session_has_swaps:
+#         fresh_saved_data = load_saved_timetable()
+#         if fresh_saved_data:
+#             print(f"🔄 Session has swaps - loading saved data: {len(fresh_saved_data)} student groups")
+#             return fresh_saved_data
+#     
+#     # Otherwise, use the current all_timetables (fresh DE results)
+#     print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
+#     return all_timetables
+
+# Additional safeguard callback to prevent dropdown state issues
 @app.callback(
-    Output("all-timetables-store", "data", allow_duplicate=True),
+    Output("student-group-dropdown", "value", allow_duplicate=True),
     Input("student-group-dropdown", "value"),
-    prevent_initial_call='initial_duplicate'
+    State("all-timetables-store", "data"),
+    prevent_initial_call=True
 )
-def refresh_timetable_data(selected_group_idx):
-    # Only load saved data if we've made swaps in this session
-    global session_has_swaps, all_timetables 
+def validate_dropdown_selection(selected_value, all_timetables_data):
+    """Ensure dropdown value is always valid and within bounds"""
+    if not all_timetables_data or selected_value is None:
+        return 0
     
-    if session_has_swaps:
-        fresh_saved_data = load_saved_timetable()
-        if fresh_saved_data:
-            print(f"🔄 Session has swaps - loading saved data: {len(fresh_saved_data)} student groups")
-            return fresh_saved_data
+    # Ensure the selected value is within valid range
+    max_index = len(all_timetables_data) - 1
+    if selected_value < 0 or selected_value > max_index:
+        print(f"🔧 Correcting invalid dropdown value {selected_value} to 0 (max: {max_index})")
+        return 0
     
-    # Otherwise, use the current all_timetables (fresh DE results)
-    print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
-    return all_timetables
+    # Value is valid, no change needed
+    raise dash.exceptions.PreventUpdate
 
 # Run the Dash app
 if __name__ == '__main__':
