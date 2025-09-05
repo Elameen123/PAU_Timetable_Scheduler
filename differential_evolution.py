@@ -88,14 +88,15 @@ class DifferentialEvolution:
                 events_by_group_course[key] = []
             events_by_group_course[key].append(idx)
 
+        # --- STRATEGY: Prioritize placing larger courses first ("big rocks first") ---
+        course_items = sorted(
+            events_by_group_course.items(),
+            key=lambda item: len(item[1]),
+            reverse=True
+        )
+
         # Trackers for optimized placement
         hours_per_day_for_group = {sg.id: [0] * input_data.days for sg in self.student_groups}
-        non_sst_course_count_for_group = {sg.id: 0 for sg in self.student_groups}
-        course_days_used = {}
-
-        # Randomize course processing order for population diversity
-        course_items = list(events_by_group_course.items())
-        random.shuffle(course_items)
 
         for (student_group_id, course_id), event_indices in course_items:
             course = input_data.getCourse(course_id)
@@ -105,31 +106,28 @@ class DifferentialEvolution:
             if hours_required == 0:
                 continue
 
-            # Decide on a split strategy based on course credits
+            # --- STRATEGY: Stricter split strategies to enforce consecutive constraints ---
             split_strategies = []
-            if hours_required == 3:
-                # Must have at least 2 consecutive hours. Prefer 3.
-                split_strategies = [(3,), (2, 1)] # Try 3-hour block first, then 2+1
-            elif hours_required == 2:
-                # Must be 2 consecutive hours.
-                split_strategies = [(2,)]
-            else:
-                split_strategies = [(hours_required,)]
+            if hours_required >= 4: # 4-hour courses and above
+                split_strategies = [(4,), (2, 2), (3, 1)]
+            elif hours_required == 3: # 3-hour courses
+                split_strategies = [(3,), (2, 1)]
+            elif hours_required == 2: # 2-hour courses
+                split_strategies = [(2,)] # MUST be consecutive
+            else: # 1-hour courses
+                split_strategies = [(1,)]
 
             course_placed = False
             for split_strategy in split_strategies:
                 if course_placed:
                     break
 
-                # Transactional placement: Find slots for all blocks before committing
                 placements_for_strategy = []
                 all_blocks_found = True
-                temp_chromosome = chromosome.copy() # Use a copy to check for availability
+                temp_chromosome = chromosome.copy()
                 
                 event_idx_counter = 0
-                course_key = (student_group_id, course_id)
                 
-                # This needs to be managed per-strategy attempt
                 temp_hours_per_day = hours_per_day_for_group[student_group_id][:]
                 temp_course_days_used = set()
 
@@ -137,7 +135,6 @@ class DifferentialEvolution:
                     placed = False
                     block_event_indices = event_indices[event_idx_counter : event_idx_counter + block_hours]
                     
-                    # Sort days by current load, excluding days already used by this course in this strategy
                     available_days = [d for d in range(input_data.days) if d not in temp_course_days_used]
                     sorted_days = sorted(available_days, key=lambda d: temp_hours_per_day[d])
 
@@ -147,45 +144,45 @@ class DifferentialEvolution:
                         
                         possible_slots = []
                         for room_idx, room in enumerate(self.rooms):
-                            if self.is_room_suitable(room, course):
-                                room_building = self.room_building_cache[room_idx]
-                                is_engineering = student_group.id in self.engineering_groups
-                                needs_computer_lab = (
-                                    course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
-                                    room.room_type.lower() in ['comp lab', 'computer_lab'] or
-                                    ('lab' in course.name.lower() and any(k in course.name.lower() for k in ['computer', 'programming', 'software']))
-                                )
+                            # --- STRATEGY: Enforce building constraints during placement ---
+                            is_engineering_group = student_group.id in self.engineering_groups
+                            room_building = self.room_building_cache.get(room_idx, 'UNKNOWN')
+                            
+                            # Non-engineering groups cannot use SST rooms
+                            if not is_engineering_group and room_building == 'SST':
+                                continue # Skip this room entirely for this group
 
-                                building_allowed = True
-                                if needs_computer_lab:
-                                    pass
-                                elif is_engineering:
-                                    # Check if this placement would exceed the non-SST limit for the group
-                                    # This check is complex without knowing which other courses are non-SST.
-                                    # We'll simplify and let the fitness function penalize it.
-                                    pass
-                                elif room_building == 'SST':
-                                    building_allowed = False
-                                
-                                if building_allowed:
-                                    for timeslot_start in range(day_start, day_end - block_hours + 1):
-                                        is_block_placeable = True
-                                        for i in range(block_hours):
-                                            ts = timeslot_start + i
-                                            event_for_slot = self.events_list[block_event_indices[i]]
-                                            if not (self.is_slot_available_for_event(temp_chromosome, room_idx, ts, event_for_slot) and
-                                                    self._is_student_group_available(temp_chromosome, student_group_id, ts) and
-                                                    self._is_lecturer_available(temp_chromosome, event_for_slot.faculty_id, ts)):
-                                                is_block_placeable = False
-                                                break
-                                        
-                                        if is_block_placeable:
-                                            possible_slots.append((room_idx, timeslot_start))
+                            if self.is_room_suitable(room, course):
+                                for timeslot_start in range(day_start, day_end - block_hours + 1):
+                                    is_block_placeable = True
+                                    for i in range(block_hours):
+                                        ts = timeslot_start + i
+                                        event_for_slot = self.events_list[block_event_indices[i]]
+                                        if not (self.is_slot_available_for_event(temp_chromosome, room_idx, ts, event_for_slot) and
+                                                self._is_student_group_available(temp_chromosome, student_group_id, ts) and
+                                                self._is_lecturer_available(temp_chromosome, event_for_slot.faculty_id, ts)):
+                                            is_block_placeable = False
+                                            break
+                                    
+                                    if is_block_placeable:
+                                        possible_slots.append((room_idx, timeslot_start))
                         
                         if possible_slots:
-                            room_idx, timeslot_start = random.choice(possible_slots)
+                            # Prefer slots that don't cause building conflicts if possible
+                            preferred_slots = []
+                            for r_idx, t_start in possible_slots:
+                                room_bldg = self.room_building_cache.get(r_idx, 'UNKNOWN')
+                                is_eng_grp = student_group.id in self.engineering_groups
+                                if is_eng_grp and room_bldg != 'SST':
+                                    pass # This is a potential soft conflict
+                                else:
+                                    preferred_slots.append((r_idx, t_start))
                             
-                            # Record placements and update temp chromosome for next block in strategy
+                            if preferred_slots:
+                                room_idx, timeslot_start = random.choice(preferred_slots)
+                            else: # If all options cause a soft conflict, just pick one
+                                room_idx, timeslot_start = random.choice(possible_slots)
+
                             for i in range(block_hours):
                                 ts = timeslot_start + i
                                 event_id = block_event_indices[i]
@@ -195,27 +192,23 @@ class DifferentialEvolution:
                             temp_hours_per_day[day_idx] += block_hours
                             temp_course_days_used.add(day_idx)
                             placed = True
-                            break # Block placed, move to next block in strategy
+                            event_idx_counter += block_hours
+                            break 
                     
                     if not placed:
                         all_blocks_found = False
-                        break # Day loop failed for this block
+                        break
                 
-                # If all blocks in the strategy were successfully planned, commit them
                 if all_blocks_found:
                     for r, t, e_id in placements_for_strategy:
                         chromosome[r, t] = e_id
                     
-                    # Update the actual trackers
                     hours_per_day_for_group[student_group_id] = temp_hours_per_day
                     
-                    # This logic is complex and better handled by fitness. We simplify here.
-                    # The main goal is just to get things placed.
-                    
                     course_placed = True
-                    break # Strategy succeeded, move to next course
+                    break
 
-        # Final verification to place any unassigned events
+        # Final verification to place any unassigned events, now more aggressive
         chromosome = self.verify_and_repair_course_allocations(chromosome)
         
         # Final pass to ensure multi-hour courses are consecutive
@@ -457,89 +450,108 @@ class DifferentialEvolution:
     def mutate(self, target_idx):
         mutant_vector = self.population[target_idx].copy()
         
-        # Strategy 1: Safe Swap
-        # This is a more intelligent swap that checks for validity before committing.
-        if random.random() < 0.5: # Probability of attempting a safe swap
-            for _ in range(random.randint(1, 3)): # Try a few swaps
+        # Increase mutation attempts to encourage exploration
+        mutation_attempts = random.randint(3, 8)
+
+        for _ in range(mutation_attempts):
+            strategy = random.choice(['resolve_clash', 'safe_swap', 'safe_move'])
+
+            # Strategy 1: Find a clash and try to resolve it by moving one event
+            if strategy == 'resolve_clash':
+                clash_timeslot = self.find_clash(mutant_vector)
+                if clash_timeslot is not None:
+                    # Find events involved in the clash
+                    events_in_slot = [(r, mutant_vector[r, clash_timeslot]) for r in range(len(self.rooms)) if mutant_vector[r, clash_timeslot] is not None]
+                    if not events_in_slot: continue
+                    
+                    # Pick one event to move
+                    room_to_move_from, event_id_to_move = random.choice(events_in_slot)
+                    event_to_move = self.events_map.get(event_id_to_move)
+                    if not event_to_move: continue
+
+                    # Find a new, valid, empty slot for this event
+                    new_pos = self.find_safe_empty_slot_for_event(mutant_vector, event_to_move, ignore_pos=(room_to_move_from, clash_timeslot))
+                    if new_pos:
+                        new_r, new_t = new_pos
+                        mutant_vector[new_r, new_t] = event_id_to_move
+                        mutant_vector[room_to_move_from, clash_timeslot] = None
+                        continue # Move successful, try another mutation
+
+            # Strategy 2: Swap two existing events if it's safe
+            elif strategy == 'safe_swap':
                 occupied_slots = np.argwhere(mutant_vector != None)
                 if len(occupied_slots) < 2: continue
                 
-                # Pick two random, different, occupied slots
                 idx1, idx2 = random.sample(range(len(occupied_slots)), 2)
-                pos1 = tuple(occupied_slots[idx1])
-                pos2 = tuple(occupied_slots[idx2])
+                pos1, pos2 = tuple(occupied_slots[idx1]), tuple(occupied_slots[idx2])
                 
-                event1_id = mutant_vector[pos1]
-                event2_id = mutant_vector[pos2]
-                
-                # Get the actual event objects
-                event1 = self.events_map.get(event1_id)
-                event2 = self.events_map.get(event2_id)
+                event1_id, event2_id = mutant_vector[pos1], mutant_vector[pos2]
+                event1, event2 = self.events_map.get(event1_id), self.events_map.get(event2_id)
                 
                 if not event1 or not event2: continue
 
-                # --- Check if swapping is valid ---
+                # Check if swapping is feasible
+                course1, course2 = self.input_data.getCourse(event1.course_id), self.input_data.getCourse(event2.course_id)
                 
-                # Temporarily perform the swap on a copy to check for new clashes
-                temp_mutant = mutant_vector.copy()
-                temp_mutant[pos1] = event2_id
-                temp_mutant[pos2] = event1_id
+                # Check room suitability
+                room1_ok_for_event2 = self.is_room_suitable(self.rooms[pos1[0]], course2)
+                room2_ok_for_event1 = self.is_room_suitable(self.rooms[pos2[0]], course1)
 
-                # Check validity for event2 at pos1
-                is_event2_ok_at_pos1 = (
-                    self.is_slot_available_for_event(mutant_vector, pos1[0], pos1[1], event2) and
-                    self._is_student_group_available(temp_mutant, event2.student_group.id, pos1[1]) and
-                    self._is_lecturer_available(temp_mutant, event2.faculty_id, pos1[1])
-                )
+                if room1_ok_for_event2 and room2_ok_for_event1:
+                    # Check clash constraints for the swap
+                    # Is event2 OK at pos1's timeslot?
+                    clash_free_at_pos1 = not self.constraints.check_student_group_clash_at_slot(mutant_vector, event2.student_group.id, pos1[1], ignore_room_idx=pos2[0]) and \
+                                         not self.constraints.check_lecturer_clash_at_slot(mutant_vector, event2.faculty_id, pos1[1], ignore_room_idx=pos2[0])
+                    
+                    # Is event1 OK at pos2's timeslot?
+                    clash_free_at_pos2 = not self.constraints.check_student_group_clash_at_slot(mutant_vector, event1.student_group.id, pos2[1], ignore_room_idx=pos1[0]) and \
+                                         not self.constraints.check_lecturer_clash_at_slot(mutant_vector, event1.faculty_id, pos2[1], ignore_room_idx=pos1[0])
 
-                # Check validity for event1 at pos2
-                is_event1_ok_at_pos2 = (
-                    self.is_slot_available_for_event(mutant_vector, pos2[0], pos2[1], event1) and
-                    self._is_student_group_available(temp_mutant, event1.student_group.id, pos2[1]) and
-                    self._is_lecturer_available(temp_mutant, event1.faculty_id, pos2[1])
-                )
+                    if clash_free_at_pos1 and clash_free_at_pos2:
+                        mutant_vector[pos1], mutant_vector[pos2] = event2_id, event1_id
+                        continue
+
+            # Strategy 3: Move a single event to a new, safe, empty location
+            elif strategy == 'safe_move':
+                occupied_slots = np.argwhere(mutant_vector != None)
+                if not len(occupied_slots): continue
                 
-                # If both moves are valid, commit the swap to the actual mutant vector
-                if is_event1_ok_at_pos2 and is_event2_ok_at_pos1:
-                    mutant_vector[pos1], mutant_vector[pos2] = mutant_vector[pos2], mutant_vector[pos1]
+                pos_to_move = tuple(random.choice(occupied_slots))
+                event_id_to_move = mutant_vector[pos_to_move]
+                event_to_move = self.events_map.get(event_id_to_move)
+                if not event_to_move: continue
 
-        # Strategy 2: Targeted Clash Resolution (less frequent, as safe swap is better)
-        if random.random() < 0.1: 
-            clash_timeslot = self.find_clash(mutant_vector)
-            if clash_timeslot is not None:
-                events_in_clash = [mutant_vector[r][clash_timeslot] for r in range(len(self.rooms)) if mutant_vector[r][clash_timeslot] is not None]
-                if events_in_clash:
-                    event_id_to_move = random.choice(events_in_clash)
-                    
-                    # Find original position and remove it
-                    original_pos = None
-                    for r_idx in range(len(self.rooms)):
-                        if mutant_vector[r_idx][clash_timeslot] == event_id_to_move:
-                            mutant_vector[r_idx][clash_timeslot] = None
-                            original_pos = (r_idx, clash_timeslot)
-                            break
-                    
-                    # Find a new, completely valid slot for this event
-                    # This is now a simple move, not a swap
-                    if original_pos:
-                        event_to_move = self.events_map.get(event_id_to_move)
-                        if event_to_move:
-                            course = input_data.getCourse(event_to_move.course_id)
-                            possible_slots = []
-                            for r_idx, room in enumerate(self.rooms):
-                                if self.is_room_suitable(room, course):
-                                    for t_idx in range(len(self.timeslots)):
-                                        if (mutant_vector[r_idx, t_idx] is None and
-                                            self.is_slot_available_for_event(mutant_vector, r_idx, t_idx, event_to_move) and
-                                            self._is_student_group_available(mutant_vector, event_to_move.student_group.id, t_idx) and
-                                            self._is_lecturer_available(mutant_vector, event_to_move.faculty_id, t_idx)):
-                                            possible_slots.append((r_idx, t_idx))
-                            
-                            if possible_slots:
-                                r, t = random.choice(possible_slots)
-                                mutant_vector[r, t] = event_id_to_move
+                # Find a new, valid, empty slot
+                new_pos = self.find_safe_empty_slot_for_event(mutant_vector, event_to_move, ignore_pos=pos_to_move)
+                if new_pos:
+                    new_r, new_t = new_pos
+                    mutant_vector[new_r, new_t] = event_id_to_move
+                    mutant_vector[pos_to_move] = None
+                    continue
 
         return mutant_vector
+
+    def find_safe_empty_slot_for_event(self, chromosome, event, ignore_pos=None):
+        """Finds a random empty slot that is safe for the given event."""
+        course = self.input_data.getCourse(event.course_id)
+        if not course: return None
+
+        possible_slots = []
+        for r_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, course):
+                for t_idx in range(len(self.timeslots)):
+                    if (r_idx, t_idx) == ignore_pos: continue
+                    
+                    # Check if slot is physically empty and available (break time, etc.)
+                    if chromosome[r_idx, t_idx] is None and self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
+                        # Check for potential clashes if we place the event here
+                        student_clash = self.constraints.check_student_group_clash_at_slot(chromosome, event.student_group.id, t_idx, ignore_room_idx=ignore_pos[0] if ignore_pos else -1)
+                        lecturer_clash = self.constraints.check_lecturer_clash_at_slot(chromosome, event.faculty_id, t_idx, ignore_room_idx=ignore_pos[0] if ignore_pos else -1)
+                        
+                        if not student_clash and not lecturer_clash:
+                            possible_slots.append((r_idx, t_idx))
+        
+        return random.choice(possible_slots) if possible_slots else None
 
     def ensure_valid_solution(self, mutant_vector):
         """Ensure same course on same day appears in same room and handle course splits."""
@@ -593,6 +605,9 @@ class DifferentialEvolution:
         # Repair course allocations to ensure all events are scheduled
         mutant_vector = self.verify_and_repair_course_allocations(mutant_vector)
         
+        # Final pass to ensure multi-hour courses are consecutive
+        mutant_vector = self.ensure_consecutive_slots(mutant_vector)
+        
         return mutant_vector
     
     def count_non_none(self, arr):
@@ -601,61 +616,26 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         """
-        Performs an enhanced Strategic Crossover.
-        It attempts to fix multiple conflicts in the target by using genes from the mutant.
+        Performs a standard binomial (or uniform) crossover for Differential Evolution.
+        This creates a trial vector by mixing genes from the target and mutant vectors
+        based on the crossover rate (CR). This is more exploratory than the previous
+        strategic crossover and helps to escape local optima.
         """
         trial_vector = target_vector.copy()
-        conflicts = self.constraints.get_all_conflicts(trial_vector)
+        num_rooms, num_timeslots = target_vector.shape
         
-        # Combine all hard conflicts to be resolved
-        all_clashes = conflicts.get('student_group', []) + conflicts.get('lecturer', [])
-        
-        if not all_clashes:
-            # If no clashes, perform a more standard DE crossover
-            for r in range(len(self.rooms)):
-                for t in range(len(self.timeslots)):
-                    if random.random() < self.CR:
-                        trial_vector[r, t] = mutant_vector[r, t]
-            return trial_vector
+        # Ensure at least one gene from the mutant vector is picked (j_rand).
+        # This is a key part of the DE algorithm to ensure the trial vector is different from the target.
+        j_rand_r = random.randrange(num_rooms)
+        j_rand_t = random.randrange(num_timeslots)
 
-        # Create a set of positions that have clashes for quick lookup
-        clash_positions = set()
-        for clash in all_clashes:
-            for pos in clash['positions']:
-                clash_positions.add(tuple(pos))
-
-        # Iterate through the mutant and bring in non-conflicting genes
-        for r in range(len(self.rooms)):
-            for t in range(len(self.timeslots)):
-                # If the current position in the target has a clash
-                if (r, t) in clash_positions:
-                    mutant_gene = mutant_vector[r, t]
-                    target_gene = trial_vector[r, t]
-
-                    # If the mutant gene is different and not None
-                    if mutant_gene != target_gene and mutant_gene is not None:
-                        # Check if this new gene would introduce a new clash at this timeslot
-                        mutant_event = self.events_map.get(mutant_gene)
-                        if not mutant_event: continue
-
-                        is_safe_to_swap = True
-                        # Check against all other events in the same timeslot in the trial vector
-                        for r_check in range(len(self.rooms)):
-                            if r_check != r:
-                                existing_event_id = trial_vector[r_check, t]
-                                if existing_event_id is not None:
-                                    existing_event = self.events_map.get(existing_event_id)
-                                    if existing_event:
-                                        # Check for student group or lecturer clash with the new gene
-                                        if (existing_event.student_group.id == mutant_event.student_group.id or
-                                            existing_event.faculty_id == mutant_event.faculty_id):
-                                            is_safe_to_swap = False
-                                            break
-                        
-                        if is_safe_to_swap:
-                            # The swap is considered safe, so perform it
-                            trial_vector[r, t] = mutant_gene
-                            
+        for r in range(num_rooms):
+            for t in range(num_timeslots):
+                # The gene from the mutant is chosen if a random number is less than CR,
+                # or if it's the randomly chosen j_rand position.
+                if random.random() < self.CR or (r == j_rand_r and t == j_rand_t):
+                    trial_vector[r, t] = mutant_vector[r, t]
+                    
         return trial_vector
 
     
@@ -819,17 +799,14 @@ class DifferentialEvolution:
                 target_vector = self.population[i]
                 trial_vector = self.crossover(target_vector, mutant_vector)
                 
+                # Lamarckian Step: Repair the new trial vector *before* evaluation and selection.
+                # This ensures we are always comparing valid, repaired solutions.
+                trial_vector = self.verify_and_repair_course_allocations(trial_vector)
+                trial_vector = self.ensure_consecutive_slots(trial_vector)
+
                 # Step 3: Evaluation and Selection
-                old_fitness = self.evaluate_fitness(self.population[i])
                 self.select(i, trial_vector)
-                new_fitness = self.evaluate_fitness(self.population[i])
-                
-                # Ensure population member has all events after selection
-                self.population[i] = self.verify_and_repair_course_allocations(self.population[i])
-                self.population[i] = self.ensure_consecutive_slots(self.population[i])
-                
-                if new_fitness < old_fitness:
-                    generation_improved = True
+                # Post-selection repair is no longer needed as both trial and target are already repaired.
                 
             # Optimization: Find best solution more efficiently
             current_fitness = [self.evaluate_fitness(ind) for ind in self.population]
@@ -1080,16 +1057,27 @@ class DifferentialEvolution:
                                 valid_slots.append((r_idx, t_idx))
                 
                 if valid_slots:
-                    # If a "perfect" slot is found, place the event there.
+                    # Tier 1: If a "perfect" slot is found, place the event there.
                     r, t = random.choice(valid_slots)
                     chromosome[r, t] = event_id
                     placed = True
-                # If no valid_slot is found, do nothing. The high fitness penalty for
-                # 'course_allocation_completeness' will drive the evolution to find a place for it.
+                else:
+                    # Tier 2: If no "perfect" slot is found, find any empty slot in a suitable room.
+                    # This prioritizes getting the event on the board, even if it causes other (fixable) violations.
+                    imperfect_slots = []
+                    for r_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            for t_idx in range(len(self.timeslots)):
+                                # Just check if the slot is physically empty and respects lecturer schedule/break time
+                                if chromosome[r_idx, t_idx] is None and self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
+                                    imperfect_slots.append((r_idx, t_idx))
+                    
+                    if imperfect_slots:
+                        r, t = random.choice(imperfect_slots)
+                        chromosome[r, t] = event_id
+                        placed = True
+                # If still no slot is found (highly unlikely), it will remain missing.
 
-        # Ensure no multi-hour courses are split across non-consecutive slots
-        chromosome = self.ensure_consecutive_slots(chromosome)
-        
         return chromosome
 
     def count_course_occurrences(self, chromosome, student_group):
@@ -1148,7 +1136,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(1)
+best_solution, fitness_history, generation, diversity_history = de.run(50)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
@@ -1814,8 +1802,7 @@ app.layout = html.Div([
             
             html.Div(id="room-options-container", className="room-options"),
             
-            html.Div([
-                html.Button("Cancel", id="room-cancel-btn", 
+            html.Div([                html.Button("Cancel", id="room-cancel-btn", 
                            style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", 
                                  "border": "1px solid #ddd", "borderRadius": "5px", "marginRight": "10px",
                                  "cursor": "pointer", "fontFamily": "Poppins, sans-serif"}),
@@ -2507,7 +2494,7 @@ def handle_room_selection(n_clicks_list, room_ids, current_room_data, all_timeta
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
     try:
         triggered_room = json.loads(triggered_id)
-        selected_room_name = triggered_room['room_name']
+        selected_room_name = triggered_room['room_name'];
     except:
         return dash.no_update
     
@@ -2817,7 +2804,7 @@ def save_timetable(n_clicks, current_timetables):
                 html.Div([
                     html.Span("❌ Error saving timetable!", style={"color": "red", "fontWeight": "bold"}),
                     html.Br(),
-                    html.Small(f"Error: {str(e)}", style={"color": "red"})
+                        html.Small(f"Error: {str(e)}", style={"color": "red"})
                 ]),
                 {"display": "none"}
             )
@@ -2832,7 +2819,7 @@ def save_timetable(n_clicks, current_timetables):
 )
 def refresh_timetable_data(selected_group_idx):
     # Only load saved data if we've made swaps in this session
-    global session_has_swaps, all_timetables
+    global session_has_swaps, all_timetables 
     
     if session_has_swaps:
         fresh_saved_data = load_saved_timetable()

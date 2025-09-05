@@ -492,7 +492,7 @@ class Constraints:
             if course.credits == 2:
                 # H: 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
-                    penalty += 50 # Severe penalty for breaking a 2-hour block
+                    penalty += 0.05 * course.credits # More reasonable penalty
                     if debug:
                         violation_info = (
                             f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
@@ -507,7 +507,7 @@ class Constraints:
                     is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
-                        penalty += 50 # Severe penalty if no 2-hour block exists
+                        penalty += 0.05 * course.credits # More reasonable penalty
                         if debug:
                             violation_info = (
                                 f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
@@ -520,7 +520,7 @@ class Constraints:
                     is_block_of_3 = (timeslots[1] - timeslots[0] == 1) and \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_3:
-                        penalty += 0.1 # Small penalty for the separated hour
+                        penalty += 0.05 # Small penalty for the separated hour
                         if debug and is_block_of_2: # It's a soft violation only
                             violation_info = (
                                 f"Consecutive Slot Violation (Soft): Course '{course.name}' ({course.code}) for group "
@@ -730,3 +730,29 @@ class Constraints:
         }
         violations['total'] = sum(violations.values())
         return violations
+
+    def check_student_group_clash_at_slot(self, chromosome, student_group_id, timeslot_idx, ignore_room_idx=-1):
+        """Checks if a specific student group has a clash at a given timeslot, optionally ignoring one room."""
+        for r_idx in range(len(self.rooms)):
+            if r_idx == ignore_room_idx:
+                continue
+            event_id = chromosome[r_idx, timeslot_idx]
+            if event_id is not None:
+                event = self.events_map.get(event_id)
+                if event and event.student_group.id == student_group_id:
+                    return True  # Clash found
+        return False
+
+    def check_lecturer_clash_at_slot(self, chromosome, faculty_id, timeslot_idx, ignore_room_idx=-1):
+        """Checks if a specific lecturer has a clash at a given timeslot, optionally ignoring one room."""
+        if faculty_id is None:
+            return False
+        for r_idx in range(len(self.rooms)):
+            if r_idx == ignore_room_idx:
+                continue
+            event_id = chromosome[r_idx, timeslot_idx]
+            if event_id is not None:
+                event = self.events_map.get(event_id)
+                if event and event.faculty_id == faculty_id:
+                    return True  # Clash found
+        return False
