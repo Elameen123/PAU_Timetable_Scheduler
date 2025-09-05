@@ -9,18 +9,29 @@ from collections import OrderedDict
 # Base path relative to this script's location
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-# Locate the Excel file relative to the script location
-candidates = [
-    SCRIPT_DIR / "data" / "Timetable_Input_Template.xlsx",
-    SCRIPT_DIR / "Timetable_Input_Template.xlsx"
-]
+# Look for any Excel file in the data directory first, then in the script directory
+data_dir = SCRIPT_DIR / "data"
+excel_files = []
+
+# Search for Excel files in data directory
+if data_dir.exists():
+    excel_files.extend(list(data_dir.glob("*.xlsx")))
+    excel_files.extend(list(data_dir.glob("*.xls")))
+
+# If no Excel files found in data directory, search in script directory
+if not excel_files:
+    excel_files.extend(list(SCRIPT_DIR.glob("*.xlsx")))
+    excel_files.extend(list(SCRIPT_DIR.glob("*.xls")))
+
+# Select the first Excel file found
 excel_path = None
-for p in candidates:
-    if p.exists():
-        excel_path = p
-        break
-if excel_path is None:
-    raise FileNotFoundError(f"Could not find Timetable_Input_Template.xlsx in candidates: {candidates}")
+if excel_files:
+    excel_path = excel_files[0]
+    if len(excel_files) > 1:
+        print(f"Found multiple Excel files: {[f.name for f in excel_files]}")
+        print(f"Using: {excel_path.name}")
+else:
+    raise FileNotFoundError(f"No Excel files (.xlsx or .xls) found in {data_dir} or {SCRIPT_DIR}")
 
 print("Using Excel file at:", excel_path)
 

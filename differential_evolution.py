@@ -1137,7 +1137,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(5)
+best_solution, fitness_history, generation, diversity_history = de.run(25)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown

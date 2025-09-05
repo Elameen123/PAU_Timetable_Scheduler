@@ -68,23 +68,53 @@ class Constraints:
                     hourcount += 1
                     
         return events_list, event_map    
-    def check_room_constraints(self, chromosome):
+    def check_room_constraints(self, chromosome, debug=False):
         """
         rooms must meet the capacity and type of the scheduled event
         """
         point = 0
+        violations = []
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
         for room_idx in range(len(self.rooms)):
             room = self.rooms[room_idx]
             for timeslot_idx in range(len(self.timeslots)):
                 class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
                 if class_event is not None:
                     course = input_data.getCourse(class_event.course_id)
+                    timeslot = self.timeslots[timeslot_idx]
+                    day_abbr = days_map.get(timeslot.day)
+                    time = timeslot.start_time + 9
+                    
                     # H1a: Room type constraints
                     if room.room_type != course.required_room_type:
                         point += 1
+                        if debug:
+                            violation_info = (
+                                f"Room Type Mismatch: Course '{course.code}' requires '{course.required_room_type}' "
+                                f"but is scheduled in '{room.name}' (type: '{room.room_type}') "
+                                f"on {day_abbr} at {time}:00 for group '{class_event.student_group.name}'."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+                    
                     # H1b: Room capacity constraints - student group must fit in room
                     if class_event.student_group.no_students > room.capacity:
                         point += 1
+                        if debug:
+                            violation_info = (
+                                f"Room Capacity Exceeded: Group '{class_event.student_group.name}' "
+                                f"({class_event.student_group.no_students} students) cannot fit in room '{room.name}' "
+                                f"(capacity: {room.capacity}) on {day_abbr} at {time}:00 for course '{course.code}'."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Room Constraint Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------\n")
 
         return point
        
@@ -295,41 +325,91 @@ class Constraints:
             
         return penalty
 
-    def check_room_time_conflict(self, chromosome):
+    def check_room_time_conflict(self, chromosome, debug=False):
         """
         Ensure only one event is scheduled per room per timeslot
         """
         penalty = 0
+        violations = []
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
         for room_idx in range(len(self.rooms)):
+            room = self.rooms[room_idx]
             for timeslot_idx in range(len(self.timeslots)):
                 event = chromosome[room_idx][timeslot_idx]
                 if event is not None:
                     # Check if event is somehow a list (multiple events in same slot)
                     if isinstance(event, list) and len(event) > 1:
                         penalty += 10  # Reduced from 100 to 10
+                        if debug:
+                            timeslot = self.timeslots[timeslot_idx]
+                            day_abbr = days_map.get(timeslot.day)
+                            time = timeslot.start_time + 9
+                            
+                            event_details = []
+                            for event_id in event:
+                                class_event = self.events_map.get(event_id)
+                                if class_event:
+                                    course = input_data.getCourse(class_event.course_id)
+                                    event_details.append(f"'{course.code}' (Group: '{class_event.student_group.name}')")
+                            
+                            violation_info = (
+                                f"Room Time Conflict: Multiple events in room '{room.name}' "
+                                f"on {day_abbr} at {time}:00. Conflicting events: {', '.join(event_details)}."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
                     
                     # Additional check: count non-None values to ensure only one event per slot
                     # This constraint is inherently satisfied by the chromosome structure,
                     # but we check for any data corruption
+
+        if debug and violations:
+            print("\n--- Room Time Conflicts Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("-----------------------------------\n")
                     
         return penalty
 
-    def check_break_time_constraint(self, chromosome):
+    def check_break_time_constraint(self, chromosome, debug=False):
         """
         Ensure no classes are scheduled during break time (13:00 - 14:00) on Mon, Wed, Fri.
         Break time corresponds to timeslot index 4 on each day (9:00, 10:00, 11:00, 12:00, 13:00)
         """
         penalty = 0
+        violations = []
         break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
         
         for day in range(input_data.days):  # For each day
             # Apply break constraint only on Monday (0), Wednesday (2), and Friday (4)
             if day in [0, 2, 4]:
                 break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
+                day_abbr = days_map.get(day)
                 
                 for room_idx in range(len(self.rooms)):
-                    if chromosome[room_idx][break_timeslot] is not None:
+                    event_id = chromosome[room_idx][break_timeslot]
+                    if event_id is not None:
                         penalty += 100
+                        if debug:
+                            room = self.rooms[room_idx]
+                            class_event = self.events_map.get(event_id)
+                            if class_event:
+                                course = input_data.getCourse(class_event.course_id)
+                                violation_info = (
+                                    f"Break Time Violation: Course '{course.code}' for group "
+                                    f"'{class_event.student_group.name}' is scheduled during break time "
+                                    f"(13:00) on {day_abbr} in room '{room.name}'."
+                                )
+                                if violation_info not in violations:
+                                    violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Break Time Constraint Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------------\n")
                         
         return penalty
 
@@ -398,15 +478,19 @@ class Constraints:
                             # Non-engineering groups prefer TYD but small penalty for SST
                             if not needs_computer_lab and room_building == 'SST':
                                 penalty += 0.5  # Very small penalty (reduced from 20)
+        
+        return penalty
                         
         return penalty
 
-    def check_same_course_same_room_per_day(self, chromosome):
+    def check_same_course_same_room_per_day(self, chromosome, debug=False):
         """
         Same course appearing multiple times on same day must be in same room.
         """
         penalty = 0
+        violations = []
         course_day_rooms = {}  # {(course_id, day): set_of_rooms}
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
         
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -429,6 +513,30 @@ class Constraints:
         for course_day_key, rooms_used in course_day_rooms.items():
             if len(rooms_used) > 1:
                 penalty += 5 * (len(rooms_used) - 1)  # Reduced penalty for room inconsistency
+                if debug:
+                    course_id, day_idx, student_group_id = course_day_key
+                    day_abbr = days_map.get(day_idx)
+                    
+                    # Get student group and course details
+                    student_group = input_data.getStudentGroup(student_group_id)
+                    course = input_data.getCourse(course_id)
+                    
+                    # Get room names
+                    room_names = [self.rooms[r_idx].name for r_idx in rooms_used]
+                    
+                    violation_info = (
+                        f"Same Course Multiple Rooms Violation: Course '{course.code}' for group "
+                        f"'{student_group.name}' appears in multiple rooms on {day_abbr}: "
+                        f"{', '.join(room_names)}."
+                    )
+                    if violation_info not in violations:
+                        violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Same Course Multiple Rooms Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("-----------------------------------------------------\n")
         
         return penalty
 
@@ -715,13 +823,13 @@ class Constraints:
         Get detailed information about constraint violations for debugging.
         """
         violations = {
-            'room_constraints': self.check_room_constraints(chromosome),
+            'room_constraints': self.check_room_constraints(chromosome, debug=debug),
             'student_group_constraints': self.check_student_group_constraints(chromosome, debug=debug),
             'lecturer_availability': self.check_lecturer_availability(chromosome, debug=debug),
-            'room_time_conflict': self.check_room_time_conflict(chromosome),
+            'room_time_conflict': self.check_room_time_conflict(chromosome, debug=debug),
             'building_assignments': self.check_building_assignments(chromosome),
-            'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome),
-            'break_time_constraint': self.check_break_time_constraint(chromosome),
+            'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome, debug=debug),
+            'break_time_constraint': self.check_break_time_constraint(chromosome, debug=debug),
             'course_allocation_completeness': self.check_course_allocation_completeness(chromosome, debug=debug),
             'lecturer_schedule_constraints': self.check_lecturer_schedule_constraints(chromosome, debug=debug),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
