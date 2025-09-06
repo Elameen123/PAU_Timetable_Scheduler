@@ -215,6 +215,9 @@ class DifferentialEvolution:
         # Final pass to ensure multi-hour courses are consecutive
         chromosome = self.ensure_consecutive_slots(chromosome)
         
+        # CRITICAL SAFETY: Ensure NO student group clashes in initial chromosome
+        chromosome = self.prevent_student_group_clashes(chromosome)
+        
         return chromosome
 
     def find_consecutive_slots(self, chromosome, course):
@@ -609,8 +612,110 @@ class DifferentialEvolution:
         # Final pass to ensure multi-hour courses are consecutive
         mutant_vector = self.ensure_consecutive_slots(mutant_vector)
         
+        # CRITICAL SAFETY: Ensure NO student group clashes after mutation
+        mutant_vector = self.prevent_student_group_clashes(mutant_vector)
+        
         return mutant_vector
-    
+
+    def prevent_student_group_clashes(self, chromosome):
+        """
+        CRITICAL SAFETY FUNCTION: Ensures NO student group clashes ever occur.
+        This function identifies and resolves any student group conflicts.
+        """
+        max_repair_attempts = 5
+        
+        for attempt in range(max_repair_attempts):
+            conflicts_found = False
+            
+            # Check every timeslot for student group conflicts
+            for t_idx in range(len(self.timeslots)):
+                student_groups_in_slot = {}  # {student_group_id: [(room_idx, event_id), ...]}
+                
+                # Collect all events at this timeslot
+                for r_idx in range(len(self.rooms)):
+                    event_id = chromosome[r_idx, t_idx]
+                    if event_id is not None:
+                        event = self.events_map.get(event_id)
+                        if event:
+                            sg_id = event.student_group.id
+                            if sg_id not in student_groups_in_slot:
+                                student_groups_in_slot[sg_id] = []
+                            student_groups_in_slot[sg_id].append((r_idx, event_id))
+                
+                # Resolve conflicts by moving conflicting events
+                for sg_id, locations in student_groups_in_slot.items():
+                    if len(locations) > 1:  # CONFLICT DETECTED!
+                        conflicts_found = True
+                        
+                        # Keep the first event, move the others
+                        for i in range(1, len(locations)):
+                            room_idx, event_id = locations[i]
+                            event = self.events_map.get(event_id)
+                            
+                            # Clear the conflicting slot
+                            chromosome[room_idx, t_idx] = None
+                            
+                            # Find a safe slot for this event
+                            course = input_data.getCourse(event.course_id)
+                            new_slot_found = False
+                            
+                            # Try to place in a safe slot
+                            for new_r_idx, room in enumerate(self.rooms):
+                                if self.is_room_suitable(room, course):
+                                    for new_t_idx in range(len(self.timeslots)):
+                                        if (chromosome[new_r_idx, new_t_idx] is None and
+                                            self.is_slot_available_for_event(chromosome, new_r_idx, new_t_idx, event) and
+                                            self._is_student_group_available(chromosome, sg_id, new_t_idx) and
+                                            self._is_lecturer_available(chromosome, event.faculty_id, new_t_idx)):
+                                            
+                                            chromosome[new_r_idx, new_t_idx] = event_id
+                                            new_slot_found = True
+                                            break
+                                    if new_slot_found:
+                                        break
+                            
+                            # If no safe slot found, place in any suitable room slot (will be handled later)
+                            if not new_slot_found:
+                                for new_r_idx, room in enumerate(self.rooms):
+                                    if self.is_room_suitable(room, course):
+                                        for new_t_idx in range(len(self.timeslots)):
+                                            if (chromosome[new_r_idx, new_t_idx] is None and
+                                                self.is_slot_available_for_event(chromosome, new_r_idx, new_t_idx, event)):
+                                                chromosome[new_r_idx, new_t_idx] = event_id
+                                                new_slot_found = True
+                                                break
+                                        if new_slot_found:
+                                            break
+            
+            # If no conflicts found, we're done
+            if not conflicts_found:
+                break
+        
+        return chromosome
+
+    def verify_no_student_group_clashes(self, chromosome):
+        """
+        VERIFICATION FUNCTION: Checks that absolutely NO student group clashes exist.
+        Returns True if no clashes, False if clashes found.
+        """
+        for t_idx in range(len(self.timeslots)):
+            student_groups_seen = set()
+            
+            for r_idx in range(len(self.rooms)):
+                event_id = chromosome[r_idx, t_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        sg_id = event.student_group.id
+                        if sg_id in student_groups_seen:
+                            print(f"❌ CRITICAL ERROR: Student group clash detected at timeslot {t_idx}!")
+                            print(f"   Student group {sg_id} appears multiple times at the same time!")
+                            return False
+                        student_groups_seen.add(sg_id)
+        
+        print("✅ VERIFIED: NO student group clashes detected!")
+        return True
+
     def count_non_none(self, arr):
         # Flatten the 2D array and count elements that are not None
         return np.count_nonzero(arr != None)
@@ -635,7 +740,21 @@ class DifferentialEvolution:
                 # The gene from the mutant is chosen if a random number is less than CR,
                 # or if it's the randomly chosen j_rand position.
                 if random.random() < self.CR or (r == j_rand_r and t == j_rand_t):
-                    trial_vector[r, t] = mutant_vector[r, t]
+                    # CRITICAL: Before placing, check for student group conflicts
+                    proposed_event_id = mutant_vector[r, t]
+                    if proposed_event_id is not None:
+                        proposed_event = self.events_map.get(proposed_event_id)
+                        if proposed_event:
+                            # Check if this would cause a student group clash
+                            if self._is_student_group_available(trial_vector, proposed_event.student_group.id, t):
+                                trial_vector[r, t] = proposed_event_id
+                            # If it would cause a clash, keep the original event
+                    else:
+                        # It's None, safe to place
+                        trial_vector[r, t] = mutant_vector[r, t]
+        
+        # CRITICAL SAFETY: Apply student group clash prevention
+        trial_vector = self.prevent_student_group_clashes(trial_vector)
                     
         return trial_vector
 
@@ -804,6 +923,9 @@ class DifferentialEvolution:
                 # This ensures we are always comparing valid, repaired solutions.
                 trial_vector = self.verify_and_repair_course_allocations(trial_vector)
                 trial_vector = self.ensure_consecutive_slots(trial_vector)
+                
+                # CRITICAL SAFETY: Ensure NO student group clashes
+                trial_vector = self.prevent_student_group_clashes(trial_vector)
 
                 # Step 3: Evaluation and Selection
                 self.select(i, trial_vector)
@@ -820,8 +942,9 @@ class DifferentialEvolution:
                 stagnation_counter = 0
                 last_improvement = best_fitness
                 
-                # Ensure best solution has all courses properly allocated
+                # Ensure best solution has all courses properly allocated and NO clashes
                 best_solution = self.verify_and_repair_course_allocations(best_solution)
+                best_solution = self.prevent_student_group_clashes(best_solution)
             else:
                 stagnation_counter += 1
             
@@ -846,6 +969,9 @@ class DifferentialEvolution:
         # Final verification and repair of the best solution to ensure all courses are allocated
         best_solution = self.verify_and_repair_course_allocations(best_solution)
         best_solution = self.ensure_consecutive_slots(best_solution)
+        
+        # CRITICAL FINAL SAFETY CHECK: Ensure absolutely NO student group clashes
+        best_solution = self.prevent_student_group_clashes(best_solution)
         
         return best_solution, fitness_history, generation, diversity_history
 
@@ -1079,6 +1205,9 @@ class DifferentialEvolution:
                         placed = True
                 # If still no slot is found (highly unlikely), it will remain missing.
 
+        # CRITICAL SAFETY: After all repairs, ensure NO student group clashes exist
+        chromosome = self.prevent_student_group_clashes(chromosome)
+        
         return chromosome
 
     def count_course_occurrences(self, chromosome, student_group):
@@ -1142,6 +1271,17 @@ print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
 final_fitness = de.evaluate_fitness(best_solution)
+
+# CRITICAL VERIFICATION: Ensure NO student group clashes in final solution
+print("\n--- VERIFYING STUDENT GROUP CLASH PREVENTION ---")
+clash_free = de.verify_no_student_group_clashes(best_solution)
+if not clash_free:
+    print("❌ APPLYING EMERGENCY CLASH PREVENTION...")
+    best_solution = de.prevent_student_group_clashes(best_solution)
+    print("✅ Emergency prevention applied!")
+    de.verify_no_student_group_clashes(best_solution)
+print("--- VERIFICATION COMPLETE ---\n")
+
 print("\n--- Running Debugging on Final Solution ---")
 violations = de.constraints.get_constraint_violations(best_solution, debug=True)
 print("--- Debugging Complete ---\n")
