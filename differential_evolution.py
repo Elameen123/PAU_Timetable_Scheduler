@@ -11,6 +11,7 @@ import dash
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
 import dash.exceptions
+import dash.dependencies
 import json
 import os
 import shutil
@@ -1266,7 +1267,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(25)
+best_solution, fitness_history, generation, diversity_history = de.run(1)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
@@ -1285,6 +1286,10 @@ print("--- VERIFICATION COMPLETE ---\n")
 print("\n--- Running Debugging on Final Solution ---")
 violations = de.constraints.get_constraint_violations(best_solution, debug=True)
 print("--- Debugging Complete ---\n")
+
+# Store original solution and constraint details for undo and error display
+original_best_solution = [row[:] for row in best_solution]  # Deep copy of original solution
+constraint_details = de.constraints.get_detailed_constraint_violations(best_solution)
 
 print("\n--- Final Timetable Fitness Breakdown ---")
 print(f"Total Fitness Score: {final_fitness:.2f}\n")
@@ -1618,9 +1623,9 @@ app.index_string = '''
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
                 padding: 25px;
                 z-index: 1000;
-                max-width: 450px;
-                width: 90%;
-                max-height: 70vh;
+                max-width: 800px;
+                width: 95%;
+                max-height: 80vh;
                 overflow-y: auto;
                 font-family: 'Poppins', sans-serif;
             }
@@ -1875,6 +1880,124 @@ app.index_string = '''
                 font-size: 12px;
                 line-height: 1.4;
             }
+            .constraint-dropdown {
+                margin-bottom: 15px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .constraint-header {
+                background-color: #f8f9fa;
+                padding: 12px 16px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 600;
+                font-size: 14px;
+                color: #11214D;
+                border-bottom: 1px solid #e0e0e0;
+                transition: background-color 0.2s ease;
+                gap: 15px;
+            }
+            .constraint-header:hover {
+                background-color: #e9ecef;
+            }
+            .constraint-header.active {
+                background-color: #11214D;
+                color: white;
+            }
+            .constraint-count {
+                color: white;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            .constraint-count.zero {
+                background-color: #28a745;
+            }
+            .constraint-count.non-zero {
+                background-color: #dc3545;
+            }
+            .constraint-header.active .constraint-count {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            .constraint-details {
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+                background: white;
+            }
+            .constraint-details.expanded {
+                max-height: 300px;
+                overflow-y: auto;
+                border-top: 1px solid #e0e0e0;
+            }
+            .constraint-item {
+                padding: 10px 16px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+                line-height: 1.4;
+                color: #666;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            .constraint-item:last-child {
+                border-bottom: none;
+            }
+            .constraint-arrow {
+                font-weight: bold;
+                transition: transform 0.3s ease;
+                font-family: monospace;
+                font-size: 16px;
+            }
+            .constraint-arrow.rotated {
+                transform: rotate(180deg);
+            }
+            .errors-button {
+                position: relative;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: 'Poppins', sans-serif;
+                box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            }
+            .errors-button:hover {
+                background: #c82333;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+            }
+            .errors-button:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .error-notification {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: rgba(255, 255, 255, 0.9);
+                color: #dc3545;
+                border: 2px solid #dc3545;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+                font-family: 'Poppins', sans-serif;
+            }
         </style>
     </head>
     <body>
@@ -1895,16 +2018,18 @@ app.layout = html.Div([
                 style={"color": "#11214D", "fontWeight": "600", "fontSize": "24px", 
                       "fontFamily": "Poppins, sans-serif", "margin": "0", "flex": "1"}),
         
-        dcc.Dropdown(
-            id='student-group-dropdown',
-            options=[{'label': timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) 
-                              else timetable_data['student_group'].name, 'value': idx} 
-                    for idx, timetable_data in enumerate(all_timetables)],
-            value=0,
-            searchable=True,
-            clearable=False,
-            style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
-        )
+        html.Div([
+            dcc.Dropdown(
+                id='student-group-dropdown',
+                options=[{'label': timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) 
+                                  else timetable_data['student_group'].name, 'value': idx} 
+                        for idx, timetable_data in enumerate(all_timetables)],
+                value=0,
+                searchable=True,
+                clearable=False,
+                style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
+            )
+        ], style={"display": "flex", "alignItems": "center"})
     ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
              "marginTop": "30px", "marginBottom": "30px", "maxWidth": "1200px", 
              "margin": "30px auto", "padding": "0 15px"}),
@@ -1914,6 +2039,12 @@ app.layout = html.Div([
     
     # Store for rooms data
     dcc.Store(id="rooms-data-store", data=rooms_data),
+    
+    # Store for original timetable (for undo functionality)
+    dcc.Store(id="original-timetables-store", data=[timetable_data.copy() for timetable_data in all_timetables]),
+    
+    # Store for constraint violation details (for errors popup)
+    dcc.Store(id="constraint-details-store", data=constraint_details),
     
     # Store for communicating swaps
     dcc.Store(id="swap-data", data=None),
@@ -1956,6 +2087,27 @@ app.layout = html.Div([
             ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
                      "borderTop": "1px solid #f0f0f0"})
         ], className="room-selection-modal", id="room-selection-modal", style={"display": "none"})
+    ]),
+    
+    # Errors modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="errors-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Constraint Violations", className="modal-title"),
+                html.Button("×", className="modal-close", id="errors-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div(id="errors-content"),
+            
+            html.Div([
+                html.Button("Close", id="errors-close-btn", 
+                           style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="errors-modal", style={"display": "none"})
     ]),
     
     # Conflict warning popup (initially hidden)
@@ -2122,6 +2274,19 @@ def create_timetable(selected_group_idx, all_timetables_data):
                            disabled=selected_group_idx == len(all_timetables_data) - 1)
             ], className="nav-arrows")
         ], className="timetable-header"),
+        
+        # New buttons row
+        html.Div([
+            html.Button([
+                "View Errors",
+                html.Div(id="error-notification-badge", className="error-notification")
+            ], id="errors-btn", className="errors-button"),
+            html.Button("Undo All Changes", id="undo-all-btn", 
+                       style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                             "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
+        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+        
         table
     ], className="student-group-container"), "trigger"
 
@@ -2251,6 +2416,19 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
                            disabled=selected_group_idx == len(all_timetables_data) - 1)
             ], className="nav-arrows")
         ], className="timetable-header"),
+        
+        # New buttons row
+        html.Div([
+            html.Button([
+                "View Errors",
+                html.Div(id="error-notification-badge", className="error-notification")
+            ], id="errors-btn", className="errors-button"),
+            html.Button("Undo All Changes", id="undo-all-btn", 
+                       style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                             "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
+        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+        
         table
     ], className="student-group-container")
 
@@ -3213,6 +3391,225 @@ def validate_dropdown_selection(selected_value, all_timetables_data):
     
     # Value is valid, no change needed
     raise dash.exceptions.PreventUpdate
+
+# Callback to handle errors button click and show modal
+@app.callback(
+    [Output("errors-modal-overlay", "style"),
+     Output("errors-modal", "style"),
+     Output("errors-content", "children")],
+    [Input("errors-btn", "n_clicks"),
+     Input("errors-modal-close-btn", "n_clicks"),
+     Input("errors-close-btn", "n_clicks"),
+     Input("errors-modal-overlay", "n_clicks")],
+    State("constraint-details-store", "data"),
+    prevent_initial_call=True
+)
+def handle_errors_modal(errors_btn_clicks, close_btn_clicks, close_btn2_clicks, overlay_clicks, constraint_details):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger_id == "errors-btn" and errors_btn_clicks:
+        # Show modal and populate with constraint details
+        modal_content = create_errors_modal_content(constraint_details)
+        return {"display": "block"}, {"display": "block"}, modal_content
+    elif trigger_id in ["errors-modal-close-btn", "errors-close-btn", "errors-modal-overlay"]:
+        # Hide modal
+        return {"display": "none"}, {"display": "none"}, []
+    
+    raise dash.exceptions.PreventUpdate
+
+# Callback to handle constraint dropdown toggle
+@app.callback(
+    Output("errors-content", "children", allow_duplicate=True),
+    [Input({"type": "constraint-header", "index": dash.dependencies.ALL}, "n_clicks")],
+    [State("constraint-details-store", "data"),
+     State("errors-content", "children")],
+    prevent_initial_call=True
+)
+def toggle_constraint_dropdown(n_clicks_list, constraint_details, current_content):
+    """Handle constraint dropdown toggle by regenerating content with updated state"""
+    ctx = dash.callback_context
+    if not ctx.triggered or not any(n_clicks_list):
+        raise dash.exceptions.PreventUpdate
+    
+    # Find which header was clicked
+    trigger_info = ctx.triggered[0]['prop_id']
+    clicked_index = eval(trigger_info.split('.')[0])['index']
+    
+    # Toggle the expansion state for this constraint
+    # For simplicity, we'll regenerate the entire content with the clicked item toggled
+    return create_errors_modal_content(constraint_details, toggle_constraint=clicked_index)
+
+# Callback to handle undo all changes
+@app.callback(
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("feedback", "children", allow_duplicate=True)],
+    Input("undo-all-btn", "n_clicks"),
+    State("original-timetables-store", "data"),
+    prevent_initial_call=True
+)
+def handle_undo_all_changes(n_clicks, original_timetables):
+    if n_clicks and original_timetables:
+        print("🔄 Undoing all changes - reverting to original timetable")
+        return original_timetables, html.Div("✅ All changes have been undone!", 
+                                           style={"color": "green", "fontWeight": "600"})
+    raise dash.exceptions.PreventUpdate
+
+def create_errors_modal_content(constraint_details, expanded_constraint=None, toggle_constraint=None):
+    """Create the content for the errors modal with constraint dropdowns"""
+    if not constraint_details:
+        return [html.Div("No constraint violation data available.", style={"padding": "20px", "textAlign": "center"})]
+    
+    # Keep track of expanded states (simple approach)
+    if not hasattr(create_errors_modal_content, 'expanded_states'):
+        create_errors_modal_content.expanded_states = set()
+    
+    # Toggle the state if a constraint was clicked
+    if toggle_constraint:
+        if toggle_constraint in create_errors_modal_content.expanded_states:
+            create_errors_modal_content.expanded_states.remove(toggle_constraint)
+        else:
+            create_errors_modal_content.expanded_states.add(toggle_constraint)
+    
+    # Set initial expanded state if specified
+    if expanded_constraint:
+        create_errors_modal_content.expanded_states.add(expanded_constraint)
+    
+    # Mapping from user-friendly names to internal names
+    constraint_mapping = {
+        'Same Student Group Overlaps': 'Same Student Group Overlaps',
+        'Different Student Group Overlaps': 'Different Student Group Overlaps', 
+        'Lecturer Clashes': 'Lecturer Clashes',
+        'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
+        'Consecutive Slot Violations': 'Consecutive Slot Violations',
+        'Missing or Extra Classes': 'Missing or Extra Classes',
+        'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
+        'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
+        'Classes During Break Time': 'Classes During Break Time'
+    }
+    
+    content = []
+    
+    for display_name, internal_name in constraint_mapping.items():
+        violations = constraint_details.get(internal_name, [])
+        count = len(violations)
+        
+        # Determine if this dropdown should be expanded
+        is_expanded = display_name in create_errors_modal_content.expanded_states
+        
+        # Determine count badge class
+        count_class = "constraint-count zero" if count == 0 else "constraint-count non-zero"
+        
+        # Create constraint header
+        header = html.Div([
+            html.Span(display_name, style={"flex": "1"}),
+            html.Span(f"{count} Occurrence{'s' if count != 1 else ''}", className=count_class),
+            html.Span("^", className=f"constraint-arrow{' rotated' if is_expanded else ''}")
+        ], className=f"constraint-header{' active' if is_expanded else ''}", 
+           id={"type": "constraint-header", "index": display_name}, n_clicks=0)
+        
+        # Create constraint details
+        details_content = []
+        if violations:
+            for i, violation in enumerate(violations):
+                if internal_name == 'Same Student Group Overlaps':
+                    details_content.append(html.Div(
+                        f"Group '{violation['group']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Different Student Group Overlaps':
+                    details_content.append(html.Div(
+                        f"Room conflict at {violation['location']}: {', '.join(violation['events'])}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Lecturer Clashes':
+                    details_content.append(html.Div(
+                        f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Lecturer Schedule Conflicts (Day/Time)':
+                    details_content.append(html.Div(
+                        f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Consecutive Slot Violations':
+                    details_content.append(html.Div(
+                        f"Non-consecutive slots for {violation['location']}: {', '.join(violation['times'])}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Missing or Extra Classes':
+                    details_content.append(html.Div(
+                        f"{violation['issue']} classes for {violation['location']}: Expected {violation['expected']}, Got {violation['actual']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Same Course in Multiple Rooms on Same Day':
+                    details_content.append(html.Div(
+                        f"{violation['location']} in multiple rooms: {', '.join(violation['rooms'])}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Room Capacity/Type Conflicts':
+                    if violation['type'] == 'Room Type Mismatch':
+                        details_content.append(html.Div(
+                            f"Room type mismatch at {violation['location']}: {violation['course']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Room capacity exceeded at {violation['location']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
+                            className="constraint-item"
+                        ))
+                elif internal_name == 'Classes During Break Time':
+                    details_content.append(html.Div(
+                        f"Class during break time at {violation['location']}: {violation['course']} for {violation['group']}",
+                        className="constraint-item"
+                    ))
+        else:
+            details_content.append(html.Div("No violations found.", className="constraint-item", style={"color": "#28a745", "fontStyle": "italic"}))
+        
+        details = html.Div(details_content, 
+                          className=f"constraint-details{' expanded' if is_expanded else ''}", 
+                          id={"type": "constraint-details", "index": display_name})
+        
+        # Add constraint dropdown to content
+        content.append(html.Div([header, details], className="constraint-dropdown"))
+    
+    return content
+
+# Callback to update the error notification badge
+@app.callback(
+    Output("error-notification-badge", "children"),
+    [Input("constraint-details-store", "data"),
+     Input("all-timetables-store", "data")],
+    prevent_initial_call=False
+)
+def update_error_notification_badge(constraint_details, timetables_data):
+    if not constraint_details:
+        return "0"
+    
+    # Define which constraints are hard constraints
+    hard_constraint_names = [
+        'Same Student Group Overlaps',
+        'Different Student Group Overlaps', 
+        'Lecturer Clashes',
+        'Lecturer Schedule Conflicts (Day/Time)',
+        'Consecutive Slot Violations',
+        'Missing or Extra Classes',
+        'Same Course in Multiple Rooms on Same Day',
+        'Room Capacity/Type Conflicts',
+        'Classes During Break Time'
+    ]
+    
+    # Count how many hard constraints have violations
+    violated_hard_constraints = 0
+    for constraint_name in hard_constraint_names:
+        violations = constraint_details.get(constraint_name, [])
+        if len(violations) > 0:
+            violated_hard_constraints += 1
+    
+    return str(violated_hard_constraints)
 
 # Run the Dash app
 if __name__ == '__main__':
