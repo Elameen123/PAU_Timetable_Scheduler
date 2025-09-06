@@ -1001,10 +1001,18 @@ class DifferentialEvolution:
                         course = input_data.getCourse(class_event.course_id)
                         faculty = input_data.getFaculty(class_event.faculty_id)
                         course_code = course.code if course is not None else "Unknown"
-                        faculty_name = faculty.name if faculty is not None else "Unknown"
+                        
+                        # Use faculty name if available, otherwise use faculty email (ID)
+                        if faculty is not None:
+                            faculty_display = faculty.name if faculty.name else faculty.faculty_id
+                        else:
+                            faculty_display = "Unknown"
+                        
                         room_obj = input_data.rooms[room_idx]
                         room_display = getattr(room_obj, "name", getattr(room_obj, "Id", str(room_idx)))
-                        timetable[hour][day] = f"Course: {course_code}, Lecturer: {faculty_name}, Room: {room_display}"
+                        
+                        # Format as: Course Code\nRoom Name\nFaculty Name
+                        timetable[hour][day] = f"{course_code}\n{room_display}\n{faculty_display}"
         return timetable
 
     def print_all_timetables(self, individual, days, hours_per_day, day_start_time=9):
@@ -1431,6 +1439,9 @@ def load_saved_timetable():
     
     save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
     
+    print(f"🔍 Checking for saved timetable at: {save_path}")
+    print(f"🔍 File exists: {os.path.exists(save_path)}")
+    
     if os.path.exists(save_path):
         try:
             with open(save_path, 'r', encoding='utf-8') as f:
@@ -1438,6 +1449,15 @@ def load_saved_timetable():
             
             file_size = os.path.getsize(save_path)
             print(f"📁 Loaded saved timetable: {len(saved_data)} groups, {file_size} bytes")
+            
+            # Verify data structure
+            if saved_data and len(saved_data) > 0:
+                first_group = saved_data[0]
+                print(f"🔍 First group structure: {type(first_group)}")
+                if 'student_group' in first_group:
+                    print(f"🔍 Student group info: {first_group['student_group']}")
+                if 'timetable' in first_group:
+                    print(f"🔍 Timetable rows: {len(first_group['timetable'])}")
             
             return saved_data
         except Exception as e:
@@ -1462,12 +1482,16 @@ def clear_saved_timetable():
     except Exception as e:
         print(f"❌ Error clearing saved files: {e}")
 
-# Load saved data if available, otherwise use freshly optimized data
+# Always use freshly optimized data on startup - user changes are handled via UI callbacks
 print("\n=== LOADING TIMETABLE DATA ===")
-# On fresh startup, always use the newly optimized data from DE
-# Only load saved data during Dash session for persistence
+
+# Always start with fresh DE optimization results
 print("✅ Using freshly optimized timetable data")
 print(f"   Generated {len(all_timetables)} student groups from DE optimization")
+
+# Clear any old saved data to ensure fresh start
+clear_saved_timetable()
+
 print("=== TIMETABLE DATA LOADING COMPLETE ===\n")
 
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -1477,32 +1501,43 @@ hours = [f"{9 + i}:00" for i in range(input_data.hours)]
 session_has_swaps = False
 
 def has_any_room_conflicts(all_timetables_data):
-    """Check if there are any room conflicts across all student groups"""
+    """Check if there are any conflicts (room or lecturer) across all student groups"""
     if not all_timetables_data:
         return False
     
     # Check each time slot across all groups
     for group_idx in range(len(all_timetables_data)):
-        conflicts = detect_room_conflicts(all_timetables_data, group_idx)
+        conflicts = detect_conflicts(all_timetables_data, group_idx)
         if conflicts:
             return True
     
     return False
 
+def extract_course_and_faculty_from_cell(cell_content):
+    """Extract course code and faculty from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
+    if not cell_content or cell_content in ["FREE", "BREAK"]:
+        return None, None
+    
+    # Split by newlines and get the first line (course code) and third line (faculty)
+    lines = cell_content.split('\n')
+    course_code = lines[0].strip() if len(lines) > 0 and lines[0].strip() else None
+    faculty_name = lines[2].strip() if len(lines) > 2 and lines[2].strip() else None
+    
+    return course_code, faculty_name
+
 def extract_room_from_cell(cell_content):
-    """Extract room name from cell content like 'Course: CPE 305, Lecturer: Dr. Smith, Room: Classroom 1'"""
+    """Extract room name from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
-    # Look for Room: pattern
-    import re
-    room_match = re.search(r'Room:\s*(.+?)(?:,|$)', cell_content)
-    if room_match:
-        return room_match.group(1).strip()
+    # Split by newlines and get the second line (room name)
+    lines = cell_content.split('\n')
+    if len(lines) > 1 and lines[1].strip():
+        return lines[1].strip()
     return None
 
-def detect_room_conflicts(all_timetables_data, current_group_idx):
-    """Detect room conflicts across all student groups at each time slot"""
+def detect_conflicts(all_timetables_data, current_group_idx):
+    """Detect both room conflicts and lecturer conflicts across all student groups at each time slot"""
     conflicts = {}
     
     if not all_timetables_data:
@@ -1515,33 +1550,65 @@ def detect_room_conflicts(all_timetables_data, current_group_idx):
         for col_idx in range(1, len(current_timetable[row_idx])):  # Skip time column
             timeslot_key = f"{row_idx}_{col_idx-1}"
             room_usage = {}  # room_name -> [(group_idx, group_name, course_info), ...]
+            lecturer_usage = {}  # faculty_name -> [(group_idx, group_name, course_info), ...]
             
             # Check all groups for this time slot
             for group_idx, timetable_data in enumerate(all_timetables_data):
                 timetable_rows = timetable_data['timetable']
                 if row_idx < len(timetable_rows) and col_idx < len(timetable_rows[row_idx]):
                     cell_content = timetable_rows[row_idx][col_idx]
-                    room_name = extract_room_from_cell(cell_content)
                     
-                    if room_name:
-                        if room_name not in room_usage:
-                            room_usage[room_name] = []
+                    if cell_content and cell_content not in ["FREE", "BREAK"]:
+                        room_name = extract_room_from_cell(cell_content)
+                        course_code, faculty_name = extract_course_and_faculty_from_cell(cell_content)
                         
                         group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
-                        room_usage[room_name].append((group_idx, group_name, cell_content))
+                        
+                        # Track room usage
+                        if room_name:
+                            if room_name not in room_usage:
+                                room_usage[room_name] = []
+                            room_usage[room_name].append((group_idx, group_name, cell_content))
+                        
+                        # Track lecturer usage
+                        if faculty_name and faculty_name != "Unknown":
+                            if faculty_name not in lecturer_usage:
+                                lecturer_usage[faculty_name] = []
+                            lecturer_usage[faculty_name].append((group_idx, group_name, cell_content))
             
-            # Check for conflicts (same room used by multiple groups)
+            # Check for room conflicts
             for room_name, usage_list in room_usage.items():
                 if len(usage_list) > 1:
-                    # There's a conflict - mark all groups using this room at this time
                     for group_idx, group_name, cell_content in usage_list:
                         if group_idx == current_group_idx:
                             conflicts[timeslot_key] = {
-                                'room': room_name,
+                                'type': 'room',
+                                'resource': room_name,
                                 'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
                             }
+            
+            # Check for lecturer conflicts
+            for faculty_name, usage_list in lecturer_usage.items():
+                if len(usage_list) > 1:
+                    for group_idx, group_name, cell_content in usage_list:
+                        if group_idx == current_group_idx:
+                            # If there's already a room conflict, mark it as both
+                            if timeslot_key in conflicts:
+                                conflicts[timeslot_key]['type'] = 'both'
+                                conflicts[timeslot_key]['lecturer'] = faculty_name
+                                conflicts[timeslot_key]['lecturer_conflicting_groups'] = [u for u in usage_list if u[0] != current_group_idx]
+                            else:
+                                conflicts[timeslot_key] = {
+                                    'type': 'lecturer',
+                                    'resource': faculty_name,
+                                    'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
+                                }
     
     return conflicts
+
+def detect_room_conflicts(all_timetables_data, current_group_idx):
+    """Legacy function - now uses the comprehensive detect_conflicts function"""
+    return detect_conflicts(all_timetables_data, current_group_idx)
 
 app = dash.Dash(__name__)
 
@@ -1575,6 +1642,9 @@ app.index_string = '''
                 line-height: 1.2;
                 text-align: center;
                 background-color: white;
+                white-space: pre-line;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             .cell:hover {
                 transform: translateY(-1px);
@@ -1610,6 +1680,26 @@ app.index_string = '''
                 font-weight: 600 !important;
             }
             .cell.room-conflict:hover {
+                background-color: #ffcdd2 !important;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
+            .cell.lecturer-conflict {
+                background-color: #ffebee !important;
+                color: #d32f2f !important;
+                border-color: #f44336 !important;
+                font-weight: 600 !important;
+            }
+            .cell.lecturer-conflict:hover {
+                background-color: #ffcdd2 !important;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
+            .cell.both-conflict {
+                background-color: #ffebee !important;
+                color: #d32f2f !important;
+                border-color: #f44336 !important;
+                font-weight: 600 !important;
+            }
+            .cell.both-conflict:hover {
                 background-color: #ffcdd2 !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
@@ -2172,8 +2262,8 @@ def create_timetable(selected_group_idx, all_timetables_data):
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
     timetable_rows = timetable_data['timetable']
     
-    # Detect room conflicts across all time slots
-    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    # Detect conflicts (both room and lecturer) across all time slots
+    conflicts = detect_conflicts(all_timetables_data, selected_group_idx)
     
     # Create table rows
     rows = []
@@ -2217,16 +2307,23 @@ def create_timetable(selected_group_idx, all_timetables_data):
             # Check if this is a break time
             is_break = cell_content == "BREAK"
             
-            # Check for room conflicts
+            # Check for conflicts (room, lecturer, or both)
             timeslot_key = f"{row_idx}_{col_idx-1}"
-            has_conflict = timeslot_key in room_conflicts
+            has_conflict = timeslot_key in conflicts
+            conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
-            # Determine cell class
+            # Determine cell class based on conflict type
             if is_break:
                 cell_class = "cell break-time"
                 draggable = "false"
-            elif has_conflict:
+            elif conflict_type == 'room':
                 cell_class = "cell room-conflict"
+                draggable = "true"
+            elif conflict_type == 'lecturer':
+                cell_class = "cell lecturer-conflict"
+                draggable = "true"
+            elif conflict_type == 'both':
+                cell_class = "cell both-conflict"
                 draggable = "true"
             else:
                 cell_class = "cell"
@@ -2316,8 +2413,8 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
     timetable_rows = timetable_data['timetable']
     
-    # Detect room conflicts across all time slots
-    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    # Detect conflicts (both room and lecturer) across all time slots
+    conflicts = detect_conflicts(all_timetables_data, selected_group_idx)
     
     # Create table rows (same logic as create_timetable but only return the container content)
     rows = []
@@ -2368,13 +2465,21 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
             
             # Determine cell styling
             is_break = cell_content == "BREAK"
-            has_conflict = (row_idx, col_idx - 1) in room_conflicts
+            timeslot_key = f"{row_idx}_{col_idx-1}"
+            has_conflict = timeslot_key in conflicts
+            conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
             if is_break:
                 cell_class = "cell break-time"
                 draggable = False
-            elif has_conflict:
-                cell_class = "cell room-conflict"  
+            elif conflict_type == 'room':
+                cell_class = "cell room-conflict"
+                draggable = True
+            elif conflict_type == 'lecturer':
+                cell_class = "cell lecturer-conflict"
+                draggable = True
+            elif conflict_type == 'both':
+                cell_class = "cell both-conflict"
                 draggable = True
             else:
                 cell_class = "cell"
@@ -3094,6 +3199,10 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
         if course_code:
             update_consecutive_course_rooms(updated_timetables, selected_group_idx, course_code, selected_room, row_idx, col_idx)
         
+        # Update the global all_timetables variable BEFORE saving to ensure consistency
+        global all_timetables
+        all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
+        
         # Check for conflicts after the update
         room_usage = get_room_usage_at_timeslot(updated_timetables, row_idx, col_idx)
         conflict_warning_style = {"display": "none"}
@@ -3108,7 +3217,11 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
             conflict_warning_text = f"This classroom is already in use by: {', '.join(other_groups)}"
         
         # Auto-save the changes
-        save_timetable_to_file(updated_timetables)
+        save_success = save_timetable_to_file(updated_timetables)
+        if save_success:
+            print(f"✅ Room change auto-saved successfully - Global state updated")
+        else:
+            print(f"❌ Failed to auto-save room change")
         
         return updated_timetables, conflict_warning_style, conflict_warning_text
         
@@ -3117,26 +3230,34 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
         return dash.no_update, {"display": "block"}, f"Error updating room: {str(e)}"
 
 def extract_course_code_from_cell(cell_content):
-    """Extract course code from cell content"""
+    """Extract course code from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
-    # Look for Course: pattern
-    import re
-    course_match = re.search(r'Course:\s*([^,]+)', cell_content)
-    if course_match:
-        return course_match.group(1).strip()
+    # Split by newlines and get the first line (course code)
+    lines = cell_content.split('\n')
+    if lines and lines[0].strip():
+        return lines[0].strip()
     return None
 
 def update_room_in_cell_content(cell_content, new_room):
-    """Update the room name in cell content"""
+    """Update the room name in cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return cell_content
     
-    import re
-    # Replace the room part
-    updated_content = re.sub(r'Room:\s*[^,]*', f'Room: {new_room}', cell_content)
-    return updated_content
+    # Split by newlines and update the second line (room name)
+    lines = cell_content.split('\n')
+    if len(lines) >= 3:
+        lines[1] = new_room  # Update the room name (second line)
+        return '\n'.join(lines)
+    elif len(lines) == 2:
+        # If only 2 lines, add room as second line and move faculty to third
+        return f"{lines[0]}\n{new_room}\n{lines[1]}"
+    elif len(lines) == 1:
+        # If only 1 line, add room and keep original as course code
+        return f"{lines[0]}\n{new_room}\nUnknown"
+    
+    return cell_content
 
 def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new_room, current_row, current_col):
     """Update consecutive classes of the same course to use the same room"""
@@ -3152,29 +3273,50 @@ def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new
                 timetable_rows[row_idx][current_col + 1] = updated_content
 
 def save_timetable_to_file(timetables_data):
-    """Save timetable data to file"""
+    """Save timetable data to file with enhanced global state synchronization"""
     try:
-        save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
-        backup_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data_backup.json')
+        global all_timetables
+        import os
+        import time
+        
+        save_dir = os.path.join(os.path.dirname(__file__), 'data')
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, 'timetable_data.json')
+        backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
+        
+        # Add timestamp to track saves
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{timestamp}] Saving timetable data...")
         
         # Create backup
         if os.path.exists(save_path):
             shutil.copy2(save_path, backup_path)
+            print(f"[{timestamp}] Backup created")
         
-        # Save new data
+        # Ensure we're synchronizing the global state with the data being saved
+        all_timetables = json.loads(json.dumps(timetables_data))  # Deep copy to avoid reference issues
+        
+        # Save new data with proper file handling
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(timetables_data, f, indent=2, ensure_ascii=False)
-        
-        # Force file system sync
-        if hasattr(os, 'fsync'):
             f.flush()
-            os.fsync(f.fileno())
+            if hasattr(os, 'fsync'):
+                os.fsync(f.fileno())
         
-        print(f"✅ Auto-saved timetable changes")
+        # Verify the file was written correctly
+        file_size = os.path.getsize(save_path)
+        with open(save_path, 'r', encoding='utf-8') as f:
+            verification_data = json.load(f)
+        
+        print(f"[{timestamp}] ✅ Auto-saved timetable changes - File size: {file_size} bytes")
+        print(f"[{timestamp}] ✅ Verification: Loaded {len(verification_data)} groups from saved file")
+        print(f"[{timestamp}] ✅ Global state synchronized with {len(all_timetables)} groups")
         return True
         
     except Exception as e:
         print(f"❌ Error auto-saving timetable: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 @app.callback(
     Output("all-timetables-store", "data", allow_duplicate=True),
@@ -3241,41 +3383,15 @@ def handle_swap(swap_data, current_timetables):
         # Mark that we've made swaps in this session
         session_has_swaps = True
         
-        # Update the global all_timetables variable to ensure persistence
-        all_timetables[group_idx]['timetable'] = timetable_rows
+        # Update the global all_timetables variable BEFORE saving to ensure persistence
+        all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
         
-        # Auto-save the changes to maintain persistence
-        try:
-            import os
-            import time
-            import shutil
-            
-            save_dir = os.path.join(os.path.dirname(__file__), 'data')
-            os.makedirs(save_dir, exist_ok=True)
-            save_path = os.path.join(save_dir, 'timetable_data.json')
-            
-            # Add timestamp to track saves
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] Auto-saving swap")
-            
-            # Create a backup before saving
-            backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
-            if os.path.exists(save_path):
-                shutil.copy2(save_path, backup_path)
-            
-            # Force a file flush and sync to ensure data is written to disk
-            with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(updated_timetables, f, indent=2, ensure_ascii=False)
-                f.flush()
-                if hasattr(os, 'fsync'):
-                    os.fsync(f.fileno())
-            
-            print(f"✅ Auto-save successful: {save_path}")
-                
-        except Exception as auto_save_error:
-            print(f"❌ Auto-save failed: {auto_save_error}")
-            import traceback
-            traceback.print_exc()
+        # Auto-save the changes using centralized function
+        save_success = save_timetable_to_file(updated_timetables)
+        if save_success:
+            print(f"✅ Swap auto-saved successfully - Global state updated")
+        else:
+            print(f"❌ Failed to auto-save swap")
         
         return updated_timetables
         
@@ -3371,6 +3487,28 @@ def save_timetable(n_clicks, current_timetables):
 #     print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
 #     return all_timetables
 
+# Callback to load saved user modifications on initial app startup only
+@app.callback(
+    Output("all-timetables-store", "data", allow_duplicate=True),
+    Input("trigger", "children"),
+    State("all-timetables-store", "data"),
+    prevent_initial_call='initial_duplicate'
+)
+def load_user_modifications_on_startup(trigger, current_data):
+    """Load saved user modifications on app startup (but not when algorithm is re-run)"""
+    global all_timetables
+    
+    # Only try to load saved data if we have current data and it's the initial load
+    if current_data:
+        saved_data = load_saved_timetable()
+        if saved_data:
+            print("🔄 Loading saved user modifications on app startup")
+            all_timetables = saved_data
+            return saved_data
+    
+    # Otherwise use the current fresh DE results
+    return current_data or all_timetables
+
 # Additional safeguard callback to prevent dropdown state issues
 @app.callback(
     Output("student-group-dropdown", "value", allow_duplicate=True),
@@ -3454,6 +3592,10 @@ def toggle_constraint_dropdown(n_clicks_list, constraint_details, current_conten
 def handle_undo_all_changes(n_clicks, original_timetables):
     if n_clicks and original_timetables:
         print("🔄 Undoing all changes - reverting to original timetable")
+        
+        # Clear the saved timetable file so fresh DE results are used on next restart
+        clear_saved_timetable()
+        
         return original_timetables, html.Div("✅ All changes have been undone!", 
                                            style={"color": "green", "fontWeight": "600"})
     raise dash.exceptions.PreventUpdate
