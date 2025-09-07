@@ -46,6 +46,36 @@ class TimetableExporter:
             print(f"❌ Error loading saved data: {e}")
             return None
 
+    def load_fresh_optimization_data(self):
+        """Load fresh DE optimization data if available"""
+        fresh_data_path = os.path.join(os.path.dirname(__file__), 'data', 'fresh_timetable_data.json')
+        try:
+            if os.path.exists(fresh_data_path):
+                with open(fresh_data_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                print(f"✅ Loaded fresh optimization data: {len(data)} groups")
+                return data
+            else:
+                print("❌ No fresh optimization data found")
+                return None
+        except Exception as e:
+            print(f"❌ Error loading fresh optimization data: {e}")
+            return None
+
+    def get_timetable_data(self):
+        """Get timetable data - prefer saved data, fallback to fresh optimization data"""
+        # First try to load saved data (user modifications)
+        data = self.load_saved_timetable_data()
+        if data:
+            return data
+        
+        # If no saved data, try to load fresh optimization data
+        data = self.load_fresh_optimization_data()
+        if data:
+            return data
+        
+        return None
+
     def is_sst_group(self, group_name):
         """Check if a student group belongs to SST (engineering) based on keywords"""
         group_name_lower = group_name.lower()
@@ -358,7 +388,7 @@ class TimetableExporter:
 
     def export_sst_timetables(self):
         """Export SST (engineering) timetables"""
-        data = self.load_saved_timetable_data()
+        data = self.get_timetable_data()
         if not data:
             return False, "No timetable data available"
         
@@ -402,7 +432,7 @@ class TimetableExporter:
 
     def export_tyd_timetables(self):
         """Export TYD (non-engineering) timetables"""
-        data = self.load_saved_timetable_data()
+        data = self.get_timetable_data()
         if not data:
             return False, "No timetable data available"
         
@@ -446,7 +476,7 @@ class TimetableExporter:
 
     def export_lecturer_timetables(self):
         """Export all lecturer timetables"""
-        data = self.load_saved_timetable_data()
+        data = self.get_timetable_data()
         if not data:
             return False, "No timetable data available"
         

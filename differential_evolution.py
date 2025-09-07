@@ -1420,8 +1420,21 @@ for timetable_data in all_timetables:
             'id': getattr(timetable_data['student_group'], 'id', None)
         }
 
+# Save fresh optimization data for download functionality
+def save_fresh_optimization_data(data):
+    """Save fresh DE optimization data for export functionality"""
+    fresh_data_path = os.path.join(os.path.dirname(__file__), 'data', 'fresh_timetable_data.json')
+    try:
+        with open(fresh_data_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print(f"✅ Saved fresh optimization data: {len(data)} groups")
+    except Exception as e:
+        print(f"❌ Error saving fresh optimization data: {e}")
+
+# Save the fresh data
+save_fresh_optimization_data(all_timetables)
+
 # Load rooms data for classroom selection
-import json
 rooms_data = []
 try:
     with open(os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json'), 'r', encoding='utf-8') as f:
@@ -1433,7 +1446,6 @@ except Exception as e:
 
 # Try to load saved timetable if it exists
 def load_saved_timetable():
-    import json
     import os
     import traceback
     
