@@ -2200,6 +2200,57 @@ app.layout = html.Div([
         ], className="room-selection-modal", id="errors-modal", style={"display": "none"})
     ]),
     
+    # Download modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="download-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Download Timetables", className="modal-title"),
+                html.Button("×", className="modal-close", id="download-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div([
+                # SST Timetables row
+                html.Div([
+                    html.Span("Download SST Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-sst-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px", "borderBottom": "1px solid #f0f0f0"}),
+                
+                # TYD Timetables row
+                html.Div([
+                    html.Span("Download TYD Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-tyd-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px", "borderBottom": "1px solid #f0f0f0"}),
+                
+                # Lecturer Timetables row
+                html.Div([
+                    html.Span("Download all Lecturer Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-lecturer-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px"})
+            ]),
+            
+            html.Div([
+                html.Button("Close", id="download-close-btn", 
+                           style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="download-modal", style={"display": "none"})
+    ]),
+    
     # Conflict warning popup (initially hidden)
     html.Div([
         html.Div([
@@ -2215,14 +2266,14 @@ app.layout = html.Div([
         html.Div("Please resolve all classroom conflicts before saving the timetable.", className="save-error-content")
     ], className="save-error", id="save-error", style={"display": "none"}),
     
-    # Button to save current timetable state
+    # Button to download timetables
     html.Div([
-        html.Button("Save Current Timetable", id="save-button", 
+        html.Button("Download Timetables", id="download-button", 
                    style={"backgroundColor": "#11214D", "color": "white", "padding": "10px 20px", 
                          "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
                          "fontWeight": "600", "boxShadow": "0 1px 3px rgba(0,0,0,0.1)",
                          "transition": "all 0.2s ease", "fontFamily": "Poppins, sans-serif"}),
-        html.Div(id="save-status", style={"marginTop": "12px", "fontWeight": "600", 
+        html.Div(id="download-status", style={"marginTop": "12px", "fontWeight": "600", 
                                          "fontFamily": "Poppins, sans-serif", "fontSize": "12px"})
     ], style={"textAlign": "center", "marginTop": "30px", "maxWidth": "1200px", "margin": "30px auto 0 auto"}),
     
@@ -3028,6 +3079,32 @@ clientside_callback(
     prevent_initial_call=True
 )
 
+# Client-side callback to auto-hide download modal after successful download
+clientside_callback(
+    """
+    function(status_content) {
+        if (status_content && status_content.props && status_content.props.children) {
+            const message = status_content.props.children;
+            if (typeof message === 'string' && message.includes('✅')) {
+                // Auto-hide modal after 3 seconds on successful download
+                setTimeout(function() {
+                    const modal = document.getElementById('download-modal');
+                    const overlay = document.getElementById('download-modal-overlay');
+                    if (modal && overlay) {
+                        modal.style.display = 'none';
+                        overlay.style.display = 'none';
+                    }
+                }, 3000);
+            }
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("download-modal", "children"),
+    Input("download-status", "children"),
+    prevent_initial_call=True
+)
+
 # Callback to handle room selection modal and search
 @app.callback(
     [Output("room-options-container", "children"),
@@ -3559,6 +3636,32 @@ def handle_errors_modal(errors_btn_clicks, close_btn_clicks, close_btn2_clicks, 
     
     raise dash.exceptions.PreventUpdate
 
+# Callback to handle download button click and show download modal
+@app.callback(
+    [Output("download-modal-overlay", "style"),
+     Output("download-modal", "style")],
+    [Input("download-button", "n_clicks"),
+     Input("download-modal-close-btn", "n_clicks"),
+     Input("download-close-btn", "n_clicks"),
+     Input("download-modal-overlay", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_download_modal(download_btn_clicks, close_btn_clicks, close_btn2_clicks, overlay_clicks):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger_id == "download-button" and download_btn_clicks:
+        # Show modal
+        return {"display": "block"}, {"display": "block"}
+    elif trigger_id in ["download-modal-close-btn", "download-close-btn", "download-modal-overlay"]:
+        # Hide modal
+        return {"display": "none"}, {"display": "none"}
+    
+    raise dash.exceptions.PreventUpdate
+
 # Callback to handle constraint dropdown toggle
 @app.callback(
     Output("errors-content", "children", allow_duplicate=True),
@@ -3580,6 +3683,52 @@ def toggle_constraint_dropdown(n_clicks_list, constraint_details, current_conten
     # Toggle the expansion state for this constraint
     # For simplicity, we'll regenerate the entire content with the clicked item toggled
     return create_errors_modal_content(constraint_details, toggle_constraint=clicked_index)
+
+# Callbacks to handle download actions
+@app.callback(
+    Output("download-status", "children"),
+    [Input("download-sst-btn", "n_clicks"),
+     Input("download-tyd-btn", "n_clicks"),
+     Input("download-lecturer-btn", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_download_actions(sst_clicks, tyd_clicks, lecturer_clicks):
+    """Handle download button clicks"""
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    try:
+        # Import output_data functions
+        from output_data import export_sst_timetables, export_tyd_timetables, export_lecturer_timetables
+        
+        if trigger_id == "download-sst-btn" and sst_clicks:
+            success, message = export_sst_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+                
+        elif trigger_id == "download-tyd-btn" and tyd_clicks:
+            success, message = export_tyd_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+                
+        elif trigger_id == "download-lecturer-btn" and lecturer_clicks:
+            success, message = export_lecturer_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+    
+    except Exception as e:
+        return html.Div(f"❌ Error: {str(e)}", style={"color": "red", "fontWeight": "600"})
+    
+    raise dash.exceptions.PreventUpdate
 
 # Callback to handle undo all changes
 @app.callback(
