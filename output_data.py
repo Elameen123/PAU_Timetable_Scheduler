@@ -16,6 +16,10 @@ class TimetableExporter:
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
         
+        # Load course and room data
+        self.course_data = self.load_course_data()
+        self.room_data = self.load_room_data()
+        
         # Keywords to identify SST (engineering) groups
         self.sst_keywords = [
             'engineering', 'eng', 'computer science', 'software engineering', 'data science',
@@ -25,11 +29,45 @@ class TimetableExporter:
         # Time slots
         self.time_slots = [
             "9:00-9:50", "10:00-10:50", "11:00-11:50", "12:00-12:50", 
-            "1:00-1:50", "2:00-2:50", "3:00-3:50", "4:00-4:50", "5:00-5:50"
+            "1:00-1:50", "2:00-2:50", "3:00-3:50", "4:00-4:50"
         ]
         
         # Days of the week
         self.days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
+
+    def load_course_data(self):
+        """Load course data from JSON file"""
+        try:
+            course_path = os.path.join(os.path.dirname(__file__), 'data', 'course-data.json')
+            with open(course_path, 'r', encoding='utf-8') as f:
+                courses = json.load(f)
+            
+            # Create a mapping from course code to course info
+            course_map = {}
+            for course in courses:
+                course_map[course['code']] = course
+            
+            return course_map
+        except Exception as e:
+            print(f"❌ Error loading course data: {e}")
+            return {}
+
+    def load_room_data(self):
+        """Load room data from JSON file"""
+        try:
+            room_path = os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json')
+            with open(room_path, 'r', encoding='utf-8') as f:
+                rooms = json.load(f)
+            
+            # Create a mapping from room name to room info
+            room_map = {}
+            for room in rooms:
+                room_map[room['name']] = room
+            
+            return room_map
+        except Exception as e:
+            print(f"❌ Error loading room data: {e}")
+            return {}
 
     def load_saved_timetable_data(self):
         """Load the latest saved timetable data"""
@@ -128,75 +166,148 @@ class TimetableExporter:
         for group_idx, group_data in enumerate(groups_data):
             full_group_name = group_data['student_group']['name']
             
-            # Add group name header
-            group_header_cell = ws.cell(row=current_row, column=1, value=f"{full_group_name} timetable")
-            group_header_cell.font = Font(bold=True, size=14, color="FFFFFF")
-            group_header_cell.fill = PatternFill(start_color="2E7D32", end_color="2E7D32", fill_type="solid")
-            group_header_cell.alignment = Alignment(horizontal="center", vertical="center")
-            
-            # Merge cells for group header (across all days + time column)
-            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=len(self.days) + 1)
+            # Add student group name header
+            group_header_cell = ws.cell(row=current_row, column=1, value=full_group_name)
+            group_header_cell.font = Font(bold=True, size=14)
+            group_header_cell.alignment = Alignment(horizontal="left", vertical="center")
             current_row += 1
             
-            # Create header row with TIME and days
-            headers = ["TIME"] + self.days
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=current_row, column=col, value=header)
-                cell.font = Font(bold=True, color="FFFFFF")
-                cell.fill = PatternFill(start_color="11214D", end_color="11214D", fill_type="solid")
+            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM, BUILDING pattern
+            headers = [
+                ("Course Code", "A"),
+                ("Course Name", "B"), 
+                ("Units", "C"),
+                ("TIME", "D"),
+                ("MONDAY", "E"),
+                ("CLASSROOM", "F"),
+                ("BUILDING", "G"),
+                ("TIME", "H"),
+                ("TUESDAY", "I"),
+                ("CLASSROOM", "J"),
+                ("BUILDING", "K"),
+                ("TIME", "L"),
+                ("WEDNESDAY", "M"),
+                ("CLASSROOM", "N"),
+                ("BUILDING", "O"),
+                ("TIME", "P"),
+                ("THURSDAY", "Q"),
+                ("CLASSROOM", "R"),
+                ("BUILDING", "S"),
+                ("TIME", "T"),
+                ("FRIDAY", "U"),
+                ("CLASSROOM", "V"),
+                ("BUILDING", "W")
+            ]
+            
+            # Set headers and apply formatting
+            for col_idx, (header_text, _) in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col_idx, value=header_text)
+                cell.font = Font(bold=True)
                 cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                # Apply green color to Time and day columns
+                if header_text in ["TIME", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]:
+                    cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
+                
+                # Apply borders to headers from TIME column onwards (column 4+)
+                if col_idx >= 4:  # TIME column and onwards
+                    border = Border(
+                        left=Side(style='thin'),
+                        right=Side(style='thin'),
+                        top=Side(style='thin'),
+                        bottom=Side(style='thin')
+                    )
+                    cell.border = border
             
             current_row += 1
             
-            # Fill in the timetable data
-            timetable_rows = group_data['timetable']
+            # Extract unique courses from timetable
+            courses_data = self.extract_courses_from_timetable(group_data['timetable'])
             
-            for row_idx, row_data in enumerate(timetable_rows):
-                # Add time slot
-                time_cell = ws.cell(row=current_row, column=1, value=self.time_slots[row_idx])
-                time_cell.font = Font(bold=True, color="FFFFFF")
-                time_cell.fill = PatternFill(start_color="11214D", end_color="11214D", fill_type="solid")
-                time_cell.alignment = Alignment(horizontal="center", vertical="center")
+            # Fill time slots and schedule data
+            for time_idx in range(len(self.time_slots)):
+                time_row = current_row + time_idx
                 
-                # Add class data for each day
-                for day_idx in range(len(self.days)):
-                    col = day_idx + 2  # Start from column 2 (after TIME column)
+                # Define column groups for each day (TIME, DAY, CLASSROOM, BUILDING)
+                day_column_groups = [
+                    (4, 5, 6, 7),   # Monday: D, E, F, G
+                    (8, 9, 10, 11), # Tuesday: H, I, J, K
+                    (12, 13, 14, 15), # Wednesday: L, M, N, O
+                    (16, 17, 18, 19), # Thursday: P, Q, R, S
+                    (20, 21, 22, 23)  # Friday: T, U, V, W
+                ]
+                
+                for day_idx, (time_col, day_col, classroom_col, building_col) in enumerate(day_column_groups):
+                    # Time column
+                    time_cell = ws.cell(row=time_row, column=time_col, value=self.time_slots[time_idx])
+                    time_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
+                    time_cell.alignment = Alignment(horizontal="center", vertical="center")
                     
-                    if day_idx + 1 < len(row_data):  # Skip time column in source data
-                        cell_content = row_data[day_idx + 1]
+                    # Check if this is lunch break time (1:00-1:50) and specific days
+                    is_lunch_break = (time_idx == 4 and day_idx in [0, 2, 4])  # Monday(0), Wednesday(2), Friday(4)
+                    
+                    if is_lunch_break:
+                        # Day column (BREAK)
+                        day_cell = ws.cell(row=time_row, column=day_col, value="BREAK")
+                        day_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
+                        day_cell.alignment = Alignment(horizontal="center", vertical="center")
                         
-                        if cell_content and cell_content not in ["FREE", ""]:
-                            # Parse cell content
-                            lines = cell_content.split('\n')
-                            if len(lines) >= 3:
-                                course_code = lines[0]
-                                room = lines[1]
-                                faculty = lines[2]
-                                
-                                # Format as: Course Code, Room, Faculty
-                                display_text = f"{course_code}\n{room}\n{faculty}"
-                            else:
-                                display_text = cell_content
-                        else:
-                            display_text = ""
+                        # Empty classroom and building for break
+                        classroom_cell = ws.cell(row=time_row, column=classroom_col, value="")
+                        classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
                         
-                        cell = ws.cell(row=current_row, column=col, value=display_text)
-                        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                        building_cell = ws.cell(row=time_row, column=building_col, value="")
+                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    else:
+                        # Get class info for this time and day
+                        class_info = self.get_class_at_time_day(group_data['timetable'], time_idx, day_idx)
                         
-                        # Apply border
-                        border = Border(
-                            left=Side(style='thin'),
-                            right=Side(style='thin'),
-                            top=Side(style='thin'),
-                            bottom=Side(style='thin')
-                        )
-                        cell.border = border
-                
-                current_row += 1
+                        # Day column (course code)
+                        day_cell = ws.cell(row=time_row, column=day_col, value=class_info['course_code'] if class_info else "")
+                        day_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        # Classroom column
+                        classroom_cell = ws.cell(row=time_row, column=classroom_col, value=class_info['room'] if class_info else "")
+                        classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        # Building column
+                        building = self.get_building_from_room(class_info['room']) if class_info else ""
+                        building_cell = ws.cell(row=time_row, column=building_col, value=building)
+                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    
+                    # Apply borders to all timetable cells (from TIME column onwards)
+                    border = Border(
+                        left=Side(style='thin'),
+                        right=Side(style='thin'),
+                        top=Side(style='thin'),
+                        bottom=Side(style='thin')
+                    )
+                    time_cell.border = border
+                    day_cell.border = border
+                    classroom_cell.border = border
+                    building_cell.border = border
             
-            # Add spacing between student groups (except for the last one)
-            if group_idx < len(groups_data) - 1:
-                current_row += 2
+            # Fill course information (A, B, C columns) - NO BORDERS for these
+            course_row = current_row
+            for course_code, course_info in courses_data.items():
+                # Course Code (A)
+                code_cell = ws.cell(row=course_row, column=1, value=course_code)
+                code_cell.alignment = Alignment(horizontal="left", vertical="center")
+                
+                # Course Name (B)
+                course_name = self.get_course_name(course_code)
+                name_cell = ws.cell(row=course_row, column=2, value=course_name)
+                name_cell.alignment = Alignment(horizontal="left", vertical="center")
+                
+                # Units (C)
+                units = course_info.get('hours', 1)
+                units_cell = ws.cell(row=course_row, column=3, value=units)
+                units_cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                course_row += 1
+            
+            # Move to next student group (4 lines below)
+            current_row += len(self.time_slots) + 4
         
         # Adjust column widths
         for col in ws.columns:
@@ -216,12 +327,8 @@ class TimetableExporter:
                             max_length = len(str(cell.value))
                     except:
                         pass
-                adjusted_width = min(max_length + 2, 20)
+                adjusted_width = min(max_length + 2, 25)
                 ws.column_dimensions[column].width = adjusted_width
-        
-        # Set row heights for better visibility
-        for row in range(1, current_row):
-            ws.row_dimensions[row].height = 50
 
     def create_student_group_timetable_sheet(self, wb, sheet_name, group_data):
         """Create a timetable sheet for a student group"""
@@ -529,6 +636,73 @@ class TimetableExporter:
             
         except Exception as e:
             return False, f"Error exporting lecturer timetables: {str(e)}"
+
+    def extract_courses_from_timetable(self, timetable_rows):
+        """Extract unique courses from timetable data"""
+        courses = {}
+        
+        for row_idx, row_data in enumerate(timetable_rows):
+            for day_idx in range(len(self.days)):
+                if day_idx + 1 < len(row_data):  # Skip time column
+                    cell_content = row_data[day_idx + 1]
+                    
+                    if cell_content and cell_content not in ["FREE", "", "BREAK"]:
+                        lines = cell_content.split('\n')
+                        if len(lines) >= 1:
+                            course_code = lines[0].strip()
+                            if course_code:
+                                if course_code not in courses:
+                                    courses[course_code] = {'hours': 0}
+                                courses[course_code]['hours'] += 1
+        
+        return courses
+
+    def get_class_at_time_day(self, timetable_rows, time_idx, day_idx):
+        """Get class information at specific time and day"""
+        if time_idx < len(timetable_rows):
+            row_data = timetable_rows[time_idx]
+            if day_idx + 1 < len(row_data):  # Skip time column
+                cell_content = row_data[day_idx + 1]
+                
+                if cell_content and cell_content not in ["FREE", "", "BREAK"]:
+                    lines = cell_content.split('\n')
+                    if len(lines) >= 3:
+                        return {
+                            'course_code': lines[0].strip(),
+                            'room': lines[1].strip(),
+                            'faculty': lines[2].strip()
+                        }
+        return None
+
+    def get_building_from_room(self, room_name):
+        """Determine building from room data"""
+        if not room_name:
+            return ""
+        
+        # Look up room in the loaded room data
+        room_info = self.room_data.get(room_name)
+        if room_info and 'building' in room_info:
+            return room_info['building']
+        
+        # Fallback to heuristic if not found in data
+        room_lower = room_name.lower()
+        if any(keyword in room_lower for keyword in ['eng', 'lab', 'workshop', 'tech']):
+            return "SST"
+        else:
+            return "TYD"
+
+    def get_course_name(self, course_code):
+        """Get full course name from course code using loaded course data"""
+        if not course_code:
+            return ""
+        
+        # Look up course in the loaded course data
+        course_info = self.course_data.get(course_code)
+        if course_info and 'name' in course_info:
+            return course_info['name']
+        
+        # Fallback if not found in data
+        return f"{course_code} (Course Name)"
 
 # Main functions for easy import
 def export_sst_timetables():
