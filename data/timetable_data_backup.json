@@ -1378,12 +1378,12 @@
         "",
         "",
         "PHY 107\nPhysics lab\nDr Rilwan Balogun",
-        "PAU-CSC 192\nClassroom 1\nFr. Ifeanyi Ogboh",
+        "",
         "STA 111\nTelecoms Lab\nMrs Grace Okoacha"
       ],
       [
         "10:00",
-        "",
+        "PAU-CSC 192\nTelecoms Lab\nFr. Ifeanyi Ogboh",
         "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "COS 101\nClassroom 1\nDr Pius Onobhayedo",
@@ -1391,7 +1391,7 @@
       ],
       [
         "11:00",
-        "PAU-CSC 192\nClassroom 2\nFr. Ifeanyi Ogboh",
+        "PAU-CSC 192\nTelecoms Lab\nFr. Ifeanyi Ogboh",
         "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "COS 101\nClassroom 1\nDr Pius Onobhayedo",

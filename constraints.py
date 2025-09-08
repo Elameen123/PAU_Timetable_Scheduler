@@ -198,8 +198,11 @@ class Constraints:
                                     day_abbr = days_map.get(timeslot.day)
                                     time = timeslot.start_time + 9
                                     
+                                    # Use faculty name if available, otherwise use faculty_id (email)
+                                    lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+                                    
                                     clash_info = (
-                                        f"Lecturer Clash: '{faculty.name}' on {day_abbr} at {time}:00. "
+                                        f"Lecturer Clash: '{lecturer_name}' on {day_abbr} at {time}:00. "
                                         f"Clashing Courses: '{first_course.name}' for group '{first_event.student_group.name}' and "
                                         f"'{second_course.name}' for group '{second_event.student_group.name}'."
                                     )
@@ -259,8 +262,10 @@ class Constraints:
                         if not is_available_day:
                             penalty += 10
                             if debug:
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
-                                    f"Lecturer Schedule Violation: '{faculty.name}' is scheduled on {day_abbr}, "
+                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled on {day_abbr}, "
                                     f"but is only available on: {faculty.avail_days}."
                                 )
                                 if violation_info not in violations:
@@ -310,8 +315,10 @@ class Constraints:
                         if not is_available_time:
                             penalty += 10
                             if debug:
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
-                                    f"Lecturer Schedule Violation: '{faculty.name}' is scheduled at {slot_hour}:00 on {day_abbr}, "
+                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled at {slot_hour}:00 on {day_abbr}, "
                                     f"but is only available during: {faculty.avail_times}."
                                 )
                                 if violation_info not in violations:
@@ -926,11 +933,15 @@ class Constraints:
                             day_abbr = days_map.get(timeslot.day)
                             time = timeslot.start_time + 9
                             
+                            # Use faculty name if available, otherwise use faculty_id (email)
+                            lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+                            
                             lecturer_clashes.append({
-                                'lecturer': faculty.name,
+                                'lecturer': lecturer_name,
                                 'day': day_abbr,
                                 'time': f"{time}:00",
                                 'courses': [first_course.code, second_course.code],
+                                'groups': [first_event.student_group.name, class_event.student_group.name],
                                 'location': f"{day_abbr} at {time}:00"
                             })
                         else:
@@ -958,13 +969,22 @@ class Constraints:
                             
                             if not is_available_day or not is_available_time:
                                 course = self.input_data.getCourse(class_event.course_id)
+                                
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
+                                
+                                # Format available days and times properly
+                                available_days_display = faculty.avail_days if faculty.avail_days else "Not specified"
+                                available_times_display = faculty.avail_times if faculty.avail_times else "Not specified"
+                                
                                 lecturer_schedule_conflicts.append({
-                                    'lecturer': faculty.name,
+                                    'lecturer': lecturer_name,
                                     'day': day_abbr,
                                     'time': f"{slot_hour}:00",
                                     'course': course.code,
-                                    'available_days': faculty.avail_days,
-                                    'available_times': faculty.avail_times,
+                                    'group': class_event.student_group.name,
+                                    'available_days': available_days_display,
+                                    'available_times': available_times_display,
                                     'location': f"{day_abbr} at {slot_hour}:00"
                                 })
         

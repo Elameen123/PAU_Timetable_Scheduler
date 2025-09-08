@@ -3829,13 +3829,21 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
                         className="constraint-item"
                     ))
                 elif internal_name == 'Lecturer Clashes':
-                    details_content.append(html.Div(
-                        f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
-                        className="constraint-item"
-                    ))
+                    # Show both student groups that are clashing
+                    if 'groups' in violation and len(violation['groups']) >= 2:
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has clashing courses {violation['courses'][0]} for group {violation['groups'][0]}, and {violation['courses'][1]} for group {violation['groups'][1]} on {violation['location']}",
+                            className="constraint-item"
+                        ))
+                    else:
+                        # Fallback to original format if groups info is missing
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
+                            className="constraint-item"
+                        ))
                 elif internal_name == 'Lecturer Schedule Conflicts (Day/Time)':
                     details_content.append(html.Div(
-                        f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
+                        f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
                         className="constraint-item"
                     ))
                 elif internal_name == 'Consecutive Slot Violations':
@@ -3856,12 +3864,12 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
                 elif internal_name == 'Room Capacity/Type Conflicts':
                     if violation['type'] == 'Room Type Mismatch':
                         details_content.append(html.Div(
-                            f"Room type mismatch at {violation['location']}: {violation['course']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})",
+                            f"Room type mismatch at {violation['location']}: {violation['course']} for group {violation['group']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})",
                             className="constraint-item"
                         ))
                     else:
                         details_content.append(html.Div(
-                            f"Room capacity exceeded at {violation['location']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
+                            f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
                             className="constraint-item"
                         ))
                 elif internal_name == 'Classes During Break Time':
