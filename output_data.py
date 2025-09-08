@@ -413,63 +413,170 @@ class TimetableExporter:
         for row in range(1, len(timetable_rows) + 2):
             ws.row_dimensions[row].height = 60
 
-    def create_lecturer_timetable_sheet(self, wb, lecturer_name, lecturer_schedule):
-        """Create a timetable sheet for a lecturer"""
-        # Clean lecturer name for sheet title
-        safe_name = re.sub(r'[^\w\s-]', '', lecturer_name)[:31]  # Excel sheet name limit
-        ws = wb.create_sheet(title=safe_name)
+    def create_combined_lecturer_sheet(self, wb, sheet_name, lecturers_data):
+        """Create a combined timetable sheet for all lecturers"""
+        ws = wb.create_sheet(title=sheet_name)
         
-        # Create header row
-        headers = ["TIME"] + self.days
-        for col, header in enumerate(headers, 1):
-            cell = ws.cell(row=1, column=col, value=header)
-            cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color="11214D", end_color="11214D", fill_type="solid")
-            cell.alignment = Alignment(horizontal="center", vertical="center")
+        current_row = 1
         
-        # Initialize empty schedule grid
-        schedule_grid = {}
-        for time_idx in range(len(self.time_slots)):
-            schedule_grid[time_idx] = {}
-            for day_idx in range(len(self.days)):
-                schedule_grid[time_idx][day_idx] = ""
-        
-        # Fill in the lecturer's classes
-        for class_info in lecturer_schedule:
-            time_idx = class_info['time_slot']
-            day_idx = class_info['day']
+        for lecturer_name, lecturer_schedule in lecturers_data.items():
+            # Add lecturer name header
+            lecturer_header_cell = ws.cell(row=current_row, column=1, value=lecturer_name)
+            lecturer_header_cell.font = Font(bold=True, size=14)
+            lecturer_header_cell.alignment = Alignment(horizontal="left", vertical="center")
+            current_row += 1
             
-            display_text = f"{class_info['course_code']}\n{class_info['room']}\n{class_info['student_group']}"
-            schedule_grid[time_idx][day_idx] = display_text
-        
-        # Fill in the Excel sheet
-        for time_idx in range(len(self.time_slots)):
-            excel_row = time_idx + 2
+            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM, BUILDING pattern
+            headers = [
+                ("Course Code", "A"),
+                ("Course Name", "B"), 
+                ("Units", "C"),
+                ("TIME", "D"),
+                ("MONDAY", "E"),
+                ("CLASSROOM", "F"),
+                ("BUILDING", "G"),
+                ("TIME", "H"),
+                ("TUESDAY", "I"),
+                ("CLASSROOM", "J"),
+                ("BUILDING", "K"),
+                ("TIME", "L"),
+                ("WEDNESDAY", "M"),
+                ("CLASSROOM", "N"),
+                ("BUILDING", "O"),
+                ("TIME", "P"),
+                ("THURSDAY", "Q"),
+                ("CLASSROOM", "R"),
+                ("BUILDING", "S"),
+                ("TIME", "T"),
+                ("FRIDAY", "U"),
+                ("CLASSROOM", "V"),
+                ("BUILDING", "W")
+            ]
             
-            # Add time slot
-            time_cell = ws.cell(row=excel_row, column=1, value=self.time_slots[time_idx])
-            time_cell.font = Font(bold=True, color="FFFFFF")
-            time_cell.fill = PatternFill(start_color="11214D", end_color="11214D", fill_type="solid")
-            time_cell.alignment = Alignment(horizontal="center", vertical="center")
-            
-            # Add classes for each day
-            for day_idx in range(len(self.days)):
-                col = day_idx + 2
-                cell_content = schedule_grid[time_idx][day_idx]
+            # Set headers and apply formatting
+            for col_idx, (header_text, _) in enumerate(headers, 1):
+                cell = ws.cell(row=current_row, column=col_idx, value=header_text)
+                cell.font = Font(bold=True)
+                cell.alignment = Alignment(horizontal="center", vertical="center")
                 
-                cell = ws.cell(row=excel_row, column=col, value=cell_content)
-                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                # Apply green color to Time and day columns
+                if header_text in ["TIME", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]:
+                    cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
                 
-                # Apply border
-                border = Border(
-                    left=Side(style='thin'),
-                    right=Side(style='thin'),
-                    top=Side(style='thin'),
-                    bottom=Side(style='thin')
-                )
-                cell.border = border
+                # Apply borders to headers from TIME column onwards (column 4+)
+                if col_idx >= 4:  # TIME column and onwards
+                    border = Border(
+                        left=Side(style='thin'),
+                        right=Side(style='thin'),
+                        top=Side(style='thin'),
+                        bottom=Side(style='thin')
+                    )
+                    cell.border = border
+            
+            current_row += 1
+            
+            # Extract unique courses from lecturer schedule
+            courses_data = self.extract_courses_from_lecturer_schedule(lecturer_schedule)
+            
+            # Create schedule grid
+            schedule_grid = {}
+            for time_idx in range(len(self.time_slots)):
+                schedule_grid[time_idx] = {}
+                for day_idx in range(len(self.days)):
+                    schedule_grid[time_idx][day_idx] = None
+            
+            # Fill lecturer's schedule
+            for class_info in lecturer_schedule:
+                time_idx = class_info['time_slot']
+                day_idx = class_info['day']
+                schedule_grid[time_idx][day_idx] = class_info
+            
+            # Fill time slots and schedule data
+            for time_idx in range(len(self.time_slots)):
+                time_row = current_row + time_idx
+                
+                # Define column groups for each day (TIME, DAY, CLASSROOM, BUILDING)
+                day_column_groups = [
+                    (4, 5, 6, 7),   # Monday: D, E, F, G
+                    (8, 9, 10, 11), # Tuesday: H, I, J, K
+                    (12, 13, 14, 15), # Wednesday: L, M, N, O
+                    (16, 17, 18, 19), # Thursday: P, Q, R, S
+                    (20, 21, 22, 23)  # Friday: T, U, V, W
+                ]
+                
+                for day_idx, (time_col, day_col, classroom_col, building_col) in enumerate(day_column_groups):
+                    # Time column
+                    time_cell = ws.cell(row=time_row, column=time_col, value=self.time_slots[time_idx])
+                    time_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
+                    time_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    
+                    # Check if this is lunch break time (1:00-1:50) and specific days
+                    is_lunch_break = (time_idx == 4 and day_idx in [0, 2, 4])  # Monday(0), Wednesday(2), Friday(4)
+                    
+                    if is_lunch_break:
+                        # Day column (BREAK)
+                        day_cell = ws.cell(row=time_row, column=day_col, value="BREAK")
+                        day_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
+                        day_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        # Empty classroom and building for break
+                        classroom_cell = ws.cell(row=time_row, column=classroom_col, value="")
+                        classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        building_cell = ws.cell(row=time_row, column=building_col, value="")
+                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    else:
+                        # Get class info for this time and day
+                        class_info = schedule_grid[time_idx][day_idx]
+                        
+                        # Day column (course code)
+                        day_cell = ws.cell(row=time_row, column=day_col, value=class_info['course_code'] if class_info else "")
+                        day_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        # Classroom column
+                        classroom_cell = ws.cell(row=time_row, column=classroom_col, value=class_info['room'] if class_info else "")
+                        classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
+                        
+                        # Building column
+                        building = self.get_building_from_room(class_info['room']) if class_info else ""
+                        building_cell = ws.cell(row=time_row, column=building_col, value=building)
+                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
+                    
+                    # Apply borders to all timetable cells (from TIME column onwards)
+                    border = Border(
+                        left=Side(style='thin'),
+                        right=Side(style='thin'),
+                        top=Side(style='thin'),
+                        bottom=Side(style='thin')
+                    )
+                    time_cell.border = border
+                    day_cell.border = border
+                    classroom_cell.border = border
+                    building_cell.border = border
+            
+            # Fill course information (A, B, C columns) - NO BORDERS for these
+            course_row = current_row
+            for course_code, course_info in courses_data.items():
+                # Course Code (A)
+                code_cell = ws.cell(row=course_row, column=1, value=course_code)
+                code_cell.alignment = Alignment(horizontal="left", vertical="center")
+                
+                # Course Name (B)
+                course_name = self.get_course_name(course_code)
+                name_cell = ws.cell(row=course_row, column=2, value=course_name)
+                name_cell.alignment = Alignment(horizontal="left", vertical="center")
+                
+                # Units (C)
+                units = course_info.get('hours', 1)
+                units_cell = ws.cell(row=course_row, column=3, value=units)
+                units_cell.alignment = Alignment(horizontal="center", vertical="center")
+                
+                course_row += 1
+            
+            # Move to next lecturer (4 lines below)
+            current_row += len(self.time_slots) + 4
         
-        # Adjust column widths and row heights
+        # Adjust column widths
         for col in ws.columns:
             max_length = 0
             column = None
@@ -487,11 +594,8 @@ class TimetableExporter:
                             max_length = len(str(cell.value))
                     except:
                         pass
-                adjusted_width = min(max_length + 2, 20)
+                adjusted_width = min(max_length + 2, 25)
                 ws.column_dimensions[column].width = adjusted_width
-        
-        for row in range(1, len(self.time_slots) + 2):
-            ws.row_dimensions[row].height = 60
 
     def export_sst_timetables(self):
         """Export SST (engineering) timetables"""
@@ -622,9 +726,8 @@ class TimetableExporter:
             # Remove default sheet
             wb.remove(wb.active)
             
-            # Create sheet for each lecturer
-            for lecturer_name, schedule in lecturer_schedules.items():
-                self.create_lecturer_timetable_sheet(wb, lecturer_name, schedule)
+            # Create one combined sheet for all lecturers
+            self.create_combined_lecturer_sheet(wb, "Lecturer Timetables", lecturer_schedules)
             
             # Save file
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -654,6 +757,19 @@ class TimetableExporter:
                                 if course_code not in courses:
                                     courses[course_code] = {'hours': 0}
                                 courses[course_code]['hours'] += 1
+        
+        return courses
+
+    def extract_courses_from_lecturer_schedule(self, lecturer_schedule):
+        """Extract unique courses from lecturer schedule data"""
+        courses = {}
+        
+        for class_info in lecturer_schedule:
+            course_code = class_info['course_code']
+            if course_code:
+                if course_code not in courses:
+                    courses[course_code] = {'hours': 0}
+                courses[course_code]['hours'] += 1
         
         return courses
 
