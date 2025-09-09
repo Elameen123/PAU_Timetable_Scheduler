@@ -869,8 +869,7 @@
     "code": "CSC 401",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "sakinola@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -880,8 +879,7 @@
     "code": "CSC 403",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "sayodeji@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -891,8 +889,7 @@
     "code": "CSC 405",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "foliha@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -902,8 +899,7 @@
     "code": "CSC 409",
     "credits": 2,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "koyebode@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -913,8 +909,7 @@
     "code": "CSC 419",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "ponobhayedo@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -924,8 +919,7 @@
     "code": "CSC 421",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "cigah@pau.edu.ng",
     "required_room_type": "Classroom"
@@ -935,8 +929,7 @@
     "code": "CSC 413",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
     "facultyId": "foliha@pau.edu.ng",
     "required_room_type": "Classroom"

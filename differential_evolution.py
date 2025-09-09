@@ -8,6 +8,9 @@ import numpy as np
 from constraints import Constraints
 import re
 import dash
+
+# Create global constraint checker for real-time validation
+global_constraints = Constraints(input_data)
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
 import dash.exceptions
@@ -1300,6 +1303,18 @@ print("--- Debugging Complete ---\n")
 original_best_solution = [row[:] for row in best_solution]  # Deep copy of original solution
 constraint_details = de.constraints.get_detailed_constraint_violations(best_solution)
 
+# Store original consecutive violations globally to track them separately
+global original_consecutive_violations
+original_consecutive_violations = constraint_details.get('Consecutive Slot Violations', []).copy()
+print(f"🔒 Stored {len(original_consecutive_violations)} original consecutive violations for tracking")
+
+# Debug: Print initial constraint details for UI debugging
+print("\n--- Initial Constraint Details for UI ---")
+for constraint_type, violations_list in constraint_details.items():
+    if violations_list:
+        print(f"  - {constraint_type}: {len(violations_list)} violations")
+print("--- End Initial Constraint Details ---\n")
+
 print("\n--- Final Timetable Fitness Breakdown ---")
 print(f"Total Fitness Score: {final_fitness:.2f}\n")
 
@@ -1515,6 +1530,9 @@ hours = [f"{9 + i}:00" for i in range(input_data.hours)]
 
 # Session tracker to know if we've made any swaps
 session_has_swaps = False
+
+# Store original consecutive violations from the algorithm
+original_consecutive_violations = []
 
 def has_any_room_conflicts(all_timetables_data):
     """Check if there are any conflicts (room or lecturer) across all student groups"""
@@ -3411,6 +3429,317 @@ def save_timetable_to_file(timetables_data):
         import traceback
         traceback.print_exc()
         return False
+
+def recompute_constraint_violations_simplified(timetables_data, rooms_data=None, include_consecutive=True):
+    """Simplified constraint violation checking based on timetable data."""
+    try:
+        violations = {
+            'Same Student Group Overlaps': [],
+            'Different Student Group Overlaps': [],
+            'Lecturer Clashes': [],
+            'Lecturer Schedule Conflicts (Day/Time)': [],
+            'Lecturer Workload Violations': [],
+            'Consecutive Slot Violations': [],
+            'Missing or Extra Classes': [],
+            'Same Course in Multiple Rooms on Same Day': [],
+            'Room Capacity/Type Conflicts': [],
+            'Classes During Break Time': []
+        }
+        
+        # Create room lookup for capacity checking
+        room_lookup = {}
+        if rooms_data:
+            for room in rooms_data:
+                room_lookup[room['name']] = room
+        
+        # Check for room conflicts and lecturer clashes simultaneously
+        for time_slot in range(8):  # 8 time slots per day
+            for day in range(5):  # 5 days per week
+                room_usage = {}  # room -> [groups using it]
+                lecturer_usage = {}  # lecturer -> [groups they're teaching]
+                
+                for timetable in timetables_data:
+                    if time_slot < len(timetable['timetable']):
+                        row = timetable['timetable'][time_slot]
+                        if day + 1 < len(row):  # +1 because first column is time
+                            cell_content = row[day + 1]
+                            if cell_content and cell_content not in ['FREE', 'BREAK']:
+                                # Extract room and lecturer from cell content (Course\nRoom\nLecturer)
+                                lines = cell_content.split('\n')
+                                if len(lines) >= 2:
+                                    course_code = lines[0].strip()
+                                    room = lines[1].strip()
+                                    lecturer = lines[2].strip() if len(lines) >= 3 else "Unknown"
+                                    group_name = timetable['student_group']['name']
+                                    
+                                    # Track room usage
+                                    if room not in room_usage:
+                                        room_usage[room] = []
+                                    room_usage[room].append(group_name)
+                                    
+                                    # Track lecturer usage for clash detection
+                                    if lecturer not in lecturer_usage:
+                                        lecturer_usage[lecturer] = []
+                                    lecturer_usage[lecturer].append({
+                                        'group': group_name,
+                                        'course': course_code,
+                                        'room': room
+                                    })
+                                    
+                                    # Check room capacity if rooms data is available
+                                    if rooms_data and room in room_lookup:
+                                        room_info = room_lookup[room]
+                                        group_size = timetable['student_group'].get('size', 0)
+                                        room_capacity = room_info.get('capacity', 999)
+                                        
+                                        if group_size > room_capacity:
+                                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                                            violations['Room Capacity/Type Conflicts'].append({
+                                                'type': 'Room Capacity Exceeded',
+                                                'room': room,
+                                                'group': group_name,
+                                                'day': days_map.get(day, "Unknown"),
+                                                'time': f"{time_slot + 9}:00",
+                                                'students': group_size,
+                                                'capacity': room_capacity,
+                                                'course': course_code
+                                            })
+                
+                # Check for room conflicts
+                days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                for room, groups in room_usage.items():
+                    if len(groups) > 1:
+                        violations['Different Student Group Overlaps'].append({
+                            'room': room,
+                            'groups': groups,
+                            'day': days_map.get(day, "Unknown"),
+                            'time': f"{time_slot + 9}:00",
+                            'location': f"{days_map.get(day)} at {time_slot + 9}:00"
+                        })
+                
+                # Check for lecturer clashes
+                for lecturer, teaching_sessions in lecturer_usage.items():
+                    if len(teaching_sessions) > 1 and lecturer != "Unknown":
+                        courses = [session['course'] for session in teaching_sessions]
+                        groups = [session['group'] for session in teaching_sessions]
+                        
+                        violations['Lecturer Clashes'].append({
+                            'lecturer': lecturer,
+                            'day': days_map.get(day, "Unknown"),
+                            'time': f"{time_slot + 9}:00",
+                            'courses': courses,
+                            'groups': groups,
+                            'location': f"{days_map.get(day)} at {time_slot + 9}:00"
+                        })
+        
+        # Check for consecutive slot violations - handle differently based on include_consecutive
+        if include_consecutive:
+            # For initial algorithm results, include all consecutive violations
+            for timetable in timetables_data:
+                group_name = timetable['student_group']['name']
+                course_schedules = {}  # course -> [(day, time)]
+                
+                for time_slot in range(len(timetable['timetable'])):
+                    for day in range(5):
+                        if day + 1 < len(timetable['timetable'][time_slot]):
+                            cell_content = timetable['timetable'][time_slot][day + 1]
+                            if cell_content and cell_content not in ['FREE', 'BREAK']:
+                                lines = cell_content.split('\n')
+                                if lines:
+                                    course_code = lines[0].strip()
+                                    if course_code not in course_schedules:
+                                        course_schedules[course_code] = []
+                                    course_schedules[course_code].append((day, time_slot))
+                
+                # Check for 2-hour courses that are not consecutive
+                for course_code, schedule in course_schedules.items():
+                    if len(schedule) == 2:  # 2-hour course
+                        # Group by day
+                        by_day = {}
+                        for day, time in schedule:
+                            if day not in by_day:
+                                by_day[day] = []
+                            by_day[day].append(time)
+                        
+                        # Check if any day has 2 hours that are not consecutive
+                        for day, times in by_day.items():
+                            if len(times) == 2:
+                                times.sort()
+                                if times[1] - times[0] != 1:  # Not consecutive
+                                    days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                                    violations['Consecutive Slot Violations'].append({
+                                        'course': course_code,
+                                        'group': group_name,
+                                        'day': days_map.get(day, "Unknown"),
+                                        'times': [f"{t + 9}:00" for t in times],
+                                        'location': f"{course_code} for {group_name}",
+                                        'reason': "2-hour course not scheduled consecutively"
+                                    })
+        else:
+            # For user changes, only track violations that were originally present and haven't been fixed
+            global original_consecutive_violations
+            current_violations = set()
+            current_violation_details = {}
+            
+            # Get all current consecutive violations in the timetable
+            for timetable in timetables_data:
+                group_name = timetable['student_group']['name']
+                course_schedules = {}  # course -> [(day, time)]
+                
+                for time_slot in range(len(timetable['timetable'])):
+                    for day in range(5):
+                        if day + 1 < len(timetable['timetable'][time_slot]):
+                            cell_content = timetable['timetable'][time_slot][day + 1]
+                            if cell_content and cell_content not in ['FREE', 'BREAK']:
+                                lines = cell_content.split('\n')
+                                if lines:
+                                    course_code = lines[0].strip()
+                                    if course_code not in course_schedules:
+                                        course_schedules[course_code] = []
+                                    course_schedules[course_code].append((day, time_slot))
+                
+                # Check for 2-hour courses that are not consecutive
+                for course_code, schedule in course_schedules.items():
+                    if len(schedule) == 2:  # 2-hour course
+                        # Group by day
+                        by_day = {}
+                        for day, time in schedule:
+                            if day not in by_day:
+                                by_day[day] = []
+                            by_day[day].append(time)
+                        
+                        # Check if any day has 2 hours that are not consecutive
+                        for day, times in by_day.items():
+                            if len(times) == 2:
+                                times.sort()
+                                if times[1] - times[0] != 1:  # Not consecutive
+                                    days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                                    day_name = days_map.get(day, "Unknown")
+                                    violation_key = f"{course_code}|{group_name}|{day_name}"
+                                    current_violations.add(violation_key)
+                                    current_violation_details[violation_key] = {
+                                        'course': course_code,
+                                        'group': group_name,
+                                        'day': day_name,
+                                        'times': [f"{t + 9}:00" for t in times],
+                                        'location': f"{course_code} for {group_name}",
+                                        'reason': "2-hour course not scheduled consecutively"
+                                    }
+            
+            # Only include original consecutive violations that are still present
+            for orig_violation in original_consecutive_violations:
+                # Create violation key from original violation
+                violation_key = f"{orig_violation['course']}|{orig_violation['group']}|{orig_violation['day']}"
+                if violation_key in current_violations:
+                    violations['Consecutive Slot Violations'].append(orig_violation)
+                else:
+                    print(f"✅ Fixed consecutive violation: {orig_violation['course']} for {orig_violation['group']} on {orig_violation['day']}")
+        
+        # Check for lecturer workload violations
+        lecturer_daily_hours = {}  # lecturer -> {day: {hours: int, course_details: list}}
+        for timetable in timetables_data:
+            group_name = timetable['student_group']['name']
+            for time_slot in range(len(timetable['timetable'])):
+                for day in range(5):
+                    if day + 1 < len(timetable['timetable'][time_slot]):
+                        cell_content = timetable['timetable'][time_slot][day + 1]
+                        if cell_content and cell_content not in ['FREE', 'BREAK']:
+                            lines = cell_content.split('\n')
+                            if len(lines) >= 3:
+                                course_code = lines[0].strip()
+                                lecturer = lines[2].strip()
+                                
+                                if lecturer != "Unknown":
+                                    if lecturer not in lecturer_daily_hours:
+                                        lecturer_daily_hours[lecturer] = {}
+                                    if day not in lecturer_daily_hours[lecturer]:
+                                        lecturer_daily_hours[lecturer][day] = {'hours': 0, 'course_details': []}
+                                    
+                                    lecturer_daily_hours[lecturer][day]['hours'] += 1
+                                    lecturer_daily_hours[lecturer][day]['course_details'].append({
+                                        'course': course_code,
+                                        'group': group_name
+                                    })
+        
+        # Check for excessive daily hours (more than 4 hours per day)
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        for lecturer, days_data in lecturer_daily_hours.items():
+            for day, data in days_data.items():
+                if data['hours'] > 4:
+                    # Remove duplicates while preserving order and format course details with group names
+                    unique_course_details = []
+                    seen_combinations = set()
+                    
+                    for detail in data['course_details']:
+                        combination = f"{detail['course']} for {detail['group']}"
+                        if combination not in seen_combinations:
+                            unique_course_details.append(combination)
+                            seen_combinations.add(combination)
+                    
+                    course_details_str = ', '.join(unique_course_details)
+                    
+                    violations['Lecturer Workload Violations'].append({
+                        'lecturer': lecturer,
+                        'type': 'Excessive Daily Hours',
+                        'day': days_map.get(day, "Unknown"),
+                        'hours_scheduled': data['hours'],
+                        'max_allowed': 4,
+                        'courses': course_details_str
+                    })
+        
+        return violations
+        
+    except Exception as e:
+        print(f"Error in simplified constraint checking: {e}")
+        return None
+
+@app.callback(
+    Output("constraint-details-store", "data", allow_duplicate=True),
+    [Input("all-timetables-store", "data")],
+    [State("rooms-data-store", "data"),
+     State("constraint-details-store", "data")],
+    prevent_initial_call=True
+)
+def update_constraint_violations_realtime(timetables_data, rooms_data, current_constraints):
+    """Update constraint violations in real-time when timetable changes."""
+    if not timetables_data:
+        return dash.no_update
+    
+    try:
+        # Check if this is a user-initiated change by looking at session_has_swaps
+        global session_has_swaps
+        
+        # ONLY update constraints if the user has made swaps/changes
+        # This preserves the original algorithm constraint details on initial load
+        if not session_has_swaps:
+            print("🔒 No user changes detected - preserving original DE algorithm constraint details")
+            return dash.no_update
+        
+        # For user-initiated changes, check serious violations + track original consecutive violations
+        print(f"🔍 Updating constraint violations for user changes (session_has_swaps={session_has_swaps})")
+        
+        # Recompute constraint violations with rooms data
+        # Use include_consecutive=False to use the special logic for tracking original violations
+        updated_violations = recompute_constraint_violations_simplified(
+            timetables_data, 
+            rooms_data, 
+            include_consecutive=False  # Special handling for consecutive violations
+        )
+        
+        if updated_violations:
+            print("🔄 Updated constraint violations in real-time (tracking original consecutive violations)")
+            # Debug: Print violation counts for comparison
+            for constraint_type, violations_list in updated_violations.items():
+                if violations_list:
+                    print(f"  - {constraint_type}: {len(violations_list)} violations")
+            return updated_violations
+        else:
+            print("❌ Failed to update violations - keeping current constraints")
+            return current_constraints
+            
+    except Exception as e:
+        print(f"Error updating constraint violations: {e}")
+        return current_constraints
 @app.callback(
     Output("all-timetables-store", "data", allow_duplicate=True),
     Input("swap-data", "data"),
@@ -3589,7 +3918,7 @@ def save_timetable(n_clicks, current_timetables):
 )
 def load_user_modifications_on_startup(trigger, current_data):
     """Load saved user modifications on app startup (but not when algorithm is re-run)"""
-    global all_timetables
+    global all_timetables, session_has_swaps
     
     # Only try to load saved data if we have current data and it's the initial load
     if current_data:
@@ -3597,9 +3926,11 @@ def load_user_modifications_on_startup(trigger, current_data):
         if saved_data:
             print("🔄 Loading saved user modifications on app startup")
             all_timetables = saved_data
+            session_has_swaps = True  # Mark that we have user modifications
             return saved_data
     
-    # Otherwise use the current fresh DE results
+    # Otherwise use the current fresh DE results (no user swaps yet)
+    session_has_swaps = False
     return current_data or all_timetables
 
 # Additional safeguard callback to prevent dropdown state issues
@@ -3829,10 +4160,22 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
                         className="constraint-item"
                     ))
                 elif internal_name == 'Different Student Group Overlaps':
-                    details_content.append(html.Div(
-                        f"Room conflict at {violation['location']}: {', '.join(violation['events'])}",
-                        className="constraint-item"
-                    ))
+                    # Handle both old format (events) and new format (groups)
+                    if 'events' in violation:
+                        details_content.append(html.Div(
+                            f"Room conflict at {violation['location']}: {', '.join(violation['events'])}",
+                            className="constraint-item"
+                        ))
+                    elif 'groups' in violation:
+                        details_content.append(html.Div(
+                            f"Room conflict in {violation['room']} at {violation['location']}: Groups {', '.join(violation['groups'])} both scheduled",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Room conflict at {violation.get('location', 'Unknown location')}",
+                            className="constraint-item"
+                        ))
                 elif internal_name == 'Lecturer Clashes':
                     # Show both student groups that are clashing
                     if 'groups' in violation and len(violation['groups']) >= 2:
