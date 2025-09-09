@@ -57,8 +57,19 @@ class Constraints:
         idx = 0
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
+                # Get the course to check its credits
+                course = input_data.getCourse(student_group.courseIDs[i])
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (with 2 consecutive rule)
+                if course and course.credits == 1:
+                    required_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    # Use original hours required for other courses
+                    required_hours = student_group.hours_required[i]
+                
                 hourcount = 1 
-                while hourcount <= student_group.hours_required[i]:
+                while hourcount <= required_hours:
                     event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
                     events_list.append(event)
                     
@@ -542,10 +553,13 @@ class Constraints:
                 event_id = chromosome[room_idx][timeslot_idx]
                 if event_id is not None:
                     class_event = self.events_map.get(event_id)
+                    if class_event is None:
+                        continue
+                        
                     room = self.rooms[room_idx]
                     course = input_data.getCourse(class_event.course_id)
                     
-                    if class_event and course:
+                    if course:
                         # Computer lab exception: Check if this needs a computer lab
                         needs_computer_lab = (
                             course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
@@ -785,7 +799,16 @@ class Constraints:
             
             # Check expected vs actual course occurrences
             for i, course_id in enumerate(student_group.courseIDs):
-                expected_hours = student_group.hours_required[i]
+                # Get the course to check if it's a 1-credit course
+                course = self.input_data.getCourse(course_id)
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours
+                if course and course.credits == 1:
+                    expected_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    expected_hours = student_group.hours_required[i]
+                
                 actual_hours = course_counts.get(course_id, 0)
                 
                 if actual_hours != expected_hours:
@@ -795,11 +818,11 @@ class Constraints:
                         # Apply moderate penalty for missing courses
                         penalty += difference * (2 if actual_hours == 0 else 1)  # Reduced penalties
                         if debug:
-                            course = self.input_data.getCourse(course_id)
                             course_name = course.name if course else "Unknown Course"
+                            credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
                             info = (
                                 f"Missing Class: Group '{student_group.name}' is missing {difference} hour(s) "
-                                f"for course '{course_name}' (Code: {course_id}). "
+                                f"for course '{course_name}' (Code: {course_id}){credit_info}. "
                                 f"Expected {expected_hours}, but only {actual_hours} are scheduled."
                             )
                             allocation_issues.append(info)
@@ -807,11 +830,11 @@ class Constraints:
                         # Apply penalty for extra classes
                         penalty += difference * 1  # Reduced from 2 to 1
                         if debug:
-                            course = self.input_data.getCourse(course_id)
                             course_name = course.name if course else "Unknown Course"
+                            credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
                             info = (
                                 f"Extra Class: Group '{student_group.name}' has {difference} extra hour(s) "
-                                f"for course '{course_name}' (Code: {course_id}). "
+                                f"for course '{course_name}' (Code: {course_id}){credit_info}. "
                                 f"Expected {expected_hours}, but {actual_hours} are scheduled."
                             )
                             allocation_issues.append(info)
@@ -1239,18 +1262,27 @@ class Constraints:
                             course_counts[course_id] = course_counts.get(course_id, 0) + 1
             
             for i, course_id in enumerate(student_group.courseIDs):
-                expected = student_group.hours_required[i]
+                # Get the course to check if it's a 1-credit course that should be 3 hours
+                course = self.input_data.getCourse(course_id)
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (not flagged as extra)
+                if course and course.credits == 1:
+                    expected = 3  # 1-credit courses should have 3 hours
+                else:
+                    expected = student_group.hours_required[i]
+                    
                 actual = course_counts.get(course_id, 0)
                 if actual != expected:
-                    course = self.input_data.getCourse(course_id)
                     issue_type = "Missing" if actual < expected else "Extra"
+                    credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
                     course_allocation_issues.append({
                         'group': student_group.name,
                         'course': course.code,
                         'expected': expected,
                         'actual': actual,
                         'issue': issue_type,
-                        'location': f"{course.code} for {student_group.name}"
+                        'location': f"{course.code} for {student_group.name}{credit_info}"
                     })
         
         detailed_violations['Missing or Extra Classes'] = course_allocation_issues
