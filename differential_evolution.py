@@ -873,7 +873,8 @@ class DifferentialEvolution:
             'break_time_constraint',
             'room_constraints',
             'same_course_same_room_per_day',
-            'lecturer_schedule_constraints'
+            'lecturer_schedule_constraints',
+            'lecturer_workload_constraints'
         ]
 
         trial_hard_violations = sum(trial_violations.get(c, 0) for c in hard_constraints)
@@ -1275,7 +1276,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(1)
+best_solution, fitness_history, generation, diversity_history = de.run(50)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown
@@ -1309,6 +1310,7 @@ descriptive_names = {
     'student_group_constraints': "Student Group Clashes",
     'lecturer_availability': "Lecturer Clashes (Overlapping)",
     'lecturer_schedule_constraints': "Lecturer Schedule Conflicts (Day/Time)",
+    'lecturer_workload_constraints': "Lecturer Workload Violations",
     'room_time_conflict': "Room Time Slot Conflicts",
     'building_assignments': "Building Assignment Conflicts",
     'same_course_same_room_per_day': "Same Course in Multiple Rooms on Same Day",
@@ -1324,6 +1326,7 @@ penalty_info = {
     'student_group_constraints': "1 point per violation",
     'lecturer_availability': "1 point per violation",
     'lecturer_schedule_constraints': "10 points per violation",
+    'lecturer_workload_constraints': "50 points per extra daily hour, 30 points per extra consecutive hour",
     'room_time_conflict': "10 points per conflict",
     'building_assignments': "0.5 points per violation",
     'same_course_same_room_per_day': "5 points per extra room used",
@@ -1339,6 +1342,7 @@ hard_constraint_order = [
     'student_group_constraints',
     'lecturer_availability',
     'lecturer_schedule_constraints',
+    'lecturer_workload_constraints',
     'consecutive_timeslots',
     'course_allocation_completeness',
     'same_course_same_room_per_day',
@@ -3787,6 +3791,7 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
         'Different Student Group Overlaps': 'Different Student Group Overlaps', 
         'Lecturer Clashes': 'Lecturer Clashes',
         'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
+        'Lecturer Workload Violations': 'Lecturer Workload Violations',
         'Consecutive Slot Violations': 'Consecutive Slot Violations',
         'Missing or Extra Classes': 'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
@@ -3846,9 +3851,27 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
                         f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
                         className="constraint-item"
                     ))
+                elif internal_name == 'Lecturer Workload Violations':
+                    if violation['type'] == 'Excessive Daily Hours':
+                        courses_text = violation.get('courses', 'Unknown courses')
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has {violation['hours_scheduled']} hours on {violation['day']} from courses {courses_text}, exceeding maximum of {violation['max_allowed']} hours per day",
+                            className="constraint-item"
+                        ))
+                    elif violation['type'] == 'Excessive Consecutive Hours':
+                        courses_text = violation.get('courses', 'Unknown courses')
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has {violation['consecutive_hours']} consecutive hours on {violation['day']} from courses {courses_text} ({', '.join(violation['hours_times'])}), exceeding maximum of {violation['max_allowed']} consecutive hours",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Lecturer workload violation for {violation['lecturer']} on {violation['day']}: {violation.get('violation', 'Unknown violation')}",
+                            className="constraint-item"
+                        ))
                 elif internal_name == 'Consecutive Slot Violations':
                     details_content.append(html.Div(
-                        f"Non-consecutive slots for {violation['location']}: {', '.join(violation['times'])}",
+                        f"{violation['reason']}: Course '{violation['course']}' ({violation.get('course_name', '')}) for group '{violation['group']}' at times {', '.join(violation['times'])}",
                         className="constraint-item"
                     ))
                 elif internal_name == 'Missing or Extra Classes':
@@ -3906,6 +3929,7 @@ def update_error_notification_badge(constraint_details, timetables_data):
         'Different Student Group Overlaps', 
         'Lecturer Clashes',
         'Lecturer Schedule Conflicts (Day/Time)',
+        'Lecturer Workload Violations',
         'Consecutive Slot Violations',
         'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day',
@@ -3925,18 +3949,28 @@ def update_error_notification_badge(constraint_details, timetables_data):
 # Run the Dash app
 if __name__ == '__main__':
     app.run(debug=False)
-
-
+    
+    # Uncomment below to test DE algorithm performance
     # import time
-# pop_size = 50
-# F = 0.5
-# max_generations = 500
-# CR = 0.8
+    # pop_size = 30  # Reduced population size for faster testing
+    # F = 0.5
+    # max_generations = 10  # Reduced generations for testing
+    # CR = 0.8
 
-# de = DifferentialEvolution(input_data, pop_size, F, CR)
+    # print("Starting Differential Evolution")
+    # de = DifferentialEvolution(input_data, pop_size, F, CR)
 
-# start_time = time.time()
-# de.run(max_generations)
-# de_time = time.time() - start_time
+    # start_time = time.time()
+    # best_solution, fitness_history, generation, diversity_history = de.run(max_generations)
+    # de_time = time.time() - start_time
 
-# print(f'Time: {de_time:.2f}s')
+    # print(f'Time: {de_time:.2f}s')
+    # print(f'Final fitness: {fitness_history[-1] if fitness_history else "N/A"}')
+    # print(f'Initial fitness: {fitness_history[0] if fitness_history else "N/A"}')
+    
+    # # If initial fitness is good, then run the app
+    # if fitness_history and fitness_history[0] < 200:
+    #     print("✅ Initial fitness is acceptable, running Dash app...")
+    #     app.run(debug=False)
+    # else:
+    #     print("❌ Initial fitness is too high, please check constraints")
