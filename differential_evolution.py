@@ -966,7 +966,13 @@ class DifferentialEvolution:
                 print(f"Solution with desired fitness of {self.desired_fitness} found at Generation {generation}! 🎉")
                 break  # Stop if the best solution has no constraint violations
             
-            # Early termination if no improvement for many generations
+            # Early termination if no improvement for 20 generations (reduced from 50)
+            if stagnation_counter >= 20:
+                print(f"Early termination due to stagnation after {stagnation_counter} generations without improvement at generation {generation+1}")
+                print(f"Final fitness achieved: {best_fitness}")
+                break
+            
+            # Additional early termination if no improvement for many generations and fitness is acceptable
             if stagnation_counter > 50 and best_fitness < 100:
                 print(f"Early termination due to convergence at generation {generation+1}")
                 break
@@ -3627,13 +3633,25 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                                     }
             
             # Only include original consecutive violations that are still present
+            # Create a copy to track which ones to remove
+            violations_to_include = []
+            fixed_violations = []
+            
             for orig_violation in original_consecutive_violations:
                 # Create violation key from original violation
                 violation_key = f"{orig_violation['course']}|{orig_violation['group']}|{orig_violation['day']}"
                 if violation_key in current_violations:
-                    violations['Consecutive Slot Violations'].append(orig_violation)
+                    violations_to_include.append(orig_violation)
                 else:
+                    fixed_violations.append(orig_violation)
                     print(f"✅ Fixed consecutive violation: {orig_violation['course']} for {orig_violation['group']} on {orig_violation['day']}")
+            
+            # Add the violations that are still present
+            violations['Consecutive Slot Violations'].extend(violations_to_include)
+            
+            # Remove fixed violations from the global tracking list to prevent them from reappearing
+            original_consecutive_violations = [v for v in original_consecutive_violations 
+                                             if f"{v['course']}|{v['group']}|{v['day']}" in current_violations]
         
         # Check for lecturer workload violations
         lecturer_daily_hours = {}  # lecturer -> {day: {hours: int, course_details: list}}
@@ -4118,13 +4136,13 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
     
     # Mapping from user-friendly names to internal names
     constraint_mapping = {
-        'Same Student Group Overlaps': 'Same Student Group Overlaps',
+        'Same Student Group Overlaps (MUST REDO IF OCCURS)': 'Same Student Group Overlaps',
         'Different Student Group Overlaps': 'Different Student Group Overlaps', 
         'Lecturer Clashes': 'Lecturer Clashes',
         'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
         'Lecturer Workload Violations': 'Lecturer Workload Violations',
         'Consecutive Slot Violations': 'Consecutive Slot Violations',
-        'Missing or Extra Classes': 'Missing or Extra Classes',
+        'Missing or Extra Classes (MUST REDO IF OCCURS)': 'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
         'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
         'Classes During Break Time': 'Classes During Break Time'
