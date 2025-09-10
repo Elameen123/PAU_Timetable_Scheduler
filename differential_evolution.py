@@ -985,12 +985,29 @@ class DifferentialEvolution:
                 break
 
         # CRITICAL: Ensure the final best solution has NO missing classes
+        # Track fitness before post-algorithm repairs
+        pre_repair_fitness = self.evaluate_fitness(best_solution)
+        print(f"\n🔧 APPLYING POST-ALGORITHM REPAIRS...")
+        print(f"   Fitness before repairs: {pre_repair_fitness:.4f}")
+        
         best_solution = self.verify_and_repair_course_allocations(best_solution)
         best_solution = self.ensure_consecutive_slots(best_solution)
         best_solution = self.prevent_student_group_clashes(best_solution)
         
         # FINAL repair pass to absolutely guarantee no missing classes
         best_solution = self.verify_and_repair_course_allocations(best_solution)
+        
+        # Track fitness after repairs
+        post_repair_fitness = self.evaluate_fitness(best_solution)
+        repair_impact = post_repair_fitness - pre_repair_fitness
+        print(f"   Fitness after repairs: {post_repair_fitness:.4f}")
+        
+        if abs(repair_impact) > 0.01:
+            impact_direction = "improved" if repair_impact < 0 else "worsened"
+            print(f"   🎯 Repair impact: {impact_direction} fitness by {abs(repair_impact):.4f} points")
+        else:
+            print(f"   ✅ Repair impact: minimal change ({repair_impact:.4f})")
+        print(f"🔧 POST-ALGORITHM REPAIRS COMPLETE\n")
         
         return best_solution, fitness_history, generation, diversity_history
 
@@ -1326,7 +1343,7 @@ de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
 best_solution, fitness_history, generation, diversity_history = de.run(50)
 print("Differential Evolution completed")
 
-# Get final fitness and detailed breakdown
+# Get final fitness and detailed breakdown (solution is already repaired inside run())
 final_fitness = de.evaluate_fitness(best_solution)
 
 # CONSISTENCY CHECK: Ensure constraint violations total matches evaluate_fitness
@@ -1486,7 +1503,8 @@ if other_constraints_to_print:
     for constraint, (line_start, penalty_str) in sorted(other_constraints_to_print.items()):
         print(f"{line_start.ljust(max_len + 4)}({penalty_str})")
 
-print(f"\nFinal Total Fitness: {final_fitness:.2f}")
+print(f"\n📊 FINAL FITNESS SUMMARY")
+print(f"Final Fitness (after post-algorithm repairs): {final_fitness:.2f}")
 print(f"Constraint Breakdown Total: {violations.get('total', 'N/A')}")
 
 # Show discrepancy if any

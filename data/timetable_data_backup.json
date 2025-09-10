@@ -367,7 +367,7 @@
     "timetable": [
       [
         "9:00",
-        "",
+        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
         "",
         "",
         "",
@@ -375,7 +375,7 @@
       ],
       [
         "10:00",
-        "",
+        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
         "",
         "",
         "",
@@ -411,7 +411,7 @@
         "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
         "CHM 101\nChem Lab\nDr. Edith Ofor",
-        "PAU-MCT 192\nPortharcourt\nFr. Leo Ogbanufe"
+        ""
       ],
       [
         "15:00",
@@ -423,7 +423,7 @@
       ],
       [
         "16:00",
-        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
+        "",
         "MEE 101\nClassroom 1\nProf. Joseph Ajiboye",
         "",
         "GET 101\nAbeokuta\nDr. Darlington Agholor",
