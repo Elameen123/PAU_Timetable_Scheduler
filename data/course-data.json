@@ -8,7 +8,9 @@
       "FMM 100",
       "ISM 100"
     ],
-    "facultyId": "aedosomwan@pau.edu.ng",
+    "facultyId": [
+      "aedosomwan@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -20,7 +22,10 @@
       "FMM 100",
       "ISM 100"
     ],
-    "facultyId": "magada-mba@pau.edu.ng",
+    "facultyId": [
+      "magada-mba@pau.edu.ng",
+      "fogungbe@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -32,7 +37,9 @@
       "FMM 100",
       "ISM 100"
     ],
-    "facultyId": "aokoeguale@pau.edu.ng",
+    "facultyId": [
+      "aokoeguale@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -44,7 +51,9 @@
       "FMM 100",
       "ISM 100"
     ],
-    "facultyId": "vohu@pau.edu.ng",
+    "facultyId": [
+      "vohu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -56,7 +65,9 @@
       "FMM 100",
       "ISM 100"
     ],
-    "facultyId": "negbunike@pau.edu.ng",
+    "facultyId": [
+      "negbunike@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -67,7 +78,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "aokoeguale@pau.edu.ng",
+    "facultyId": [
+      "aokoeguale@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -78,7 +91,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "glakinbofa@pau.edu.ng",
+    "facultyId": [
+      "glakinbofa@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -89,7 +104,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "ssoyele@pau.edu.ng",
+    "facultyId": [
+      "ssoyele@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -100,7 +117,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "jbenson@pau.edu.ng",
+    "facultyId": [
+      "jbenson@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -111,7 +130,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "sjohn@pau.edu.ng",
+    "facultyId": [
+      "sjohn@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -122,7 +143,9 @@
       "MCM 400",
       "FMM 400"
     ],
-    "facultyId": "fogungbe@pau.edu.ng",
+    "facultyId": [
+      "fogungbe@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -133,7 +156,9 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "gokoacha@pau.edu.ng",
+    "facultyId": [
+      "gokoacha@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -144,7 +169,9 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "cifegwu@pau.edu.ng",
+    "facultyId": [
+      "cifegwu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -155,7 +182,9 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "rbalogun@pau.edu.ng",
+    "facultyId": [
+      "rbalogun@pau.edu.ng"
+    ],
     "required_room_type": "Phy Lab"
   },
   {
@@ -166,18 +195,24 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "muduehi@pau.edu.ng",
+    "facultyId": [
+      "muduehi@pau.edu.ng",
+      "jiloekwe@pau.edu.ng",
+      "olowokere@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
     "name": "General Practical Physics I",
     "code": "PHY 107",
-    "credits": 3,
+    "credits": 1,
     "student_groupsID": [
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "rbalogun@pau.edu.ng",
+    "facultyId": [
+      "rbalogun@pau.edu.ng"
+    ],
     "required_room_type": "Phy Lab"
   },
   {
@@ -188,7 +223,9 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "iogboh@pau.edu.ng",
+    "facultyId": [
+      "iogboh@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -199,7 +236,9 @@
       "CSC 100 - 1",
       "CSC 100 - 2"
     ],
-    "facultyId": "ponobhayedo@pau.edu.ng",
+    "facultyId": [
+      "ponobhayedo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -210,7 +249,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "koyebode@pau.edu.ng",
+    "facultyId": [
+      "koyebode@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -221,7 +262,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "ponobhayedo@pau.edu.ng",
+    "facultyId": [
+      "ponobhayedo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -232,7 +275,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "tamoo@pau.edu.ng",
+    "facultyId": [
+      "tamoo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -243,7 +288,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "kmuka@pau.edu.ng",
+    "facultyId": [
+      "kmuka@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -254,7 +301,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "kmuka@pau.edu.ng",
+    "facultyId": [
+      "kmuka@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -265,7 +314,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "eonukwu-isitua@pau.edu.ng",
+    "facultyId": [
+      "eonukwu-isitua@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -276,7 +327,9 @@
       "CSC 300 - 1",
       "CSC 300 - 2"
     ],
-    "facultyId": "ckezie@pau.edu.ng",
+    "facultyId": [
+      "ckezie@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -288,7 +341,9 @@
       "ACC 100",
       "BUA 100"
     ],
-    "facultyId": "oekechi@pau.edu.ng",
+    "facultyId": [
+      "oekechi@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -298,7 +353,9 @@
     "student_groupsID": [
       "FMM 100"
     ],
-    "facultyId": "fogungbe@pau.edu.ng",
+    "facultyId": [
+      "fogungbe@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -308,7 +365,9 @@
     "student_groupsID": [
       "FMM 100"
     ],
-    "facultyId": "nikeh@pau.edu.ng",
+    "facultyId": [
+      "nikeh@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -318,7 +377,9 @@
     "student_groupsID": [
       "FMM 100"
     ],
-    "facultyId": "nikeh@pau.edu.ng",
+    "facultyId": [
+      "nikeh@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -328,7 +389,9 @@
     "student_groupsID": [
       "FMM 200"
     ],
-    "facultyId": "hrabiu@pau.edu.ng",
+    "facultyId": [
+      "hrabiu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -338,7 +401,9 @@
     "student_groupsID": [
       "FMM 200"
     ],
-    "facultyId": "aedosomwan@pau.edu.ng",
+    "facultyId": [
+      "aedosomwan@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -348,7 +413,9 @@
     "student_groupsID": [
       "FMM 200"
     ],
-    "facultyId": "lakande@pau.edu.ng",
+    "facultyId": [
+      "lakande@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -358,7 +425,9 @@
     "student_groupsID": [
       "FMM 200"
     ],
-    "facultyId": "cogbonna@pau.edu.ng",
+    "facultyId": [
+      "cogbonna@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -368,7 +437,9 @@
     "student_groupsID": [
       "FMM 200"
     ],
-    "facultyId": "usaku.wammanda@pau.edu.ng",
+    "facultyId": [
+      "usaku.wammanda@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -380,7 +451,9 @@
       "ACC 200",
       "BUA 200"
     ],
-    "facultyId": "eumenwaka@pau.edu.ng",
+    "facultyId": [
+      "eumenwaka@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -392,7 +465,9 @@
       "ACC 200",
       "BUA 200"
     ],
-    "facultyId": "aonaga@pau.edu.ng",
+    "facultyId": [
+      "aonaga@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -403,7 +478,9 @@
       "BUA 100",
       "ECO 100"
     ],
-    "facultyId": "iawagu@pau.edu.ng",
+    "facultyId": [
+      "iawagu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -413,7 +490,9 @@
     "student_groupsID": [
       "ISM 100"
     ],
-    "facultyId": "afokonkwo@pau.edu.ng",
+    "facultyId": [
+      "afokonkwo@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -423,7 +502,9 @@
     "student_groupsID": [
       "ISM 100"
     ],
-    "facultyId": "eo...@pau.edu.ng",
+    "facultyId": [
+      "eo...@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -433,7 +514,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "afokonkwo@pau.edu.ng",
+    "facultyId": [
+      "afokonkwo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -443,7 +526,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "tvincent@pau.edu.ng",
+    "facultyId": [
+      "tvincent@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -453,7 +538,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "jabiamuwe@pau.edu.ng",
+    "facultyId": [
+      "jabiamuwe@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -463,7 +550,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "aodoh@pau.edu.ng",
+    "facultyId": [
+      "aodoh@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -473,7 +562,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "afokonkwo@pau.edu.ng",
+    "facultyId": [
+      "afokonkwo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -483,7 +574,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "csada@pau.edu.ng",
+    "facultyId": [
+      "csada@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -493,7 +586,9 @@
     "student_groupsID": [
       "ISM 400"
     ],
-    "facultyId": "danger@pau.edu.ng",
+    "facultyId": [
+      "danger@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -503,7 +598,9 @@
     "student_groupsID": [
       "BUA 100"
     ],
-    "facultyId": "odakare@pau.edu.ng",
+    "facultyId": [
+      "odakare@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -515,7 +612,9 @@
       "ACC 100",
       "FIN 100"
     ],
-    "facultyId": "genyinnaya@pau.edu.ng",
+    "facultyId": [
+      "genyinnaya@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -527,7 +626,10 @@
       "ACC 100",
       "FIN 100"
     ],
-    "facultyId": "oevans@pau.edu.ng",
+    "facultyId": [
+      "oevans@pau.edu.ng",
+      "emesagan@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -539,7 +641,9 @@
       "ECO 100",
       "FIN 100"
     ],
-    "facultyId": "oakagha@pau.edu.ng",
+    "facultyId": [
+      "oakagha@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -549,7 +653,9 @@
     "student_groupsID": [
       "BUA 300"
     ],
-    "facultyId": "eosuji@pau.edu.ng",
+    "facultyId": [
+      "eosuji@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -559,7 +665,10 @@
     "student_groupsID": [
       "BUA 300"
     ],
-    "facultyId": "kajibo@pau.edu.ng",
+    "facultyId": [
+      "kajibo@pau.edu.ng",
+      "tvincent@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -569,7 +678,7 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -579,7 +688,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "sokon@pau.edu.ng",
+    "facultyId": [
+      "sokon@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -589,7 +700,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "odakare@pau.edu.ng",
+    "facultyId": [
+      "odakare@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -599,7 +712,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "sokon@pau.edu.ng",
+    "facultyId": [
+      "sokon@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -609,7 +724,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "eosuji@pau.edu.ng",
+    "facultyId": [
+      "eosuji@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -619,7 +736,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "ooni@pau.edu.ng",
+    "facultyId": [
+      "ooni@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -629,7 +748,9 @@
     "student_groupsID": [
       "BUA 400"
     ],
-    "facultyId": "alawal@pau.edu.ng",
+    "facultyId": [
+      "alawal@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -639,7 +760,9 @@
     "student_groupsID": [
       "ECO 100"
     ],
-    "facultyId": "hagbonrofo@pau.edu.ng",
+    "facultyId": [
+      "hagbonrofo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -649,7 +772,9 @@
     "student_groupsID": [
       "ECO 100"
     ],
-    "facultyId": "snwani@pau.edu.ng",
+    "facultyId": [
+      "snwani@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -660,7 +785,9 @@
       "ECO 100",
       "ACC 400"
     ],
-    "facultyId": "oowolabi@pau.edu.ng",
+    "facultyId": [
+      "oowolabi@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -671,7 +798,9 @@
       "ECO 100",
       "ACC 400"
     ],
-    "facultyId": "fikepsu@pau.edu.ng",
+    "facultyId": [
+      "fikepsu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -681,7 +810,7 @@
     "student_groupsID": [
       "ECO 300"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -691,7 +820,9 @@
     "student_groupsID": [
       "ECO 400"
     ],
-    "facultyId": "emesagan@pau.edu.ng",
+    "facultyId": [
+      "emesagan@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -701,7 +832,9 @@
     "student_groupsID": [
       "ECO 400"
     ],
-    "facultyId": "oevans@pau.edu.ng",
+    "facultyId": [
+      "oevans@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -711,7 +844,9 @@
     "student_groupsID": [
       "ECO 400"
     ],
-    "facultyId": "stella@pau.edu.ng",
+    "facultyId": [
+      "stella@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -721,7 +856,9 @@
     "student_groupsID": [
       "ECO 400"
     ],
-    "facultyId": "oevans@pau.edu.ng",
+    "facultyId": [
+      "oevans@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -731,7 +868,9 @@
     "student_groupsID": [
       "ECO 400"
     ],
-    "facultyId": "hagbonrofo@pau.edu.ng",
+    "facultyId": [
+      "hagbonrofo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -741,7 +880,9 @@
     "student_groupsID": [
       "FIN 400"
     ],
-    "facultyId": "fikepsu@pau.edu.ng",
+    "facultyId": [
+      "fikepsu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -751,7 +892,9 @@
     "student_groupsID": [
       "ACC 100"
     ],
-    "facultyId": "jimhanzenobe@pau.edu.ng",
+    "facultyId": [
+      "jimhanzenobe@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -761,7 +904,9 @@
     "student_groupsID": [
       "ACC 400"
     ],
-    "facultyId": "iokwuosa@pau.edu.ng",
+    "facultyId": [
+      "iokwuosa@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -771,7 +916,9 @@
     "student_groupsID": [
       "ACC 400"
     ],
-    "facultyId": "ovincent@pau.edu.ng",
+    "facultyId": [
+      "ovincent@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -781,7 +928,9 @@
     "student_groupsID": [
       "ACC 400"
     ],
-    "facultyId": "ookpala@pau.edu.ng",
+    "facultyId": [
+      "ookpala@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -791,7 +940,9 @@
     "student_groupsID": [
       "ACC 400"
     ],
-    "facultyId": "sagbolade@pau.edu.ng",
+    "facultyId": [
+      "sagbolade@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -801,7 +952,9 @@
     "student_groupsID": [
       "FIN 100"
     ],
-    "facultyId": "oikpesu@pau.edu.ng",
+    "facultyId": [
+      "oikpesu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -811,7 +964,9 @@
     "student_groupsID": [
       "FIN 200"
     ],
-    "facultyId": "fikepsu@pau.edu.ng",
+    "facultyId": [
+      "fikepsu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -821,7 +976,9 @@
     "student_groupsID": [
       "FIN 300"
     ],
-    "facultyId": "oowolabi@pau.edu.ng",
+    "facultyId": [
+      "oowolabi@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -831,7 +988,9 @@
     "student_groupsID": [
       "FIN 300"
     ],
-    "facultyId": "oikpesu@pau.edu.ng",
+    "facultyId": [
+      "oikpesu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -841,7 +1000,9 @@
     "student_groupsID": [
       "FIN 300"
     ],
-    "facultyId": "snwani@pau.edu.ng",
+    "facultyId": [
+      "snwani@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -851,7 +1012,9 @@
     "student_groupsID": [
       "FIN 300"
     ],
-    "facultyId": "iolaniyi@pau.edu.ng",
+    "facultyId": [
+      "iolaniyi@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -861,7 +1024,9 @@
     "student_groupsID": [
       "FIN 300"
     ],
-    "facultyId": "iunah@pau.edu.ng",
+    "facultyId": [
+      "iunah@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -869,10 +1034,11 @@
     "code": "CSC 401",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "sakinola@pau.edu.ng",
+    "facultyId": [
+      "sakinola@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -880,10 +1046,11 @@
     "code": "CSC 403",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "sayodeji@pau.edu.ng",
+    "facultyId": [
+      "sayodeji@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -891,10 +1058,11 @@
     "code": "CSC 405",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "foliha@pau.edu.ng",
+    "facultyId": [
+      "foliha@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -902,10 +1070,11 @@
     "code": "CSC 409",
     "credits": 2,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "koyebode@pau.edu.ng",
+    "facultyId": [
+      "koyebode@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -913,10 +1082,11 @@
     "code": "CSC 419",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "ponobhayedo@pau.edu.ng",
+    "facultyId": [
+      "ponobhayedo@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -924,10 +1094,12 @@
     "code": "CSC 421",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "cigah@pau.edu.ng",
+    "facultyId": [
+      "cigah@pau.edu.ng",
+      "aoluwole@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -935,10 +1107,11 @@
     "code": "CSC 413",
     "credits": 3,
     "student_groupsID": [
-      "CSC 400 - 1",
-      "CSC 400 - 2"
+      "CSC 400 - 1"
     ],
-    "facultyId": "foliha@pau.edu.ng",
+    "facultyId": [
+      "foliha@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -948,7 +1121,11 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": "muduehi@pau.edu.ng",
+    "facultyId": [
+      "muduehi@pau.edu.ng",
+      "jiloekwe@pau.edu.ng",
+      "olowokere@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -958,7 +1135,9 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": "muduehi@pau.edu.ng",
+    "facultyId": [
+      "muduehi@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -968,7 +1147,9 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": "koyebode@pau.edu.ng",
+    "facultyId": [
+      "koyebode@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -978,7 +1159,9 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": "feshiramhe@pau.edu.ng",
+    "facultyId": [
+      "feshiramhe@pau.edu.ng"
+    ],
     "required_room_type": "Comp Lab"
   },
   {
@@ -988,7 +1171,9 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": "madelabu@pau.edu.ng",
+    "facultyId": [
+      "madelabu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -998,7 +1183,7 @@
     "student_groupsID": [
       "SEN 100"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -1010,7 +1195,9 @@
       "EEE 100",
       "MEE 100"
     ],
-    "facultyId": "dagholor@pau.edu.ng",
+    "facultyId": [
+      "dagholor@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1022,7 +1209,9 @@
       "EEE 100",
       "MEE 100"
     ],
-    "facultyId": "cbolu@pau.edu.ng",
+    "facultyId": [
+      "cbolu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1034,7 +1223,9 @@
       "EEE 100",
       "MEE 100"
     ],
-    "facultyId": "eofor@pau.edu.ng",
+    "facultyId": [
+      "eofor@pau.edu.ng"
+    ],
     "required_room_type": "Chem Lab"
   },
   {
@@ -1046,7 +1237,10 @@
       "EEE 100",
       "MEE 100"
     ],
-    "facultyId": "eofor@pau.edu.ng",
+    "facultyId": [
+      "eofor@pau.edu.ng",
+      "cifegwu@pau.edu.ng"
+    ],
     "required_room_type": "Chem Lab"
   },
   {
@@ -1058,7 +1252,9 @@
       "EEE 100",
       "MEE 100"
     ],
-    "facultyId": "logbanufe@pau.edu.ng",
+    "facultyId": [
+      "logbanufe@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1068,7 +1264,10 @@
     "student_groupsID": [
       "EEE 100"
     ],
-    "facultyId": "nedomah@pau.edu.ng",
+    "facultyId": [
+      "nedomah@pau.edu.ng",
+      "amakinde@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1078,7 +1277,9 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "madelabu@pau.edu.ng",
+    "facultyId": [
+      "madelabu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1088,7 +1289,9 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "dokojie@pau.edu.ng",
+    "facultyId": [
+      "dokojie@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1098,7 +1301,9 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "jbandele@pau.edu.ng",
+    "facultyId": [
+      "jbandele@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1108,7 +1313,9 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "dokojie@pau.edu.ng",
+    "facultyId": [
+      "dokojie@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1118,7 +1325,10 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "amakinde@pau.edu.ng",
+    "facultyId": [
+      "amakinde@pau.edu.ng",
+      "dokojie@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1128,7 +1338,9 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": "dagholor@pau.edu.ng",
+    "facultyId": [
+      "dagholor@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1138,7 +1350,7 @@
     "student_groupsID": [
       "EEE 400"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -1148,7 +1360,7 @@
     "student_groupsID": [
       "EEE 500"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -1158,7 +1370,9 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": "banyaeguna@pau.edu.ng",
+    "facultyId": [
+      "banyaeguna@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1168,7 +1382,9 @@
     "student_groupsID": [
       "MEE 100"
     ],
-    "facultyId": "jajiboye@pau.edu.ng",
+    "facultyId": [
+      "jajiboye@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1178,7 +1394,9 @@
     "student_groupsID": [
       "MEE 400"
     ],
-    "facultyId": "jajiboye@pau.edu.ng",
+    "facultyId": [
+      "jajiboye@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1188,7 +1406,9 @@
     "student_groupsID": [
       "MEE 400"
     ],
-    "facultyId": "dagholor@pau.edu.ng",
+    "facultyId": [
+      "dagholor@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1198,7 +1418,9 @@
     "student_groupsID": [
       "MEE 400"
     ],
-    "facultyId": "rloto@pau.edu.ng",
+    "facultyId": [
+      "rloto@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1208,7 +1430,7 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   },
   {
@@ -1218,7 +1440,9 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": "cbolu@pau.edu.ng",
+    "facultyId": [
+      "cbolu@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1228,7 +1452,9 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": "jajiboye@pau.edu.ng",
+    "facultyId": [
+      "jajiboye@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1238,7 +1464,9 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": "aonokwai@pau.edu.ng",
+    "facultyId": [
+      "aonokwai@pau.edu.ng"
+    ],
     "required_room_type": "Classroom"
   },
   {
@@ -1248,7 +1476,7 @@
     "student_groupsID": [
       "MEE 500"
     ],
-    "facultyId": null,
+    "facultyId": [],
     "required_room_type": "Classroom"
   }
 ]

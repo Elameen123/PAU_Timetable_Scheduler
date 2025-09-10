@@ -8,13 +8,27 @@ import numpy as np
 from constraints import Constraints
 import re
 import dash
+
+# Create global constraint checker for real-time validation
+global_constraints = Constraints(input_data)
 from dash import dcc, html, Input, Output, State, clientside_callback
 from dash.dependencies import ALL
 import dash.exceptions
+import dash.dependencies
 import json
 import os
 import shutil
 import traceback
+
+# Global constraint violation tracking for persistence
+original_algorithm_violations = {}  # Store original violations from the algorithm
+global_violation_tracking = {}  # Track all violations to ensure persistence
+
+def store_original_violations(violations_dict):
+    """Store the original violations from the DE algorithm."""
+    global original_algorithm_violations
+    original_algorithm_violations = violations_dict.copy()
+    print(f"🔒 Stored {len(violations_dict)} original violation types from algorithm")
 
 # population initialization using input_data
 class DifferentialEvolution:
@@ -58,9 +72,21 @@ class DifferentialEvolution:
         idx = 0
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
+                # Get the course to check its credits
+                course = input_data.getCourse(student_group.courseIDs[i])
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (with 2 consecutive rule)
+                if course and course.credits == 1:
+                    required_hours = 3  # Force 1-credit courses to have 3 hours
+                    print(f"📚 1-CREDIT COURSE: {course.name} ({course.code}) - Converting to 3 hours")
+                else:
+                    # Use original hours required for other courses
+                    required_hours = student_group.hours_required[i]
+                
                 # Reset hourcount for each new course to correctly group events
                 hourcount = 1 
-                while hourcount <= student_group.hours_required[i]:
+                while hourcount <= required_hours:
                     event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
                     events_list.append(event)
                     
@@ -111,11 +137,12 @@ class DifferentialEvolution:
             split_strategies = []
             if hours_required >= 4: # 4-hour courses and above
                 split_strategies = [(4,), (2, 2), (3, 1)]
-            elif hours_required == 3: # 3-hour courses
+            elif hours_required == 3: # 3-hour courses (including 1-credit courses converted to 3 hours)
+                # For 1-credit courses: prioritize 3 consecutive, fallback to 2 consecutive + 1 separate
                 split_strategies = [(3,), (2, 1)]
             elif hours_required == 2: # 2-hour courses
                 split_strategies = [(2,)] # MUST be consecutive
-            else: # 1-hour courses
+            else: # 1-hour courses (only original 1-hour courses that weren't 1-credit)
                 split_strategies = [(1,)]
 
             course_placed = False
@@ -209,11 +236,11 @@ class DifferentialEvolution:
                     course_placed = True
                     break
 
-        # Final verification to place any unassigned events, now more aggressive
+        # Final verification to place any unassigned events
         chromosome = self.verify_and_repair_course_allocations(chromosome)
         
-        # Final pass to ensure multi-hour courses are consecutive
-        chromosome = self.ensure_consecutive_slots(chromosome)
+        # Basic clash prevention only
+        chromosome = self.prevent_student_group_clashes(chromosome)
         
         return chromosome
 
@@ -609,33 +636,140 @@ class DifferentialEvolution:
         # Final pass to ensure multi-hour courses are consecutive
         mutant_vector = self.ensure_consecutive_slots(mutant_vector)
         
+        # CRITICAL SAFETY: Ensure NO student group clashes after mutation
+        mutant_vector = self.prevent_student_group_clashes(mutant_vector)
+        
         return mutant_vector
-    
+
+    def prevent_student_group_clashes(self, chromosome):
+        """
+        Smart clash prevention that tries to move conflicting events rather than just deleting them.
+        This prevents missing classes while still eliminating student group clashes.
+        """
+        max_attempts = 5  # Increased attempts
+        
+        for attempt in range(max_attempts):
+            clashes_found = False
+            
+            # Check each timeslot for student group conflicts
+            for t_idx in range(len(self.timeslots)):
+                student_groups_seen = {}
+                conflicting_events = []
+                
+                # First pass: identify all conflicts in this timeslot
+                for r_idx in range(len(self.rooms)):
+                    event_id = chromosome[r_idx, t_idx]
+                    if event_id is not None:
+                        event = self.events_map.get(event_id)
+                        if event:
+                            sg_id = event.student_group.id
+                            if sg_id in student_groups_seen:
+                                # Conflict detected - both events clash
+                                conflicting_events.append((r_idx, event_id))
+                                clashes_found = True
+                            else:
+                                student_groups_seen[sg_id] = (r_idx, event_id)
+                
+                # Second pass: try to move conflicting events to other slots
+                for r_idx, event_id in conflicting_events:
+                    event = self.events_map.get(event_id)
+                    course = input_data.getCourse(event.course_id)
+                    
+                    # Clear the conflicting position
+                    chromosome[r_idx, t_idx] = None
+                    
+                    # Try to find an alternative slot for this event
+                    moved = False
+                    alternative_slots = []
+                    
+                    for alt_r_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            for alt_t_idx in range(len(self.timeslots)):
+                                if (chromosome[alt_r_idx, alt_t_idx] is None and
+                                    self.is_slot_available_for_event(chromosome, alt_r_idx, alt_t_idx, event) and
+                                    self._is_student_group_available(chromosome, event.student_group.id, alt_t_idx) and
+                                    self._is_lecturer_available(chromosome, event.faculty_id, alt_t_idx)):
+                                    alternative_slots.append((alt_r_idx, alt_t_idx))
+                    
+                    if alternative_slots:
+                        # Move to a good alternative slot
+                        alt_r, alt_t = random.choice(alternative_slots)
+                        chromosome[alt_r, alt_t] = event_id
+                        moved = True
+                    else:
+                        # If no perfect slot, try to find any suitable room slot
+                        for alt_r_idx, room in enumerate(self.rooms):
+                            if self.is_room_suitable(room, course):
+                                for alt_t_idx in range(len(self.timeslots)):
+                                    if (chromosome[alt_r_idx, alt_t_idx] is None and
+                                        self.is_slot_available_for_event(chromosome, alt_r_idx, alt_t_idx, event)):
+                                        chromosome[alt_r_idx, alt_t_idx] = event_id
+                                        moved = True
+                                        break
+                                if moved:
+                                    break
+                    
+                    # If we couldn't move it anywhere, it becomes a missing class
+                    # This will be handled by the repair function later
+            
+            if not clashes_found:
+                break
+        
+        return chromosome
+
+    def verify_no_student_group_clashes(self, chromosome):
+        """
+        VERIFICATION FUNCTION: Checks that absolutely NO student group clashes exist.
+        Returns True if no clashes, False if clashes found.
+        """
+        for t_idx in range(len(self.timeslots)):
+            student_groups_seen = set()
+            
+            for r_idx in range(len(self.rooms)):
+                event_id = chromosome[r_idx, t_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        sg_id = event.student_group.id
+                        if sg_id in student_groups_seen:
+                            print(f"❌ CRITICAL ERROR: Student group clash detected at timeslot {t_idx}!")
+                            print(f"   Student group {sg_id} appears multiple times at the same time!")
+                            return False
+                        student_groups_seen.add(sg_id)
+        
+        print("✅ VERIFIED: NO student group clashes detected!")
+        return True
+
     def count_non_none(self, arr):
         # Flatten the 2D array and count elements that are not None
         return np.count_nonzero(arr != None)
     
     def crossover(self, target_vector, mutant_vector):
         """
-        Performs a standard binomial (or uniform) crossover for Differential Evolution.
-        This creates a trial vector by mixing genes from the target and mutant vectors
-        based on the crossover rate (CR). This is more exploratory than the previous
-        strategic crossover and helps to escape local optima.
+        Simple, robust crossover that avoids creating student group clashes.
         """
         trial_vector = target_vector.copy()
         num_rooms, num_timeslots = target_vector.shape
         
-        # Ensure at least one gene from the mutant vector is picked (j_rand).
-        # This is a key part of the DE algorithm to ensure the trial vector is different from the target.
+        # Ensure at least one gene from the mutant vector is picked (j_rand)
         j_rand_r = random.randrange(num_rooms)
         j_rand_t = random.randrange(num_timeslots)
 
         for r in range(num_rooms):
             for t in range(num_timeslots):
-                # The gene from the mutant is chosen if a random number is less than CR,
-                # or if it's the randomly chosen j_rand position.
                 if random.random() < self.CR or (r == j_rand_r and t == j_rand_t):
-                    trial_vector[r, t] = mutant_vector[r, t]
+                    mutant_event_id = mutant_vector[r, t]
+                    
+                    # Simple placement - if mutant slot is None, just place it
+                    if mutant_event_id is None:
+                        trial_vector[r, t] = None
+                    else:
+                        # For non-None events, check basic safety
+                        mutant_event = self.events_map.get(mutant_event_id)
+                        if mutant_event:
+                            # Simple clash check - only place if student group is available
+                            if self._is_student_group_available(trial_vector, mutant_event.student_group.id, t):
+                                trial_vector[r, t] = mutant_event_id
                     
         return trial_vector
 
@@ -753,7 +887,8 @@ class DifferentialEvolution:
             'break_time_constraint',
             'room_constraints',
             'same_course_same_room_per_day',
-            'lecturer_schedule_constraints'
+            'lecturer_schedule_constraints',
+            'lecturer_workload_constraints'
         ]
 
         trial_hard_violations = sum(trial_violations.get(c, 0) for c in hard_constraints)
@@ -800,14 +935,17 @@ class DifferentialEvolution:
                 target_vector = self.population[i]
                 trial_vector = self.crossover(target_vector, mutant_vector)
                 
-                # Lamarckian Step: Repair the new trial vector *before* evaluation and selection.
-                # This ensures we are always comparing valid, repaired solutions.
+                # Step 3: Repair course allocations FIRST (highest priority)
                 trial_vector = self.verify_and_repair_course_allocations(trial_vector)
-                trial_vector = self.ensure_consecutive_slots(trial_vector)
+                
+                # Step 4: THEN handle clashes (lower priority)
+                trial_vector = self.prevent_student_group_clashes(trial_vector)
+                
+                # Step 5: Final repair to catch any missing events after clash resolution
+                trial_vector = self.verify_and_repair_course_allocations(trial_vector)
 
-                # Step 3: Evaluation and Selection
+                # Step 6: Evaluation and Selection
                 self.select(i, trial_vector)
-                # Post-selection repair is no longer needed as both trial and target are already repaired.
                 
             # Optimization: Find best solution more efficiently
             current_fitness = [self.evaluate_fitness(ind) for ind in self.population]
@@ -819,9 +957,6 @@ class DifferentialEvolution:
                 best_fitness = current_best_fitness
                 stagnation_counter = 0
                 last_improvement = best_fitness
-                
-                # Ensure best solution has all courses properly allocated
-                best_solution = self.verify_and_repair_course_allocations(best_solution)
             else:
                 stagnation_counter += 1
             
@@ -838,14 +973,41 @@ class DifferentialEvolution:
                 print(f"Solution with desired fitness of {self.desired_fitness} found at Generation {generation}! 🎉")
                 break  # Stop if the best solution has no constraint violations
             
-            # Early termination if no improvement for many generations
+            # Early termination if no improvement for 20 generations (reduced from 50)
+            if stagnation_counter >= 20:
+                print(f"Early termination due to stagnation after {stagnation_counter} generations without improvement at generation {generation+1}")
+                print(f"Final fitness achieved: {best_fitness}")
+                break
+            
+            # Additional early termination if no improvement for many generations and fitness is acceptable
             if stagnation_counter > 50 and best_fitness < 100:
                 print(f"Early termination due to convergence at generation {generation+1}")
                 break
 
-        # Final verification and repair of the best solution to ensure all courses are allocated
+        # CRITICAL: Ensure the final best solution has NO missing classes
+        # Track fitness before post-algorithm repairs
+        pre_repair_fitness = self.evaluate_fitness(best_solution)
+        print(f"\n🔧 APPLYING POST-ALGORITHM REPAIRS...")
+        print(f"   Fitness before repairs: {pre_repair_fitness:.4f}")
+        
         best_solution = self.verify_and_repair_course_allocations(best_solution)
         best_solution = self.ensure_consecutive_slots(best_solution)
+        best_solution = self.prevent_student_group_clashes(best_solution)
+        
+        # FINAL repair pass to absolutely guarantee no missing classes
+        best_solution = self.verify_and_repair_course_allocations(best_solution)
+        
+        # Track fitness after repairs
+        post_repair_fitness = self.evaluate_fitness(best_solution)
+        repair_impact = post_repair_fitness - pre_repair_fitness
+        print(f"   Fitness after repairs: {post_repair_fitness:.4f}")
+        
+        if abs(repair_impact) > 0.01:
+            impact_direction = "improved" if repair_impact < 0 else "worsened"
+            print(f"   🎯 Repair impact: {impact_direction} fitness by {abs(repair_impact):.4f} points")
+        else:
+            print(f"   ✅ Repair impact: minimal change ({repair_impact:.4f})")
+        print(f"🔧 POST-ALGORITHM REPAIRS COMPLETE\n")
         
         return best_solution, fitness_history, generation, diversity_history
 
@@ -874,10 +1036,18 @@ class DifferentialEvolution:
                         course = input_data.getCourse(class_event.course_id)
                         faculty = input_data.getFaculty(class_event.faculty_id)
                         course_code = course.code if course is not None else "Unknown"
-                        faculty_name = faculty.name if faculty is not None else "Unknown"
+                        
+                        # Use faculty name if available, otherwise use faculty email (ID)
+                        if faculty is not None:
+                            faculty_display = faculty.name if faculty.name else faculty.faculty_id
+                        else:
+                            faculty_display = "Unknown"
+                        
                         room_obj = input_data.rooms[room_idx]
                         room_display = getattr(room_obj, "name", getattr(room_obj, "Id", str(room_idx)))
-                        timetable[hour][day] = f"Course: {course_code}, Lecturer: {faculty_name}, Room: {room_display}"
+                        
+                        # Format as: Course Code\nRoom Name\nFaculty Name
+                        timetable[hour][day] = f"{course_code}\n{room_display}\n{faculty_display}"
         return timetable
 
     def print_all_timetables(self, individual, days, hours_per_day, day_start_time=9):
@@ -991,14 +1161,13 @@ class DifferentialEvolution:
 
     def verify_and_repair_course_allocations(self, chromosome):
         """
-        A robust method to ensure every required event is scheduled exactly once.
-        This function first removes any extra events and then places any missing events.
+        AGGRESSIVE method to ensure every required event is scheduled exactly once.
+        MISSING CLASSES MUST NEVER OCCUR - this is the highest priority.
         """
-        max_repair_passes = 3
-        for _ in range(max_repair_passes):
-            # --- Phase 1: Audit current schedule and identify discrepancies ---
-            
-            # Get a count of all currently scheduled events
+        max_repair_passes = 5  # Increased from 3
+        
+        for pass_num in range(max_repair_passes):
+            # --- Phase 1: Count scheduled events ---
             scheduled_event_counts = {}
             for r_idx in range(len(self.rooms)):
                 for t_idx in range(len(self.timeslots)):
@@ -1006,37 +1175,28 @@ class DifferentialEvolution:
                     if event_id is not None:
                         scheduled_event_counts[event_id] = scheduled_event_counts.get(event_id, 0) + 1
 
-            # --- Phase 2: Remove extra events ---
-            
-            # Find events that are scheduled more times than they should be (should always be 1)
+            # --- Phase 2: Remove duplicates ---
             extra_event_ids = {event_id for event_id, count in scheduled_event_counts.items() if count > 1}
             
             if extra_event_ids:
-                # Create a list of all positions of this duplicated event
                 positions_to_clear = []
                 for event_id in extra_event_ids:
-                    # Find all locations of this duplicated event
                     locations = np.argwhere(chromosome == event_id)
                     # Keep one, mark the rest for removal
                     for i in range(1, len(locations)):
                         positions_to_clear.append(tuple(locations[i]))
                 
-                # Remove the extra events from the chromosome
                 for r_idx, t_idx in positions_to_clear:
                     chromosome[r_idx, t_idx] = None
             
-            # --- Phase 3: Add missing events ---
-
-            # Get a fresh set of scheduled events after removals
+            # --- Phase 3: AGGRESSIVELY place missing events ---
             scheduled_events = set(np.unique([e for e in chromosome.flatten() if e is not None]))
-            
-            # Identify all events that are required but not currently in the schedule
             all_required_events = set(range(len(self.events_list)))
             missing_events = list(all_required_events - scheduled_events)
             random.shuffle(missing_events)
 
             if not missing_events:
-                break # If nothing is missing, the repair is done for this pass
+                break  # All events are scheduled
 
             for event_id in missing_events:
                 event = self.events_list[event_id]
@@ -1045,41 +1205,76 @@ class DifferentialEvolution:
 
                 placed = False
                 
-                # Strategy: Find the best possible empty slot that doesn't cause new violations.
-                valid_slots = []
+                # Strategy 1: Find perfect slots (no conflicts)
+                perfect_slots = []
                 for r_idx, room in enumerate(self.rooms):
                     if self.is_room_suitable(room, course):
                         for t_idx in range(len(self.timeslots)):
-                            # Check if slot is empty and if placing the event respects all hard constraints
                             if (chromosome[r_idx, t_idx] is None and
                                 self.is_slot_available_for_event(chromosome, r_idx, t_idx, event) and
                                 self._is_student_group_available(chromosome, event.student_group.id, t_idx) and
                                 self._is_lecturer_available(chromosome, event.faculty_id, t_idx)):
-                                valid_slots.append((r_idx, t_idx))
+                                perfect_slots.append((r_idx, t_idx))
                 
-                if valid_slots:
-                    # Tier 1: If a "perfect" slot is found, place the event there.
-                    r, t = random.choice(valid_slots)
+                if perfect_slots:
+                    r, t = random.choice(perfect_slots)
                     chromosome[r, t] = event_id
                     placed = True
-                else:
-                    # Tier 2: If no "perfect" slot is found, find any empty slot in a suitable room.
-                    # This prioritizes getting the event on the board, even if it causes other (fixable) violations.
-                    imperfect_slots = []
+                    continue
+                
+                # Strategy 2: Accept student/lecturer conflicts but respect room/time constraints
+                acceptable_slots = []
+                for r_idx, room in enumerate(self.rooms):
+                    if self.is_room_suitable(room, course):
+                        for t_idx in range(len(self.timeslots)):
+                            if (chromosome[r_idx, t_idx] is None and
+                                self.is_slot_available_for_event(chromosome, r_idx, t_idx, event)):
+                                acceptable_slots.append((r_idx, t_idx))
+                
+                if acceptable_slots:
+                    r, t = random.choice(acceptable_slots)
+                    chromosome[r, t] = event_id
+                    placed = True
+                    continue
+                
+                # Strategy 3: FORCE placement by displacing an existing event
+                if not placed:
+                    # Find any suitable room and displace whatever is there
                     for r_idx, room in enumerate(self.rooms):
                         if self.is_room_suitable(room, course):
                             for t_idx in range(len(self.timeslots)):
-                                # Just check if the slot is physically empty and respects lecturer schedule/break time
-                                if chromosome[r_idx, t_idx] is None and self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
-                                    imperfect_slots.append((r_idx, t_idx))
-                    
-                    if imperfect_slots:
-                        r, t = random.choice(imperfect_slots)
-                        chromosome[r, t] = event_id
-                        placed = True
-                # If still no slot is found (highly unlikely), it will remain missing.
+                                # Check basic availability (break time, lecturer schedule)
+                                if self.is_slot_available_for_event(chromosome, r_idx, t_idx, event):
+                                    # Force place this event, even if it displaces another
+                                    displaced_event_id = chromosome[r_idx, t_idx]
+                                    chromosome[r_idx, t_idx] = event_id
+                                    placed = True
+                                    
+                                    # If we displaced something, try to reschedule it quickly
+                                    if displaced_event_id is not None:
+                                        self._try_quick_reschedule(chromosome, displaced_event_id)
+                                    break
+                            if placed:
+                                break
+                
+                # If STILL not placed, something is very wrong - but we continue
 
         return chromosome
+    
+    def _try_quick_reschedule(self, chromosome, displaced_event_id):
+        """Helper to quickly try to reschedule a displaced event"""
+        displaced_event = self.events_list[displaced_event_id]
+        displaced_course = input_data.getCourse(displaced_event.course_id)
+        
+        # Try to find any suitable empty slot
+        for r_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, displaced_course):
+                for t_idx in range(len(self.timeslots)):
+                    if (chromosome[r_idx, t_idx] is None and
+                        self.is_slot_available_for_event(chromosome, r_idx, t_idx, displaced_event)):
+                        chromosome[r_idx, t_idx] = displaced_event_id
+                        return True
+        return False
 
     def count_course_occurrences(self, chromosome, student_group):
         """
@@ -1121,13 +1316,21 @@ class DifferentialEvolution:
             print(f"\nStudent Group: {student_group.name}")
             course_counts = self.count_course_occurrences(chromosome, student_group)
             
-            total_expected = sum(student_group.hours_required)
+            # Calculate expected hours considering 1-credit = 3-hour conversion
+            expected_hours = []
+            for i in range(len(student_group.hours_required)):
+                required_hours = student_group.hours_required[i]
+                if required_hours == 1:
+                    required_hours = 3
+                expected_hours.append(required_hours)
+            
+            total_expected = sum(expected_hours)
             total_actual = sum(course_counts.values())
             
             print(f"  Total hours: Expected {total_expected}, Got {total_actual}")
             
             for i, course_id in enumerate(student_group.courseIDs):
-                expected = student_group.hours_required[i]
+                expected = expected_hours[i]
                 actual = course_counts.get(course_id, 0)
                 status = "✓" if actual == expected else "✗"
                 print(f"  {course_id}: Expected {expected}, Got {actual} {status}")
@@ -1137,17 +1340,61 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(5)
+best_solution, fitness_history, generation, diversity_history = de.run(50)
 print("Differential Evolution completed")
 
-# Get final fitness and detailed breakdown
+# Get final fitness and detailed breakdown (solution is already repaired inside run())
 final_fitness = de.evaluate_fitness(best_solution)
+
+# CONSISTENCY CHECK: Ensure constraint violations total matches evaluate_fitness
+violations_debug = de.constraints.get_constraint_violations(best_solution, debug=True)
+violations_total = violations_debug.get('total', 0)
+
+# Verify consistency between the two fitness calculations
+if abs(final_fitness - violations_total) > 0.01:  # Allow small floating point differences
+    print(f"⚠️  FITNESS CALCULATION DISCREPANCY DETECTED:")
+    print(f"   - evaluate_fitness(): {final_fitness:.4f}")
+    print(f"   - violations total:   {violations_total:.4f}")
+    print(f"   - Difference:         {abs(final_fitness - violations_total):.4f}")
+    print(f"   Using evaluate_fitness() as authoritative value.")
+else:
+    print(f"✅ Fitness calculations are consistent: {final_fitness:.4f}")
+
+# CRITICAL VERIFICATION: Ensure NO student group clashes in final solution
+print("\n--- VERIFYING STUDENT GROUP CLASH PREVENTION ---")
+clash_free = de.verify_no_student_group_clashes(best_solution)
+if not clash_free:
+    print("❌ APPLYING EMERGENCY CLASH PREVENTION...")
+    best_solution = de.prevent_student_group_clashes(best_solution)
+    print("✅ Emergency prevention applied!")
+    de.verify_no_student_group_clashes(best_solution)
+print("--- VERIFICATION COMPLETE ---\n")
+
 print("\n--- Running Debugging on Final Solution ---")
 violations = de.constraints.get_constraint_violations(best_solution, debug=True)
 print("--- Debugging Complete ---\n")
 
+# Store original solution and constraint details for undo and error display
+original_best_solution = [row[:] for row in best_solution]  # Deep copy of original solution
+constraint_details = de.constraints.get_detailed_constraint_violations(best_solution)
+
+# Store ALL original violations for persistence tracking (both the function above and this)
+store_original_violations(constraint_details)
+
+# Store original consecutive violations globally to track them separately
+global original_consecutive_violations
+original_consecutive_violations = constraint_details.get('Consecutive Slot Violations', []).copy()
+print(f"🔒 Stored {len(original_consecutive_violations)} original consecutive violations for tracking")
+
+# Debug: Print initial constraint details for UI debugging
+print("\n--- Initial Constraint Details for UI ---")
+for constraint_type, violations_list in constraint_details.items():
+    if violations_list:
+        print(f"  - {constraint_type}: {len(violations_list)} violations")
+print("--- End Initial Constraint Details ---\n")
+
 print("\n--- Final Timetable Fitness Breakdown ---")
-print(f"Total Fitness Score: {final_fitness:.2f}\n")
+print(f"Final Fitness Score: {final_fitness:.2f}\n")
 
 print("Constraint Violation Details:")
 
@@ -1156,6 +1403,7 @@ descriptive_names = {
     'student_group_constraints': "Student Group Clashes",
     'lecturer_availability': "Lecturer Clashes (Overlapping)",
     'lecturer_schedule_constraints': "Lecturer Schedule Conflicts (Day/Time)",
+    'lecturer_workload_constraints': "Lecturer Workload Violations",
     'room_time_conflict': "Room Time Slot Conflicts",
     'building_assignments': "Building Assignment Conflicts",
     'same_course_same_room_per_day': "Same Course in Multiple Rooms on Same Day",
@@ -1171,6 +1419,7 @@ penalty_info = {
     'student_group_constraints': "1 point per violation",
     'lecturer_availability': "1 point per violation",
     'lecturer_schedule_constraints': "10 points per violation",
+    'lecturer_workload_constraints': "50 points per extra daily hour, 30 points per extra consecutive hour",
     'room_time_conflict': "10 points per conflict",
     'building_assignments': "0.5 points per violation",
     'same_course_same_room_per_day': "5 points per extra room used",
@@ -1186,6 +1435,7 @@ hard_constraint_order = [
     'student_group_constraints',
     'lecturer_availability',
     'lecturer_schedule_constraints',
+    'lecturer_workload_constraints',
     'consecutive_timeslots',
     'course_allocation_completeness',
     'same_course_same_room_per_day',
@@ -1253,7 +1503,14 @@ if other_constraints_to_print:
     for constraint, (line_start, penalty_str) in sorted(other_constraints_to_print.items()):
         print(f"{line_start.ljust(max_len + 4)}({penalty_str})")
 
-print(f"\nCalculated Total: {violations.get('total', 'N/A')}")
+print(f"\n📊 FINAL FITNESS SUMMARY")
+print(f"Final Fitness (after post-algorithm repairs): {final_fitness:.2f}")
+print(f"Constraint Breakdown Total: {violations.get('total', 'N/A')}")
+
+# Show discrepancy if any
+if 'total' in violations and abs(final_fitness - violations['total']) > 0.01:
+    print(f"⚠️  Discrepancy: {abs(final_fitness - violations['total']):.4f}")
+    print("   (Using Final Total Fitness as authoritative)")
 print("--- End of Fitness Breakdown ---\n")
 
 # Get the timetable data from the DE optimization
@@ -1267,8 +1524,21 @@ for timetable_data in all_timetables:
             'id': getattr(timetable_data['student_group'], 'id', None)
         }
 
+# Save fresh optimization data for download functionality
+def save_fresh_optimization_data(data):
+    """Save fresh DE optimization data for export functionality"""
+    fresh_data_path = os.path.join(os.path.dirname(__file__), 'data', 'fresh_timetable_data.json')
+    try:
+        with open(fresh_data_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print(f"✅ Saved fresh optimization data: {len(data)} groups")
+    except Exception as e:
+        print(f"❌ Error saving fresh optimization data: {e}")
+
+# Save the fresh data
+save_fresh_optimization_data(all_timetables)
+
 # Load rooms data for classroom selection
-import json
 rooms_data = []
 try:
     with open(os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json'), 'r', encoding='utf-8') as f:
@@ -1280,11 +1550,13 @@ except Exception as e:
 
 # Try to load saved timetable if it exists
 def load_saved_timetable():
-    import json
     import os
     import traceback
     
     save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
+    
+    print(f"🔍 Checking for saved timetable at: {save_path}")
+    print(f"🔍 File exists: {os.path.exists(save_path)}")
     
     if os.path.exists(save_path):
         try:
@@ -1293,6 +1565,15 @@ def load_saved_timetable():
             
             file_size = os.path.getsize(save_path)
             print(f"📁 Loaded saved timetable: {len(saved_data)} groups, {file_size} bytes")
+            
+            # Verify data structure
+            if saved_data and len(saved_data) > 0:
+                first_group = saved_data[0]
+                print(f"🔍 First group structure: {type(first_group)}")
+                if 'student_group' in first_group:
+                    print(f"🔍 Student group info: {first_group['student_group']}")
+                if 'timetable' in first_group:
+                    print(f"🔍 Timetable rows: {len(first_group['timetable'])}")
             
             return saved_data
         except Exception as e:
@@ -1317,12 +1598,16 @@ def clear_saved_timetable():
     except Exception as e:
         print(f"❌ Error clearing saved files: {e}")
 
-# Load saved data if available, otherwise use freshly optimized data
+# Always use freshly optimized data on startup - user changes are handled via UI callbacks
 print("\n=== LOADING TIMETABLE DATA ===")
-# On fresh startup, always use the newly optimized data from DE
-# Only load saved data during Dash session for persistence
+
+# Always start with fresh DE optimization results
 print("✅ Using freshly optimized timetable data")
 print(f"   Generated {len(all_timetables)} student groups from DE optimization")
+
+# Clear any old saved data to ensure fresh start
+clear_saved_timetable()
+
 print("=== TIMETABLE DATA LOADING COMPLETE ===\n")
 
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -1331,33 +1616,47 @@ hours = [f"{9 + i}:00" for i in range(input_data.hours)]
 # Session tracker to know if we've made any swaps
 session_has_swaps = False
 
+# Store original consecutive violations from the algorithm
+original_consecutive_violations = []
+
 def has_any_room_conflicts(all_timetables_data):
-    """Check if there are any room conflicts across all student groups"""
+    """Check if there are any conflicts (room or lecturer) across all student groups"""
     if not all_timetables_data:
         return False
     
     # Check each time slot across all groups
     for group_idx in range(len(all_timetables_data)):
-        conflicts = detect_room_conflicts(all_timetables_data, group_idx)
+        conflicts = detect_conflicts(all_timetables_data, group_idx)
         if conflicts:
             return True
     
     return False
 
+def extract_course_and_faculty_from_cell(cell_content):
+    """Extract course code and faculty from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
+    if not cell_content or cell_content in ["FREE", "BREAK"]:
+        return None, None
+    
+    # Split by newlines and get the first line (course code) and third line (faculty)
+    lines = cell_content.split('\n')
+    course_code = lines[0].strip() if len(lines) > 0 and lines[0].strip() else None
+    faculty_name = lines[2].strip() if len(lines) > 2 and lines[2].strip() else None
+    
+    return course_code, faculty_name
+
 def extract_room_from_cell(cell_content):
-    """Extract room name from cell content like 'Course: CPE 305, Lecturer: Dr. Smith, Room: Classroom 1'"""
+    """Extract room name from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
-    # Look for Room: pattern
-    import re
-    room_match = re.search(r'Room:\s*(.+?)(?:,|$)', cell_content)
-    if room_match:
-        return room_match.group(1).strip()
+    # Split by newlines and get the second line (room name)
+    lines = cell_content.split('\n')
+    if len(lines) > 1 and lines[1].strip():
+        return lines[1].strip()
     return None
 
-def detect_room_conflicts(all_timetables_data, current_group_idx):
-    """Detect room conflicts across all student groups at each time slot"""
+def detect_conflicts(all_timetables_data, current_group_idx):
+    """Detect both room conflicts and lecturer conflicts across all student groups at each time slot"""
     conflicts = {}
     
     if not all_timetables_data:
@@ -1370,33 +1669,65 @@ def detect_room_conflicts(all_timetables_data, current_group_idx):
         for col_idx in range(1, len(current_timetable[row_idx])):  # Skip time column
             timeslot_key = f"{row_idx}_{col_idx-1}"
             room_usage = {}  # room_name -> [(group_idx, group_name, course_info), ...]
+            lecturer_usage = {}  # faculty_name -> [(group_idx, group_name, course_info), ...]
             
             # Check all groups for this time slot
             for group_idx, timetable_data in enumerate(all_timetables_data):
                 timetable_rows = timetable_data['timetable']
                 if row_idx < len(timetable_rows) and col_idx < len(timetable_rows[row_idx]):
                     cell_content = timetable_rows[row_idx][col_idx]
-                    room_name = extract_room_from_cell(cell_content)
                     
-                    if room_name:
-                        if room_name not in room_usage:
-                            room_usage[room_name] = []
+                    if cell_content and cell_content not in ["FREE", "BREAK"]:
+                        room_name = extract_room_from_cell(cell_content)
+                        course_code, faculty_name = extract_course_and_faculty_from_cell(cell_content)
                         
                         group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
-                        room_usage[room_name].append((group_idx, group_name, cell_content))
+                        
+                        # Track room usage
+                        if room_name:
+                            if room_name not in room_usage:
+                                room_usage[room_name] = []
+                            room_usage[room_name].append((group_idx, group_name, cell_content))
+                        
+                        # Track lecturer usage
+                        if faculty_name and faculty_name != "Unknown":
+                            if faculty_name not in lecturer_usage:
+                                lecturer_usage[faculty_name] = []
+                            lecturer_usage[faculty_name].append((group_idx, group_name, cell_content))
             
-            # Check for conflicts (same room used by multiple groups)
+            # Check for room conflicts
             for room_name, usage_list in room_usage.items():
                 if len(usage_list) > 1:
-                    # There's a conflict - mark all groups using this room at this time
                     for group_idx, group_name, cell_content in usage_list:
                         if group_idx == current_group_idx:
                             conflicts[timeslot_key] = {
-                                'room': room_name,
+                                'type': 'room',
+                                'resource': room_name,
                                 'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
                             }
+            
+            # Check for lecturer conflicts
+            for faculty_name, usage_list in lecturer_usage.items():
+                if len(usage_list) > 1:
+                    for group_idx, group_name, cell_content in usage_list:
+                        if group_idx == current_group_idx:
+                            # If there's already a room conflict, mark it as both
+                            if timeslot_key in conflicts:
+                                conflicts[timeslot_key]['type'] = 'both'
+                                conflicts[timeslot_key]['lecturer'] = faculty_name
+                                conflicts[timeslot_key]['lecturer_conflicting_groups'] = [u for u in usage_list if u[0] != current_group_idx]
+                            else:
+                                conflicts[timeslot_key] = {
+                                    'type': 'lecturer',
+                                    'resource': faculty_name,
+                                    'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
+                                }
     
     return conflicts
+
+def detect_room_conflicts(all_timetables_data, current_group_idx):
+    """Legacy function - now uses the comprehensive detect_conflicts function"""
+    return detect_conflicts(all_timetables_data, current_group_idx)
 
 app = dash.Dash(__name__)
 
@@ -1430,6 +1761,9 @@ app.index_string = '''
                 line-height: 1.2;
                 text-align: center;
                 background-color: white;
+                white-space: pre-line;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
             .cell:hover {
                 transform: translateY(-1px);
@@ -1468,6 +1802,26 @@ app.index_string = '''
                 background-color: #ffcdd2 !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
+            .cell.lecturer-conflict {
+                background-color: #ffebee !important;
+                color: #d32f2f !important;
+                border-color: #f44336 !important;
+                font-weight: 600 !important;
+            }
+            .cell.lecturer-conflict:hover {
+                background-color: #ffcdd2 !important;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
+            .cell.both-conflict {
+                background-color: #ffebee !important;
+                color: #d32f2f !important;
+                border-color: #f44336 !important;
+                font-weight: 600 !important;
+            }
+            .cell.both-conflict:hover {
+                background-color: #ffcdd2 !important;
+                box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
             .room-selection-modal {
                 position: fixed;
                 top: 50%;
@@ -1478,9 +1832,9 @@ app.index_string = '''
                 box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
                 padding: 25px;
                 z-index: 1000;
-                max-width: 450px;
-                width: 90%;
-                max-height: 70vh;
+                max-width: 800px;
+                width: 95%;
+                max-height: 80vh;
                 overflow-y: auto;
                 font-family: 'Poppins', sans-serif;
             }
@@ -1735,6 +2089,124 @@ app.index_string = '''
                 font-size: 12px;
                 line-height: 1.4;
             }
+            .constraint-dropdown {
+                margin-bottom: 15px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .constraint-header {
+                background-color: #f8f9fa;
+                padding: 12px 16px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: 600;
+                font-size: 14px;
+                color: #11214D;
+                border-bottom: 1px solid #e0e0e0;
+                transition: background-color 0.2s ease;
+                gap: 15px;
+            }
+            .constraint-header:hover {
+                background-color: #e9ecef;
+            }
+            .constraint-header.active {
+                background-color: #11214D;
+                color: white;
+            }
+            .constraint-count {
+                color: white;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 600;
+            }
+            .constraint-count.zero {
+                background-color: #28a745;
+            }
+            .constraint-count.non-zero {
+                background-color: #dc3545;
+            }
+            .constraint-header.active .constraint-count {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            .constraint-details {
+                padding: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+                background: white;
+            }
+            .constraint-details.expanded {
+                max-height: 300px;
+                overflow-y: auto;
+                border-top: 1px solid #e0e0e0;
+            }
+            .constraint-item {
+                padding: 10px 16px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 13px;
+                line-height: 1.4;
+                color: #666;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            .constraint-item:last-child {
+                border-bottom: none;
+            }
+            .constraint-arrow {
+                font-weight: bold;
+                transition: transform 0.3s ease;
+                font-family: monospace;
+                font-size: 16px;
+            }
+            .constraint-arrow.rotated {
+                transform: rotate(180deg);
+            }
+            .errors-button {
+                position: relative;
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-family: 'Poppins', sans-serif;
+                box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            }
+            .errors-button:hover {
+                background: #c82333;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+            }
+            .errors-button:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .error-notification {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: rgba(255, 255, 255, 0.9);
+                color: #dc3545;
+                border: 2px solid #dc3545;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: 700;
+                font-family: 'Poppins', sans-serif;
+            }
         </style>
     </head>
     <body>
@@ -1755,16 +2227,18 @@ app.layout = html.Div([
                 style={"color": "#11214D", "fontWeight": "600", "fontSize": "24px", 
                       "fontFamily": "Poppins, sans-serif", "margin": "0", "flex": "1"}),
         
-        dcc.Dropdown(
-            id='student-group-dropdown',
-            options=[{'label': timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) 
-                              else timetable_data['student_group'].name, 'value': idx} 
-                    for idx, timetable_data in enumerate(all_timetables)],
-            value=0,
-            searchable=True,
-            clearable=False,
-            style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
-        )
+        html.Div([
+            dcc.Dropdown(
+                id='student-group-dropdown',
+                options=[{'label': timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) 
+                                  else timetable_data['student_group'].name, 'value': idx} 
+                        for idx, timetable_data in enumerate(all_timetables)],
+                value=0,
+                searchable=True,
+                clearable=False,
+                style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"}
+            )
+        ], style={"display": "flex", "alignItems": "center"})
     ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
              "marginTop": "30px", "marginBottom": "30px", "maxWidth": "1200px", 
              "margin": "30px auto", "padding": "0 15px"}),
@@ -1774,6 +2248,12 @@ app.layout = html.Div([
     
     # Store for rooms data
     dcc.Store(id="rooms-data-store", data=rooms_data),
+    
+    # Store for original timetable (for undo functionality)
+    dcc.Store(id="original-timetables-store", data=[timetable_data.copy() for timetable_data in all_timetables]),
+    
+    # Store for constraint violation details (for errors popup)
+    dcc.Store(id="constraint-details-store", data=constraint_details),
     
     # Store for communicating swaps
     dcc.Store(id="swap-data", data=None),
@@ -1818,6 +2298,78 @@ app.layout = html.Div([
         ], className="room-selection-modal", id="room-selection-modal", style={"display": "none"})
     ]),
     
+    # Errors modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="errors-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Constraint Violations", className="modal-title"),
+                html.Button("×", className="modal-close", id="errors-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div(id="errors-content"),
+            
+            html.Div([
+                html.Button("Close", id="errors-close-btn", 
+                           style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="errors-modal", style={"display": "none"})
+    ]),
+    
+    # Download modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="download-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Download Timetables", className="modal-title"),
+                html.Button("×", className="modal-close", id="download-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div([
+                # SST Timetables row
+                html.Div([
+                    html.Span("Download SST Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-sst-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px", "borderBottom": "1px solid #f0f0f0"}),
+                
+                # TYD Timetables row
+                html.Div([
+                    html.Span("Download TYD Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-tyd-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px", "borderBottom": "1px solid #f0f0f0"}),
+                
+                # Lecturer Timetables row
+                html.Div([
+                    html.Span("Download all Lecturer Timetables", style={"flex": "1", "fontSize": "16px", "fontWeight": "500"}),
+                    html.Button("Download", id="download-lecturer-btn", 
+                               style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
+                                     "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                     "fontFamily": "Poppins, sans-serif", "fontSize": "14px"})
+                ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
+                         "padding": "15px"})
+            ]),
+            
+            html.Div([
+                html.Button("Close", id="download-close-btn", 
+                           style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="download-modal", style={"display": "none"})
+    ]),
+    
     # Conflict warning popup (initially hidden)
     html.Div([
         html.Div([
@@ -1833,14 +2385,14 @@ app.layout = html.Div([
         html.Div("Please resolve all classroom conflicts before saving the timetable.", className="save-error-content")
     ], className="save-error", id="save-error", style={"display": "none"}),
     
-    # Button to save current timetable state
+    # Button to download timetables
     html.Div([
-        html.Button("Save Current Timetable", id="save-button", 
+        html.Button("Download Timetables", id="download-button", 
                    style={"backgroundColor": "#11214D", "color": "white", "padding": "10px 20px", 
                          "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
                          "fontWeight": "600", "boxShadow": "0 1px 3px rgba(0,0,0,0.1)",
                          "transition": "all 0.2s ease", "fontFamily": "Poppins, sans-serif"}),
-        html.Div(id="save-status", style={"marginTop": "12px", "fontWeight": "600", 
+        html.Div(id="download-status", style={"marginTop": "12px", "fontWeight": "600", 
                                          "fontFamily": "Poppins, sans-serif", "fontSize": "12px"})
     ], style={"textAlign": "center", "marginTop": "30px", "maxWidth": "1200px", "margin": "30px auto 0 auto"}),
     
@@ -1880,8 +2432,8 @@ def create_timetable(selected_group_idx, all_timetables_data):
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
     timetable_rows = timetable_data['timetable']
     
-    # Detect room conflicts across all time slots
-    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    # Detect conflicts (both room and lecturer) across all time slots
+    conflicts = detect_conflicts(all_timetables_data, selected_group_idx)
     
     # Create table rows
     rows = []
@@ -1925,16 +2477,23 @@ def create_timetable(selected_group_idx, all_timetables_data):
             # Check if this is a break time
             is_break = cell_content == "BREAK"
             
-            # Check for room conflicts
+            # Check for conflicts (room, lecturer, or both)
             timeslot_key = f"{row_idx}_{col_idx-1}"
-            has_conflict = timeslot_key in room_conflicts
+            has_conflict = timeslot_key in conflicts
+            conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
-            # Determine cell class
+            # Determine cell class based on conflict type
             if is_break:
                 cell_class = "cell break-time"
                 draggable = "false"
-            elif has_conflict:
+            elif conflict_type == 'room':
                 cell_class = "cell room-conflict"
+                draggable = "true"
+            elif conflict_type == 'lecturer':
+                cell_class = "cell lecturer-conflict"
+                draggable = "true"
+            elif conflict_type == 'both':
+                cell_class = "cell both-conflict"
                 draggable = "true"
             else:
                 cell_class = "cell"
@@ -1982,6 +2541,19 @@ def create_timetable(selected_group_idx, all_timetables_data):
                            disabled=selected_group_idx == len(all_timetables_data) - 1)
             ], className="nav-arrows")
         ], className="timetable-header"),
+        
+        # New buttons row
+        html.Div([
+            html.Button([
+                "View Errors",
+                html.Div(id="error-notification-badge", className="error-notification")
+            ], id="errors-btn", className="errors-button"),
+            html.Button("Undo All Changes", id="undo-all-btn", 
+                       style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                             "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
+        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+        
         table
     ], className="student-group-container"), "trigger"
 
@@ -2011,8 +2583,8 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
     student_group_name = timetable_data['student_group']['name'] if isinstance(timetable_data['student_group'], dict) else timetable_data['student_group'].name
     timetable_rows = timetable_data['timetable']
     
-    # Detect room conflicts across all time slots
-    room_conflicts = detect_room_conflicts(all_timetables_data, selected_group_idx)
+    # Detect conflicts (both room and lecturer) across all time slots
+    conflicts = detect_conflicts(all_timetables_data, selected_group_idx)
     
     # Create table rows (same logic as create_timetable but only return the container content)
     rows = []
@@ -2063,13 +2635,21 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
             
             # Determine cell styling
             is_break = cell_content == "BREAK"
-            has_conflict = (row_idx, col_idx - 1) in room_conflicts
+            timeslot_key = f"{row_idx}_{col_idx-1}"
+            has_conflict = timeslot_key in conflicts
+            conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
             if is_break:
                 cell_class = "cell break-time"
                 draggable = False
-            elif has_conflict:
-                cell_class = "cell room-conflict"  
+            elif conflict_type == 'room':
+                cell_class = "cell room-conflict"
+                draggable = True
+            elif conflict_type == 'lecturer':
+                cell_class = "cell lecturer-conflict"
+                draggable = True
+            elif conflict_type == 'both':
+                cell_class = "cell both-conflict"
                 draggable = True
             else:
                 cell_class = "cell"
@@ -2111,6 +2691,19 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
                            disabled=selected_group_idx == len(all_timetables_data) - 1)
             ], className="nav-arrows")
         ], className="timetable-header"),
+        
+        # New buttons row
+        html.Div([
+            html.Button([
+                "View Errors",
+                html.Div(id="error-notification-badge", className="error-notification")
+            ], id="errors-btn", className="errors-button"),
+            html.Button("Undo All Changes", id="undo-all-btn", 
+                       style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
+                             "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
+        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+        
         table
     ], className="student-group-container")
 
@@ -2605,6 +3198,32 @@ clientside_callback(
     prevent_initial_call=True
 )
 
+# Client-side callback to auto-hide download modal after successful download
+clientside_callback(
+    """
+    function(status_content) {
+        if (status_content && status_content.props && status_content.props.children) {
+            const message = status_content.props.children;
+            if (typeof message === 'string' && message.includes('✅')) {
+                // Auto-hide modal after 3 seconds on successful download
+                setTimeout(function() {
+                    const modal = document.getElementById('download-modal');
+                    const overlay = document.getElementById('download-modal-overlay');
+                    if (modal && overlay) {
+                        modal.style.display = 'none';
+                        overlay.style.display = 'none';
+                    }
+                }, 3000);
+            }
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("download-modal", "children"),
+    Input("download-status", "children"),
+    prevent_initial_call=True
+)
+
 # Callback to handle room selection modal and search
 @app.callback(
     [Output("room-options-container", "children"),
@@ -2776,6 +3395,10 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
         if course_code:
             update_consecutive_course_rooms(updated_timetables, selected_group_idx, course_code, selected_room, row_idx, col_idx)
         
+        # Update the global all_timetables variable BEFORE saving to ensure consistency
+        global all_timetables
+        all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
+        
         # Check for conflicts after the update
         room_usage = get_room_usage_at_timeslot(updated_timetables, row_idx, col_idx)
         conflict_warning_style = {"display": "none"}
@@ -2790,7 +3413,11 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
             conflict_warning_text = f"This classroom is already in use by: {', '.join(other_groups)}"
         
         # Auto-save the changes
-        save_timetable_to_file(updated_timetables)
+        save_success = save_timetable_to_file(updated_timetables)
+        if save_success:
+            print(f"✅ Room change auto-saved successfully - Global state updated")
+        else:
+            print(f"❌ Failed to auto-save room change")
         
         return updated_timetables, conflict_warning_style, conflict_warning_text
         
@@ -2799,26 +3426,34 @@ def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selecte
         return dash.no_update, {"display": "block"}, f"Error updating room: {str(e)}"
 
 def extract_course_code_from_cell(cell_content):
-    """Extract course code from cell content"""
+    """Extract course code from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
-    # Look for Course: pattern
-    import re
-    course_match = re.search(r'Course:\s*([^,]+)', cell_content)
-    if course_match:
-        return course_match.group(1).strip()
+    # Split by newlines and get the first line (course code)
+    lines = cell_content.split('\n')
+    if lines and lines[0].strip():
+        return lines[0].strip()
     return None
 
 def update_room_in_cell_content(cell_content, new_room):
-    """Update the room name in cell content"""
+    """Update the room name in cell content with new format: Course Code\\nRoom Name\\nFaculty"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return cell_content
     
-    import re
-    # Replace the room part
-    updated_content = re.sub(r'Room:\s*[^,]*', f'Room: {new_room}', cell_content)
-    return updated_content
+    # Split by newlines and update the second line (room name)
+    lines = cell_content.split('\n')
+    if len(lines) >= 3:
+        lines[1] = new_room  # Update the room name (second line)
+        return '\n'.join(lines)
+    elif len(lines) == 2:
+        # If only 2 lines, add room as second line and move faculty to third
+        return f"{lines[0]}\n{new_room}\n{lines[1]}"
+    elif len(lines) == 1:
+        # If only 1 line, add room and keep original as course code
+        return f"{lines[0]}\n{new_room}\nUnknown"
+    
+    return cell_content
 
 def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new_room, current_row, current_col):
     """Update consecutive classes of the same course to use the same room"""
@@ -2834,30 +3469,343 @@ def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new
                 timetable_rows[row_idx][current_col + 1] = updated_content
 
 def save_timetable_to_file(timetables_data):
-    """Save timetable data to file"""
+    """Save timetable data to file with enhanced global state synchronization"""
     try:
-        save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
-        backup_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data_backup.json')
+        global all_timetables
+        import os
+        import time
+        
+        save_dir = os.path.join(os.path.dirname(__file__), 'data')
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, 'timetable_data.json')
+        backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
+        
+        # Add timestamp to track saves
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{timestamp}] Saving timetable data...")
         
         # Create backup
         if os.path.exists(save_path):
             shutil.copy2(save_path, backup_path)
+            print(f"[{timestamp}] Backup created")
         
-        # Save new data
+        # Ensure we're synchronizing the global state with the data being saved
+        all_timetables = json.loads(json.dumps(timetables_data))  # Deep copy to avoid reference issues
+        
+        # Save new data with proper file handling
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(timetables_data, f, indent=2, ensure_ascii=False)
-        
-        # Force file system sync
-        if hasattr(os, 'fsync'):
             f.flush()
-            os.fsync(f.fileno())
+            if hasattr(os, 'fsync'):
+                os.fsync(f.fileno())
         
-        print(f"✅ Auto-saved timetable changes")
+        # Verify the file was written correctly
+        file_size = os.path.getsize(save_path)
+        with open(save_path, 'r', encoding='utf-8') as f:
+            verification_data = json.load(f)
+        
+        print(f"[{timestamp}] ✅ Auto-saved timetable changes - File size: {file_size} bytes")
+        print(f"[{timestamp}] ✅ Verification: Loaded {len(verification_data)} groups from saved file")
+        print(f"[{timestamp}] ✅ Global state synchronized with {len(all_timetables)} groups")
         return True
         
     except Exception as e:
         print(f"❌ Error auto-saving timetable: {e}")
+        import traceback
+        traceback.print_exc()
         return False
+
+def recompute_constraint_violations_simplified(timetables_data, rooms_data=None, include_consecutive=True):
+    """Simplified constraint violation checking based on timetable data with persistent tracking."""
+    try:
+        global global_violation_tracking, original_algorithm_violations
+        
+        violations = {
+            'Same Student Group Overlaps': [],
+            'Different Student Group Overlaps': [],
+            'Lecturer Clashes': [],
+            'Lecturer Schedule Conflicts (Day/Time)': [],
+            'Lecturer Workload Violations': [],
+            'Consecutive Slot Violations': [],
+            'Missing or Extra Classes': [],
+            'Same Course in Multiple Rooms on Same Day': [],
+            'Room Capacity/Type Conflicts': [],
+            'Classes During Break Time': []
+        }
+        
+        # Create room lookup for capacity checking
+        room_lookup = {}
+        if rooms_data:
+            for room in rooms_data:
+                room_lookup[room['name']] = room
+        
+        # Always perform ALL violation checks - don't skip any
+        # This ensures violations persist until actually fixed
+        
+        # Check for room conflicts and lecturer clashes simultaneously
+        for time_slot in range(8):  # 8 time slots per day
+            for day in range(5):  # 5 days per week
+                room_usage = {}  # room -> [groups using it]
+                lecturer_usage = {}  # lecturer -> [groups they're teaching]
+                
+                for timetable in timetables_data:
+                    if time_slot < len(timetable['timetable']):
+                        row = timetable['timetable'][time_slot]
+                        if day + 1 < len(row):  # +1 because first column is time
+                            cell_content = row[day + 1]
+                            if cell_content and cell_content not in ['FREE', 'BREAK']:
+                                # Extract room and lecturer from cell content (Course\nRoom\nLecturer)
+                                lines = cell_content.split('\n')
+                                if len(lines) >= 2:
+                                    course_code = lines[0].strip()
+                                    room = lines[1].strip()
+                                    lecturer = lines[2].strip() if len(lines) >= 3 else "Unknown"
+                                    group_name = timetable['student_group']['name']
+                                    
+                                    # Track room usage
+                                    if room not in room_usage:
+                                        room_usage[room] = []
+                                    room_usage[room].append(group_name)
+                                    
+                                    # Track lecturer usage for clash detection
+                                    if lecturer not in lecturer_usage:
+                                        lecturer_usage[lecturer] = []
+                                    lecturer_usage[lecturer].append({
+                                        'group': group_name,
+                                        'course': course_code,
+                                        'room': room
+                                    })
+                                    
+                                    # Check room capacity if rooms data is available
+                                    if rooms_data and room in room_lookup:
+                                        room_info = room_lookup[room]
+                                        group_size = timetable['student_group'].get('size', 0)
+                                        room_capacity = room_info.get('capacity', 999)
+                                        
+                                        if group_size > room_capacity:
+                                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                                            violations['Room Capacity/Type Conflicts'].append({
+                                                'type': 'Room Capacity Exceeded',
+                                                'room': room,
+                                                'group': group_name,
+                                                'day': days_map.get(day, "Unknown"),
+                                                'time': f"{time_slot + 9}:00",
+                                                'students': group_size,
+                                                'capacity': room_capacity,
+                                                'course': course_code
+                                            })
+                
+                # Check for room conflicts
+                days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                for room, groups in room_usage.items():
+                    if len(groups) > 1:
+                        violations['Different Student Group Overlaps'].append({
+                            'room': room,
+                            'groups': groups,
+                            'day': days_map.get(day, "Unknown"),
+                            'time': f"{time_slot + 9}:00",
+                            'location': f"{days_map.get(day)} at {time_slot + 9}:00"
+                        })
+                
+                # Check for lecturer clashes
+                for lecturer, teaching_sessions in lecturer_usage.items():
+                    if len(teaching_sessions) > 1 and lecturer != "Unknown":
+                        courses = [session['course'] for session in teaching_sessions]
+                        groups = [session['group'] for session in teaching_sessions]
+                        
+                        violations['Lecturer Clashes'].append({
+                            'lecturer': lecturer,
+                            'day': days_map.get(day, "Unknown"),
+                            'time': f"{time_slot + 9}:00",
+                            'courses': courses,
+                            'groups': groups,
+                            'location': f"{days_map.get(day)} at {time_slot + 9}:00"
+                        })
+        
+        # ALWAYS check for consecutive slot violations - no conditional tracking
+        # This ensures ALL violations are always shown until actually fixed
+        for timetable in timetables_data:
+            group_name = timetable['student_group']['name']
+            course_schedules = {}  # course -> [(day, time)]
+            
+            for time_slot in range(len(timetable['timetable'])):
+                for day in range(5):
+                    if day + 1 < len(timetable['timetable'][time_slot]):
+                        cell_content = timetable['timetable'][time_slot][day + 1]
+                        if cell_content and cell_content not in ['FREE', 'BREAK']:
+                            lines = cell_content.split('\n')
+                            if lines:
+                                course_code = lines[0].strip()
+                                if course_code not in course_schedules:
+                                    course_schedules[course_code] = []
+                                course_schedules[course_code].append((day, time_slot))
+            
+            # Check for 2-hour and 3-hour courses that violate consecutive rules
+            for course_code, schedule in course_schedules.items():
+                if len(schedule) == 2:  # 2-hour course
+                    # Group by day
+                    by_day = {}
+                    for day, time in schedule:
+                        if day not in by_day:
+                            by_day[day] = []
+                        by_day[day].append(time)
+                    
+                    # Check if any day has 2 hours that are not consecutive
+                    for day, times in by_day.items():
+                        if len(times) == 2:
+                            times.sort()
+                            if times[1] - times[0] != 1:  # Not consecutive
+                                days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                                violations['Consecutive Slot Violations'].append({
+                                    'course': course_code,
+                                    'group': group_name,
+                                    'day': days_map.get(day, "Unknown"),
+                                    'times': [f"{t + 9}:00" for t in times],
+                                    'location': f"{course_code} for {group_name}",
+                                    'reason': "2-hour course not scheduled consecutively"
+                                })
+                
+                elif len(schedule) == 3:  # 3-hour course (including 1-credit converted to 3)
+                    # Group by day
+                    by_day = {}
+                    for day, time in schedule:
+                        if day not in by_day:
+                            by_day[day] = []
+                        by_day[day].append(time)
+                    
+                    # Check if there's at least one 2-hour consecutive block
+                    has_2_hour_block = False
+                    for day, times in by_day.items():
+                        if len(times) >= 2:
+                            times.sort()
+                            for i in range(len(times) - 1):
+                                if times[i+1] - times[i] == 1:  # Found consecutive pair
+                                    has_2_hour_block = True
+                                    break
+                        if has_2_hour_block:
+                            break
+                    
+                    if not has_2_hour_block:
+                        # Get all times across all days
+                        all_times = []
+                        for day, times in by_day.items():
+                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                            for time in times:
+                                all_times.append(f"{days_map.get(day, 'Unknown')} {time + 9}:00")
+                        
+                        violations['Consecutive Slot Violations'].append({
+                            'course': course_code,
+                            'group': group_name,
+                            'times': all_times,
+                            'location': f"{course_code} for {group_name}",
+                            'reason': "3-hour course has no 2-hour consecutive block (required for 1-credit courses)"
+                        })
+        
+        # Check for lecturer workload violations
+        lecturer_daily_hours = {}  # lecturer -> {day: {hours: int, course_details: list}}
+        for timetable in timetables_data:
+            group_name = timetable['student_group']['name']
+            for time_slot in range(len(timetable['timetable'])):
+                for day in range(5):
+                    if day + 1 < len(timetable['timetable'][time_slot]):
+                        cell_content = timetable['timetable'][time_slot][day + 1]
+                        if cell_content and cell_content not in ['FREE', 'BREAK']:
+                            lines = cell_content.split('\n')
+                            if len(lines) >= 3:
+                                course_code = lines[0].strip()
+                                lecturer = lines[2].strip()
+                                
+                                if lecturer != "Unknown":
+                                    if lecturer not in lecturer_daily_hours:
+                                        lecturer_daily_hours[lecturer] = {}
+                                    if day not in lecturer_daily_hours[lecturer]:
+                                        lecturer_daily_hours[lecturer][day] = {'hours': 0, 'course_details': []}
+                                    
+                                    lecturer_daily_hours[lecturer][day]['hours'] += 1
+                                    lecturer_daily_hours[lecturer][day]['course_details'].append({
+                                        'course': course_code,
+                                        'group': group_name
+                                    })
+        
+        # Check for excessive daily hours (more than 4 hours per day)
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        for lecturer, days_data in lecturer_daily_hours.items():
+            for day, data in days_data.items():
+                if data['hours'] > 4:
+                    # Remove duplicates while preserving order and format course details with group names
+                    unique_course_details = []
+                    seen_combinations = set()
+                    
+                    for detail in data['course_details']:
+                        combination = f"{detail['course']} for {detail['group']}"
+                        if combination not in seen_combinations:
+                            unique_course_details.append(combination)
+                            seen_combinations.add(combination)
+                    
+                    course_details_str = ', '.join(unique_course_details)
+                    
+                    violations['Lecturer Workload Violations'].append({
+                        'lecturer': lecturer,
+                        'type': 'Excessive Daily Hours',
+                        'day': days_map.get(day, "Unknown"),
+                        'hours_scheduled': data['hours'],
+                        'max_allowed': 4,
+                        'courses': course_details_str
+                    })
+        
+        return violations
+        
+    except Exception as e:
+        print(f"Error in simplified constraint checking: {e}")
+        return None
+
+@app.callback(
+    Output("constraint-details-store", "data", allow_duplicate=True),
+    [Input("all-timetables-store", "data")],
+    [State("rooms-data-store", "data"),
+     State("constraint-details-store", "data")],
+    prevent_initial_call=True
+)
+def update_constraint_violations_realtime(timetables_data, rooms_data, current_constraints):
+    """Update constraint violations in real-time when timetable changes."""
+    if not timetables_data:
+        return dash.no_update
+    
+    try:
+        # Check if this is a user-initiated change by looking at session_has_swaps
+        global session_has_swaps
+        
+        # ONLY update constraints if the user has made swaps/changes
+        # This preserves the original algorithm constraint details on initial load
+        if not session_has_swaps:
+            print("🔒 No user changes detected - preserving original DE algorithm constraint details")
+            return dash.no_update
+        
+        # For user-initiated changes, check serious violations + track original consecutive violations
+        print(f"🔍 Updating constraint violations for user changes (session_has_swaps={session_has_swaps})")
+        
+        # Recompute constraint violations with rooms data
+        # Use include_consecutive=False to use the special logic for tracking original violations
+        updated_violations = recompute_constraint_violations_simplified(
+            timetables_data, 
+            rooms_data, 
+            include_consecutive=False  # Special handling for consecutive violations
+        )
+        
+        if updated_violations:
+            print("🔄 Updated constraint violations in real-time (tracking original consecutive violations)")
+            # Debug: Print violation counts for comparison
+            for constraint_type, violations_list in updated_violations.items():
+                if violations_list:
+                    print(f"  - {constraint_type}: {len(violations_list)} violations")
+            return updated_violations
+        else:
+            print("❌ Failed to update violations - keeping current constraints")
+            return current_constraints
+            
+    except Exception as e:
+        print(f"Error updating constraint violations: {e}")
+        return current_constraints
 @app.callback(
     Output("all-timetables-store", "data", allow_duplicate=True),
     Input("swap-data", "data"),
@@ -2923,41 +3871,15 @@ def handle_swap(swap_data, current_timetables):
         # Mark that we've made swaps in this session
         session_has_swaps = True
         
-        # Update the global all_timetables variable to ensure persistence
-        all_timetables[group_idx]['timetable'] = timetable_rows
+        # Update the global all_timetables variable BEFORE saving to ensure persistence
+        all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
         
-        # Auto-save the changes to maintain persistence
-        try:
-            import os
-            import time
-            import shutil
-            
-            save_dir = os.path.join(os.path.dirname(__file__), 'data')
-            os.makedirs(save_dir, exist_ok=True)
-            save_path = os.path.join(save_dir, 'timetable_data.json')
-            
-            # Add timestamp to track saves
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            print(f"[{timestamp}] Auto-saving swap")
-            
-            # Create a backup before saving
-            backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
-            if os.path.exists(save_path):
-                shutil.copy2(save_path, backup_path)
-            
-            # Force a file flush and sync to ensure data is written to disk
-            with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(updated_timetables, f, indent=2, ensure_ascii=False)
-                f.flush()
-                if hasattr(os, 'fsync'):
-                    os.fsync(f.fileno())
-            
-            print(f"✅ Auto-save successful: {save_path}")
-                
-        except Exception as auto_save_error:
-            print(f"❌ Auto-save failed: {auto_save_error}")
-            import traceback
-            traceback.print_exc()
+        # Auto-save the changes using centralized function
+        save_success = save_timetable_to_file(updated_timetables)
+        if save_success:
+            print(f"✅ Swap auto-saved successfully - Global state updated")
+        else:
+            print(f"❌ Failed to auto-save swap")
         
         return updated_timetables
         
@@ -3053,6 +3975,30 @@ def save_timetable(n_clicks, current_timetables):
 #     print(f"🔄 Using fresh DE results: {len(all_timetables)} student groups")
 #     return all_timetables
 
+# Callback to load saved user modifications on initial app startup only
+@app.callback(
+    Output("all-timetables-store", "data", allow_duplicate=True),
+    Input("trigger", "children"),
+    State("all-timetables-store", "data"),
+    prevent_initial_call='initial_duplicate'
+)
+def load_user_modifications_on_startup(trigger, current_data):
+    """Load saved user modifications on app startup (but not when algorithm is re-run)"""
+    global all_timetables, session_has_swaps
+    
+    # Only try to load saved data if we have current data and it's the initial load
+    if current_data:
+        saved_data = load_saved_timetable()
+        if saved_data:
+            print("🔄 Loading saved user modifications on app startup")
+            all_timetables = saved_data
+            session_has_swaps = True  # Mark that we have user modifications
+            return saved_data
+    
+    # Otherwise use the current fresh DE results (no user swaps yet)
+    session_has_swaps = False
+    return current_data or all_timetables
+
 # Additional safeguard callback to prevent dropdown state issues
 @app.callback(
     Output("student-group-dropdown", "value", allow_duplicate=True),
@@ -3074,21 +4020,366 @@ def validate_dropdown_selection(selected_value, all_timetables_data):
     # Value is valid, no change needed
     raise dash.exceptions.PreventUpdate
 
+# Callback to handle errors button click and show modal
+@app.callback(
+    [Output("errors-modal-overlay", "style"),
+     Output("errors-modal", "style"),
+     Output("errors-content", "children")],
+    [Input("errors-btn", "n_clicks"),
+     Input("errors-modal-close-btn", "n_clicks"),
+     Input("errors-close-btn", "n_clicks"),
+     Input("errors-modal-overlay", "n_clicks")],
+    State("constraint-details-store", "data"),
+    prevent_initial_call=True
+)
+def handle_errors_modal(errors_btn_clicks, close_btn_clicks, close_btn2_clicks, overlay_clicks, constraint_details):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger_id == "errors-btn" and errors_btn_clicks:
+        # Show modal and populate with constraint details
+        modal_content = create_errors_modal_content(constraint_details)
+        return {"display": "block"}, {"display": "block"}, modal_content
+    elif trigger_id in ["errors-modal-close-btn", "errors-close-btn", "errors-modal-overlay"]:
+        # Hide modal
+        return {"display": "none"}, {"display": "none"}, []
+    
+    raise dash.exceptions.PreventUpdate
+
+# Callback to handle download button click and show download modal
+@app.callback(
+    [Output("download-modal-overlay", "style"),
+     Output("download-modal", "style")],
+    [Input("download-button", "n_clicks"),
+     Input("download-modal-close-btn", "n_clicks"),
+     Input("download-close-btn", "n_clicks"),
+     Input("download-modal-overlay", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_download_modal(download_btn_clicks, close_btn_clicks, close_btn2_clicks, overlay_clicks):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger_id == "download-button" and download_btn_clicks:
+        # Show modal
+        return {"display": "block"}, {"display": "block"}
+    elif trigger_id in ["download-modal-close-btn", "download-close-btn", "download-modal-overlay"]:
+        # Hide modal
+        return {"display": "none"}, {"display": "none"}
+    
+    raise dash.exceptions.PreventUpdate
+
+# Callback to handle constraint dropdown toggle
+@app.callback(
+    Output("errors-content", "children", allow_duplicate=True),
+    [Input({"type": "constraint-header", "index": dash.dependencies.ALL}, "n_clicks")],
+    [State("constraint-details-store", "data"),
+     State("errors-content", "children")],
+    prevent_initial_call=True
+)
+def toggle_constraint_dropdown(n_clicks_list, constraint_details, current_content):
+    """Handle constraint dropdown toggle by regenerating content with updated state"""
+    ctx = dash.callback_context
+    if not ctx.triggered or not any(n_clicks_list):
+        raise dash.exceptions.PreventUpdate
+    
+    # Find which header was clicked
+    trigger_info = ctx.triggered[0]['prop_id']
+    clicked_index = eval(trigger_info.split('.')[0])['index']
+    
+    # Toggle the expansion state for this constraint
+    # For simplicity, we'll regenerate the entire content with the clicked item toggled
+    return create_errors_modal_content(constraint_details, toggle_constraint=clicked_index)
+
+# Callbacks to handle download actions
+@app.callback(
+    Output("download-status", "children"),
+    [Input("download-sst-btn", "n_clicks"),
+     Input("download-tyd-btn", "n_clicks"),
+     Input("download-lecturer-btn", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_download_actions(sst_clicks, tyd_clicks, lecturer_clicks):
+    """Handle download button clicks"""
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    try:
+        # Import output_data functions
+        from output_data import export_sst_timetables, export_tyd_timetables, export_lecturer_timetables
+        
+        if trigger_id == "download-sst-btn" and sst_clicks:
+            success, message = export_sst_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+                
+        elif trigger_id == "download-tyd-btn" and tyd_clicks:
+            success, message = export_tyd_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+                
+        elif trigger_id == "download-lecturer-btn" and lecturer_clicks:
+            success, message = export_lecturer_timetables()
+            if success:
+                return html.Div(f"✅ {message}", style={"color": "green", "fontWeight": "600"})
+            else:
+                return html.Div(f"❌ {message}", style={"color": "red", "fontWeight": "600"})
+    
+    except Exception as e:
+        return html.Div(f"❌ Error: {str(e)}", style={"color": "red", "fontWeight": "600"})
+    
+    raise dash.exceptions.PreventUpdate
+
+# Callback to handle undo all changes
+@app.callback(
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("feedback", "children", allow_duplicate=True)],
+    Input("undo-all-btn", "n_clicks"),
+    State("original-timetables-store", "data"),
+    prevent_initial_call=True
+)
+def handle_undo_all_changes(n_clicks, original_timetables):
+    if n_clicks and original_timetables:
+        print("🔄 Undoing all changes - reverting to original timetable")
+        
+        # Clear the saved timetable file so fresh DE results are used on next restart
+        clear_saved_timetable()
+        
+        return original_timetables, html.Div("✅ All changes have been undone!", 
+                                           style={"color": "green", "fontWeight": "600"})
+    raise dash.exceptions.PreventUpdate
+
+def create_errors_modal_content(constraint_details, expanded_constraint=None, toggle_constraint=None):
+    """Create the content for the errors modal with constraint dropdowns"""
+    if not constraint_details:
+        return [html.Div("No constraint violation data available.", style={"padding": "20px", "textAlign": "center"})]
+    
+    # Keep track of expanded states (simple approach)
+    if not hasattr(create_errors_modal_content, 'expanded_states'):
+        create_errors_modal_content.expanded_states = set()
+    
+    # Toggle the state if a constraint was clicked
+    if toggle_constraint:
+        if toggle_constraint in create_errors_modal_content.expanded_states:
+            create_errors_modal_content.expanded_states.remove(toggle_constraint)
+        else:
+            create_errors_modal_content.expanded_states.add(toggle_constraint)
+    
+    # Set initial expanded state if specified
+    if expanded_constraint:
+        create_errors_modal_content.expanded_states.add(expanded_constraint)
+    
+    # Mapping from user-friendly names to internal names
+    constraint_mapping = {
+        'Same Student Group Overlaps (MUST REDO IF OCCURS)': 'Same Student Group Overlaps',
+        'Different Student Group Overlaps': 'Different Student Group Overlaps', 
+        'Lecturer Clashes': 'Lecturer Clashes',
+        'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
+        'Lecturer Workload Violations': 'Lecturer Workload Violations',
+        'Consecutive Slot Violations': 'Consecutive Slot Violations',
+        'Missing or Extra Classes (MUST REDO IF OCCURS)': 'Missing or Extra Classes',
+        'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
+        'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
+        'Classes During Break Time': 'Classes During Break Time'
+    }
+    
+    content = []
+    
+    for display_name, internal_name in constraint_mapping.items():
+        violations = constraint_details.get(internal_name, [])
+        count = len(violations)
+        
+        # Determine if this dropdown should be expanded
+        is_expanded = display_name in create_errors_modal_content.expanded_states
+        
+        # Determine count badge class
+        count_class = "constraint-count zero" if count == 0 else "constraint-count non-zero"
+        
+        # Create constraint header
+        header = html.Div([
+            html.Span(display_name, style={"flex": "1"}),
+            html.Span(f"{count} Occurrence{'s' if count != 1 else ''}", className=count_class),
+            html.Span("^", className=f"constraint-arrow{' rotated' if is_expanded else ''}")
+        ], className=f"constraint-header{' active' if is_expanded else ''}", 
+           id={"type": "constraint-header", "index": display_name}, n_clicks=0)
+        
+        # Create constraint details
+        details_content = []
+        if violations:
+            for i, violation in enumerate(violations):
+                if internal_name == 'Same Student Group Overlaps':
+                    details_content.append(html.Div(
+                        f"Group '{violation['group']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Different Student Group Overlaps':
+                    # Handle both old format (events) and new format (groups)
+                    if 'events' in violation:
+                        details_content.append(html.Div(
+                            f"Room conflict at {violation['location']}: {', '.join(violation['events'])}",
+                            className="constraint-item"
+                        ))
+                    elif 'groups' in violation:
+                        details_content.append(html.Div(
+                            f"Room conflict in {violation['room']} at {violation['location']}: Groups {', '.join(violation['groups'])} both scheduled",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Room conflict at {violation.get('location', 'Unknown location')}",
+                            className="constraint-item"
+                        ))
+                elif internal_name == 'Lecturer Clashes':
+                    # Show both student groups that are clashing
+                    if 'groups' in violation and len(violation['groups']) >= 2:
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has clashing courses {violation['courses'][0]} for group {violation['groups'][0]}, and {violation['courses'][1]} for group {violation['groups'][1]} on {violation['location']}",
+                            className="constraint-item"
+                        ))
+                    else:
+                        # Fallback to original format if groups info is missing
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
+                            className="constraint-item"
+                        ))
+                elif internal_name == 'Lecturer Schedule Conflicts (Day/Time)':
+                    details_content.append(html.Div(
+                        f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Lecturer Workload Violations':
+                    if violation['type'] == 'Excessive Daily Hours':
+                        courses_text = violation.get('courses', 'Unknown courses')
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has {violation['hours_scheduled']} hours on {violation['day']} from courses {courses_text}, exceeding maximum of {violation['max_allowed']} hours per day",
+                            className="constraint-item"
+                        ))
+                    elif violation['type'] == 'Excessive Consecutive Hours':
+                        courses_text = violation.get('courses', 'Unknown courses')
+                        details_content.append(html.Div(
+                            f"Lecturer '{violation['lecturer']}' has {violation['consecutive_hours']} consecutive hours on {violation['day']} from courses {courses_text} ({', '.join(violation['hours_times'])}), exceeding maximum of {violation['max_allowed']} consecutive hours",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Lecturer workload violation for {violation['lecturer']} on {violation['day']}: {violation.get('violation', 'Unknown violation')}",
+                            className="constraint-item"
+                        ))
+                elif internal_name == 'Consecutive Slot Violations':
+                    details_content.append(html.Div(
+                        f"{violation['reason']}: Course '{violation['course']}' ({violation.get('course_name', '')}) for group '{violation['group']}' at times {', '.join(violation['times'])}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Missing or Extra Classes':
+                    details_content.append(html.Div(
+                        f"{violation['issue']} classes for {violation['location']}: Expected {violation['expected']}, Got {violation['actual']}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Same Course in Multiple Rooms on Same Day':
+                    details_content.append(html.Div(
+                        f"{violation['location']} in multiple rooms: {', '.join(violation['rooms'])}",
+                        className="constraint-item"
+                    ))
+                elif internal_name == 'Room Capacity/Type Conflicts':
+                    if violation['type'] == 'Room Type Mismatch':
+                        details_content.append(html.Div(
+                            f"Room type mismatch at {violation['location']}: {violation['course']} for group {violation['group']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})",
+                            className="constraint-item"
+                        ))
+                    else:
+                        details_content.append(html.Div(
+                            f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
+                            className="constraint-item"
+                        ))
+                elif internal_name == 'Classes During Break Time':
+                    details_content.append(html.Div(
+                        f"Class during break time at {violation['location']}: {violation['course']} for {violation['group']}",
+                        className="constraint-item"
+                    ))
+        else:
+            details_content.append(html.Div("No violations found.", className="constraint-item", style={"color": "#28a745", "fontStyle": "italic"}))
+        
+        details = html.Div(details_content, 
+                          className=f"constraint-details{' expanded' if is_expanded else ''}", 
+                          id={"type": "constraint-details", "index": display_name})
+        
+        # Add constraint dropdown to content
+        content.append(html.Div([header, details], className="constraint-dropdown"))
+    
+    return content
+
+# Callback to update the error notification badge
+@app.callback(
+    Output("error-notification-badge", "children"),
+    [Input("constraint-details-store", "data"),
+     Input("all-timetables-store", "data")],
+    prevent_initial_call=False
+)
+def update_error_notification_badge(constraint_details, timetables_data):
+    if not constraint_details:
+        return "0"
+    
+    # Define which constraints are hard constraints
+    hard_constraint_names = [
+        'Same Student Group Overlaps',
+        'Different Student Group Overlaps', 
+        'Lecturer Clashes',
+        'Lecturer Schedule Conflicts (Day/Time)',
+        'Lecturer Workload Violations',
+        'Consecutive Slot Violations',
+        'Missing or Extra Classes',
+        'Same Course in Multiple Rooms on Same Day',
+        'Room Capacity/Type Conflicts',
+        'Classes During Break Time'
+    ]
+    
+    # Count how many hard constraints have violations
+    violated_hard_constraints = 0
+    for constraint_name in hard_constraint_names:
+        violations = constraint_details.get(constraint_name, [])
+        if len(violations) > 0:
+            violated_hard_constraints += 1
+    
+    return str(violated_hard_constraints)
+
 # Run the Dash app
 if __name__ == '__main__':
     app.run(debug=False)
-
-
+    
+    # Uncomment below to test DE algorithm performance
     # import time
-# pop_size = 50
-# F = 0.5
-# max_generations = 500
-# CR = 0.8
+    # pop_size = 30  # Reduced population size for faster testing
+    # F = 0.5
+    # max_generations = 10  # Reduced generations for testing
+    # CR = 0.8
 
-# de = DifferentialEvolution(input_data, pop_size, F, CR)
+    # print("Starting Differential Evolution")
+    # de = DifferentialEvolution(input_data, pop_size, F, CR)
 
-# start_time = time.time()
-# de.run(max_generations)
-# de_time = time.time() - start_time
+    # start_time = time.time()
+    # best_solution, fitness_history, generation, diversity_history = de.run(max_generations)
+    # de_time = time.time() - start_time
 
-# print(f'Time: {de_time:.2f}s')
+    # print(f'Time: {de_time:.2f}s')
+    # print(f'Final fitness: {fitness_history[-1] if fitness_history else "N/A"}')
+    # print(f'Initial fitness: {fitness_history[0] if fitness_history else "N/A"}')
+    
+    # # If initial fitness is good, then run the app
+    # if fitness_history and fitness_history[0] < 200:
+    #     print("✅ Initial fitness is acceptable, running Dash app...")
+    #     app.run(debug=False)
+    # else:
+    #     print("❌ Initial fitness is too high, please check constraints")

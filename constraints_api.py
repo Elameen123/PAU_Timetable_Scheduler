@@ -61,8 +61,19 @@ class Constraints:
         idx = 0
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
+                # Get the course to check its credits
+                course = self.input_data.getCourse(student_group.courseIDs[i])
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (with 2 consecutive rule)
+                if course and course.credits == 1:
+                    required_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    # Use original hours required for other courses
+                    required_hours = student_group.hours_required[i]
+                
                 hourcount = 1 
-                while hourcount <= student_group.hours_required[i]:
+                while hourcount <= required_hours:
                     event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
                     events_list.append(event)
                     
@@ -450,7 +461,16 @@ class Constraints:
             
             # Check expected vs actual course occurrences
             for i, course_id in enumerate(student_group.courseIDs):
-                expected_hours = student_group.hours_required[i]
+                # Get the course to check if it's a 1-credit course
+                course = self.input_data.getCourse(course_id)
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours
+                if course and course.credits == 1:
+                    expected_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    expected_hours = student_group.hours_required[i]
+                
                 actual_hours = course_counts.get(course_id, 0)
                 
                 if actual_hours != expected_hours:

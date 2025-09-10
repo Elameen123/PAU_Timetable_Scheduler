@@ -57,8 +57,19 @@ class Constraints:
         idx = 0
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
+                # Get the course to check its credits
+                course = input_data.getCourse(student_group.courseIDs[i])
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (with 2 consecutive rule)
+                if course and course.credits == 1:
+                    required_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    # Use original hours required for other courses
+                    required_hours = student_group.hours_required[i]
+                
                 hourcount = 1 
-                while hourcount <= student_group.hours_required[i]:
+                while hourcount <= required_hours:
                     event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
                     events_list.append(event)
                     
@@ -68,25 +79,55 @@ class Constraints:
                     hourcount += 1
                     
         return events_list, event_map    
-    def check_room_constraints(self, chromosome):
+    def check_room_constraints(self, chromosome, debug=False):
         """
         rooms must meet the capacity and type of the scheduled event
         """
-        point = 0
+        penalty = 0
+        violations = []
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
         for room_idx in range(len(self.rooms)):
             room = self.rooms[room_idx]
             for timeslot_idx in range(len(self.timeslots)):
                 class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
                 if class_event is not None:
                     course = input_data.getCourse(class_event.course_id)
+                    timeslot = self.timeslots[timeslot_idx]
+                    day_abbr = days_map.get(timeslot.day)
+                    time = timeslot.start_time + 9
+                    
                     # H1a: Room type constraints
                     if room.room_type != course.required_room_type:
-                        point += 1
+                        penalty += 0.5  # Reduced from 1 to 0.5
+                        if debug:
+                            violation_info = (
+                                f"Room Type Mismatch: Course '{course.code}' requires '{course.required_room_type}' "
+                                f"but is scheduled in '{room.name}' (type: '{room.room_type}') "
+                                f"on {day_abbr} at {time}:00 for group '{class_event.student_group.name}'."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+                    
                     # H1b: Room capacity constraints - student group must fit in room
                     if class_event.student_group.no_students > room.capacity:
-                        point += 1
+                        penalty += 0.5  # Reduced from 1 to 0.5
+                        if debug:
+                            violation_info = (
+                                f"Room Capacity Exceeded: Group '{class_event.student_group.name}' "
+                                f"({class_event.student_group.no_students} students) cannot fit in room '{room.name}' "
+                                f"(capacity: {room.capacity}) on {day_abbr} at {time}:00 for course '{course.code}'."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
 
-        return point
+        if debug and violations:
+            print("\n--- Room Constraint Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------\n")
+
+        return penalty
        
     
     def check_student_group_constraints(self, chromosome, debug=False):
@@ -168,8 +209,11 @@ class Constraints:
                                     day_abbr = days_map.get(timeslot.day)
                                     time = timeslot.start_time + 9
                                     
+                                    # Use faculty name if available, otherwise use faculty_id (email)
+                                    lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+                                    
                                     clash_info = (
-                                        f"Lecturer Clash: '{faculty.name}' on {day_abbr} at {time}:00. "
+                                        f"Lecturer Clash: '{lecturer_name}' on {day_abbr} at {time}:00. "
                                         f"Clashing Courses: '{first_course.name}' for group '{first_event.student_group.name}' and "
                                         f"'{second_course.name}' for group '{second_event.student_group.name}'."
                                     )
@@ -227,10 +271,12 @@ class Constraints:
                                 is_available_day = True
 
                         if not is_available_day:
-                            penalty += 10
+                            penalty += 2  # Reduced from 10 to 2
                             if debug:
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
-                                    f"Lecturer Schedule Violation: '{faculty.name}' is scheduled on {day_abbr}, "
+                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled on {day_abbr}, "
                                     f"but is only available on: {faculty.avail_days}."
                                 )
                                 if violation_info not in violations:
@@ -278,10 +324,12 @@ class Constraints:
                                         continue # Ignore malformed time
                         
                         if not is_available_time:
-                            penalty += 10
+                            penalty += 2  # Reduced from 10 to 2
                             if debug:
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
-                                    f"Lecturer Schedule Violation: '{faculty.name}' is scheduled at {slot_hour}:00 on {day_abbr}, "
+                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled at {slot_hour}:00 on {day_abbr}, "
                                     f"but is only available during: {faculty.avail_times}."
                                 )
                                 if violation_info not in violations:
@@ -295,41 +343,187 @@ class Constraints:
             
         return penalty
 
-    def check_room_time_conflict(self, chromosome):
+    def check_lecturer_workload_constraints(self, chromosome, debug=False):
+        """
+        Checks lecturer workload constraints:
+        1. No more than 4 total hours of teaching per day
+        2. No more than 3 consecutive hours of teaching per day
+        """
+        penalty = 0
+        violations = []
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
+        # Track each lecturer's schedule for each day with course details
+        lecturer_schedules = {}  # {faculty_id: {day: [(hour_index, course_name)]}}
+        
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event and class_event.faculty_id is not None:
+                        faculty_id = class_event.faculty_id
+                        timeslot = self.timeslots[timeslot_idx]
+                        day_idx = timeslot.day
+                        hour_in_day = timeslot.start_time  # 0-based hour index within the day
+                        
+                        # Get course details
+                        course = self.input_data.getCourse(class_event.course_id)
+                        course_name = course.name if course else class_event.course_id
+                        
+                        if faculty_id not in lecturer_schedules:
+                            lecturer_schedules[faculty_id] = {}
+                        if day_idx not in lecturer_schedules[faculty_id]:
+                            lecturer_schedules[faculty_id][day_idx] = []
+                        
+                        lecturer_schedules[faculty_id][day_idx].append((hour_in_day, course_name))
+        
+        # Check workload constraints for each lecturer
+        for faculty_id, days_schedule in lecturer_schedules.items():
+            faculty = self.input_data.getFaculty(faculty_id)
+            lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+            
+            for day_idx, hour_course_pairs in days_schedule.items():
+                day_abbr = days_map.get(day_idx, "Unknown")
+                
+                # Extract hours and courses
+                hours = [pair[0] for pair in hour_course_pairs]
+                courses = [pair[1] for pair in hour_course_pairs]
+                
+                # Remove duplicates and sort hours
+                hours_sorted = sorted(set(hours))
+                
+                # Get unique courses for this day
+                unique_courses = list(set(courses))
+                courses_text = ", ".join(unique_courses)
+                
+                # 1. Check total hours per day (max 4) - LOW PENALTY (spread throughout day is OK)
+                total_hours = len(hours_sorted)
+                if total_hours > 4:
+                    penalty += 2 * (total_hours - 4)  # Low penalty - having many hours spread out is acceptable
+                    if debug:
+                        violation_info = (
+                            f"Lecturer Workload Violation: '{lecturer_name}' has {total_hours} hours "
+                            f"on {day_abbr} from courses {courses_text}, exceeding the maximum of 4 hours per day."
+                        )
+                        if violation_info not in violations:
+                            violations.append(violation_info)
+                
+                # 2. Check for consecutive hours (max 3 consecutive) - HIGH PENALTY (consecutive teaching without break is bad!)
+                if len(hours_sorted) >= 4:  # Only need to check if 4 or more hours
+                    consecutive_count = 1
+                    max_consecutive = 1
+                    
+                    for i in range(1, len(hours_sorted)):
+                        if hours_sorted[i] == hours_sorted[i-1] + 1:
+                            consecutive_count += 1
+                            max_consecutive = max(max_consecutive, consecutive_count)
+                        else:
+                            consecutive_count = 1
+                    
+                    if max_consecutive > 3:
+                        penalty += 20 * (max_consecutive - 3)  # HIGH penalty - teaching 4+ hours straight is very bad!
+                        if debug:
+                            violation_info = (
+                                f"Lecturer Consecutive Hours Violation: '{lecturer_name}' has {max_consecutive} "
+                                f"consecutive hours on {day_abbr} from courses {courses_text}, exceeding the maximum of 3 consecutive hours."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+        
+        if debug and violations:
+            print("\n--- Lecturer Workload Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------\n")
+        
+        return penalty
+
+    def check_room_time_conflict(self, chromosome, debug=False):
         """
         Ensure only one event is scheduled per room per timeslot
         """
         penalty = 0
+        violations = []
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
         for room_idx in range(len(self.rooms)):
+            room = self.rooms[room_idx]
             for timeslot_idx in range(len(self.timeslots)):
                 event = chromosome[room_idx][timeslot_idx]
                 if event is not None:
                     # Check if event is somehow a list (multiple events in same slot)
                     if isinstance(event, list) and len(event) > 1:
                         penalty += 10  # Reduced from 100 to 10
+                        if debug:
+                            timeslot = self.timeslots[timeslot_idx]
+                            day_abbr = days_map.get(timeslot.day)
+                            time = timeslot.start_time + 9
+                            
+                            event_details = []
+                            for event_id in event:
+                                class_event = self.events_map.get(event_id)
+                                if class_event:
+                                    course = input_data.getCourse(class_event.course_id)
+                                    event_details.append(f"'{course.code}' (Group: '{class_event.student_group.name}')")
+                            
+                            violation_info = (
+                                f"Room Time Conflict: Multiple events in room '{room.name}' "
+                                f"on {day_abbr} at {time}:00. Conflicting events: {', '.join(event_details)}."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
                     
                     # Additional check: count non-None values to ensure only one event per slot
                     # This constraint is inherently satisfied by the chromosome structure,
                     # but we check for any data corruption
+
+        if debug and violations:
+            print("\n--- Room Time Conflicts Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("-----------------------------------\n")
                     
         return penalty
 
-    def check_break_time_constraint(self, chromosome):
+    def check_break_time_constraint(self, chromosome, debug=False):
         """
         Ensure no classes are scheduled during break time (13:00 - 14:00) on Mon, Wed, Fri.
         Break time corresponds to timeslot index 4 on each day (9:00, 10:00, 11:00, 12:00, 13:00)
         """
         penalty = 0
+        violations = []
         break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
         
         for day in range(input_data.days):  # For each day
             # Apply break constraint only on Monday (0), Wednesday (2), and Friday (4)
             if day in [0, 2, 4]:
                 break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
+                day_abbr = days_map.get(day)
                 
                 for room_idx in range(len(self.rooms)):
-                    if chromosome[room_idx][break_timeslot] is not None:
-                        penalty += 100
+                    event_id = chromosome[room_idx][break_timeslot]
+                    if event_id is not None:
+                        penalty += 50  # Reduced from 100 to 50
+                        if debug:
+                            room = self.rooms[room_idx]
+                            class_event = self.events_map.get(event_id)
+                            if class_event:
+                                course = input_data.getCourse(class_event.course_id)
+                                violation_info = (
+                                    f"Break Time Violation: Course '{course.code}' for group "
+                                    f"'{class_event.student_group.name}' is scheduled during break time "
+                                    f"(13:00) on {day_abbr} in room '{room.name}'."
+                                )
+                                if violation_info not in violations:
+                                    violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Break Time Constraint Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------------\n")
                         
         return penalty
 
@@ -359,10 +553,13 @@ class Constraints:
                 event_id = chromosome[room_idx][timeslot_idx]
                 if event_id is not None:
                     class_event = self.events_map.get(event_id)
+                    if class_event is None:
+                        continue
+                        
                     room = self.rooms[room_idx]
                     course = input_data.getCourse(class_event.course_id)
                     
-                    if class_event and course:
+                    if course:
                         # Computer lab exception: Check if this needs a computer lab
                         needs_computer_lab = (
                             course.required_room_type.lower() in ['comp lab', 'computer_lab'] or
@@ -398,15 +595,19 @@ class Constraints:
                             # Non-engineering groups prefer TYD but small penalty for SST
                             if not needs_computer_lab and room_building == 'SST':
                                 penalty += 0.5  # Very small penalty (reduced from 20)
+        
+        return penalty
                         
         return penalty
 
-    def check_same_course_same_room_per_day(self, chromosome):
+    def check_same_course_same_room_per_day(self, chromosome, debug=False):
         """
         Same course appearing multiple times on same day must be in same room.
         """
         penalty = 0
+        violations = []
         course_day_rooms = {}  # {(course_id, day): set_of_rooms}
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
         
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -428,7 +629,31 @@ class Constraints:
         # Penalize courses that appear in multiple rooms on same day
         for course_day_key, rooms_used in course_day_rooms.items():
             if len(rooms_used) > 1:
-                penalty += 5 * (len(rooms_used) - 1)  # Reduced penalty for room inconsistency
+                penalty += 2 * (len(rooms_used) - 1)  # Reduced from 5 to 2
+                if debug:
+                    course_id, day_idx, student_group_id = course_day_key
+                    day_abbr = days_map.get(day_idx)
+                    
+                    # Get student group and course details
+                    student_group = input_data.getStudentGroup(student_group_id)
+                    course = input_data.getCourse(course_id)
+                    
+                    # Get room names
+                    room_names = [self.rooms[r_idx].name for r_idx in rooms_used]
+                    
+                    violation_info = (
+                        f"Same Course Multiple Rooms Violation: Course '{course.code}' for group "
+                        f"'{student_group.name}' appears in multiple rooms on {day_abbr}: "
+                        f"{', '.join(room_names)}."
+                    )
+                    if violation_info not in violations:
+                        violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Same Course Multiple Rooms Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("-----------------------------------------------------\n")
         
         return penalty
 
@@ -473,7 +698,7 @@ class Constraints:
                 if event_id is not None:
                     event = self.events_map.get(event_id)
                     if event:
-                        course = input_data.getCourse(event.course_id)
+                        course = self.input_data.getCourse(event.course_id)
                         if course:
                             key = (course.code, event.student_group.id)
                             if key not in course_schedule:
@@ -481,7 +706,7 @@ class Constraints:
                             course_schedule[key].append(timeslot_idx)
 
         for (course_id, student_group_id), timeslots in course_schedule.items():
-            course = input_data.getCourse(course_id)
+            course = self.input_data.getCourse(course_id)
             student_group = self.input_data.getStudentGroup(student_group_id)
             if not course or course.credits <= 1:
                 continue
@@ -492,11 +717,11 @@ class Constraints:
             if course.credits == 2:
                 # H: 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
-                    penalty += 0.05 * course.credits # More reasonable penalty
+                    penalty += 0.02 * course.credits # Reduced penalty
                     if debug:
                         violation_info = (
-                            f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
-                            f"'{student_group.name}' is a {course.credits}-hour course but is not scheduled consecutively."
+                            f"2-hour course '{course.name}' ({course.code}) for group "
+                            f"'{student_group.name}' is not scheduled in consecutive time slots."
                         )
                         if violation_info not in violations:
                             violations.append(violation_info)
@@ -507,27 +732,17 @@ class Constraints:
                     is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
-                        penalty += 0.05 * course.credits # More reasonable penalty
+                        penalty += 0.02 * course.credits # Reduced penalty
                         if debug:
                             violation_info = (
-                                f"Consecutive Slot Violation: Course '{course.name}' ({course.code}) for group "
-                                f"'{student_group.name}' is a {course.credits}-hour course and does not have a 2-hour consecutive block."
+                                f"3-hour course '{course.name}' ({course.code}) for group "
+                                f"'{student_group.name}' has all 3 hours scheduled at different times with no 2-hour consecutive block."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
                     
-                    # S: Prefer all 3 hours to be consecutive
-                    is_block_of_3 = (timeslots[1] - timeslots[0] == 1) and \
-                                    (timeslots[2] - timeslots[1] == 1)
-                    if not is_block_of_3:
-                        penalty += 0.05 # Small penalty for the separated hour
-                        if debug and is_block_of_2: # It's a soft violation only
-                            violation_info = (
-                                f"Consecutive Slot Violation (Soft): Course '{course.name}' ({course.code}) for group "
-                                f"'{student_group.name}' ({course.credits}-hour) has a 2-hour block but is not fully consecutive."
-                            )
-                            if violation_info not in violations:
-                                violations.append(violation_info)
+                    # Note: We don't report soft violations for 3-hour courses that have a 2-hour block
+                    # but aren't fully consecutive, as per user request
 
         if debug and violations:
             print("\n--- Consecutive Slot Violations Detected ---")
@@ -584,7 +799,16 @@ class Constraints:
             
             # Check expected vs actual course occurrences
             for i, course_id in enumerate(student_group.courseIDs):
-                expected_hours = student_group.hours_required[i]
+                # Get the course to check if it's a 1-credit course
+                course = self.input_data.getCourse(course_id)
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours
+                if course and course.credits == 1:
+                    expected_hours = 3  # Force 1-credit courses to have 3 hours
+                else:
+                    expected_hours = student_group.hours_required[i]
+                
                 actual_hours = course_counts.get(course_id, 0)
                 
                 if actual_hours != expected_hours:
@@ -592,25 +816,25 @@ class Constraints:
                     
                     if actual_hours < expected_hours:
                         # Apply moderate penalty for missing courses
-                        penalty += difference * (5 if actual_hours == 0 else 2)
+                        penalty += difference * (2 if actual_hours == 0 else 1)  # Reduced penalties
                         if debug:
-                            course = self.input_data.getCourse(course_id)
                             course_name = course.name if course else "Unknown Course"
+                            credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
                             info = (
                                 f"Missing Class: Group '{student_group.name}' is missing {difference} hour(s) "
-                                f"for course '{course_name}' (Code: {course_id}). "
+                                f"for course '{course_name}' (Code: {course_id}){credit_info}. "
                                 f"Expected {expected_hours}, but only {actual_hours} are scheduled."
                             )
                             allocation_issues.append(info)
                     else: # actual_hours > expected_hours
                         # Apply penalty for extra classes
-                        penalty += difference * 2
+                        penalty += difference * 1  # Reduced from 2 to 1
                         if debug:
-                            course = self.input_data.getCourse(course_id)
                             course_name = course.name if course else "Unknown Course"
+                            credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
                             info = (
                                 f"Extra Class: Group '{student_group.name}' has {difference} extra hour(s) "
-                                f"for course '{course_name}' (Code: {course_id}). "
+                                f"for course '{course_name}' (Code: {course_id}){credit_info}. "
                                 f"Expected {expected_hours}, but {actual_hours} are scheduled."
                             )
                             allocation_issues.append(info)
@@ -631,7 +855,7 @@ class Constraints:
         penalty = 0
         cost = 0
         
-        # Check for hard constraint violations (H1-H8)
+        # Check for hard constraint violations (H1-H10)
         penalty += self.check_room_constraints(chromosome)  # H1: Room capacity and type
         penalty += self.check_student_group_constraints(chromosome)  # H2: No student overlaps
         penalty += self.check_lecturer_availability(chromosome)  # H3: No lecturer overlaps
@@ -641,6 +865,7 @@ class Constraints:
         penalty += self.check_break_time_constraint(chromosome)  # H7: No classes during break time
         penalty += self.check_course_allocation_completeness(chromosome)  # H8: All courses allocated correctly
         penalty += self.check_lecturer_schedule_constraints(chromosome) # H9: Lecturer schedule constraints
+        penalty += self.check_lecturer_workload_constraints(chromosome) # H10: Lecturer workload constraints
         
         # Check for soft constraint violations (S1-S3)
         cost += self.check_single_event_per_day(chromosome)  # S1
@@ -715,21 +940,514 @@ class Constraints:
         Get detailed information about constraint violations for debugging.
         """
         violations = {
-            'room_constraints': self.check_room_constraints(chromosome),
+            'room_constraints': self.check_room_constraints(chromosome, debug=debug),
             'student_group_constraints': self.check_student_group_constraints(chromosome, debug=debug),
             'lecturer_availability': self.check_lecturer_availability(chromosome, debug=debug),
-            'room_time_conflict': self.check_room_time_conflict(chromosome),
+            'room_time_conflict': self.check_room_time_conflict(chromosome, debug=debug),
             'building_assignments': self.check_building_assignments(chromosome),
-            'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome),
-            'break_time_constraint': self.check_break_time_constraint(chromosome),
+            'same_course_same_room_per_day': self.check_same_course_same_room_per_day(chromosome, debug=debug),
+            'break_time_constraint': self.check_break_time_constraint(chromosome, debug=debug),
             'course_allocation_completeness': self.check_course_allocation_completeness(chromosome, debug=debug),
             'lecturer_schedule_constraints': self.check_lecturer_schedule_constraints(chromosome, debug=debug),
+            'lecturer_workload_constraints': self.check_lecturer_workload_constraints(chromosome, debug=debug),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
             'consecutive_timeslots': self.check_consecutive_timeslots(chromosome, debug=debug),
             'spread_events': self.check_spread_events(chromosome)
         }
         violations['total'] = sum(violations.values())
         return violations
+
+    def get_detailed_constraint_violations(self, chromosome):
+        """
+        Get detailed constraint violations with occurrence locations for UI display.
+        Returns a dictionary with constraint names and their detailed violation information.
+        """
+        detailed_violations = {}
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+        
+        # 1. Student Group Clashes (Same Student Group Overlaps)
+        student_group_clashes = []
+        for i in range(len(self.timeslots)):
+            simultaneous_class_events = chromosome[:, i]
+            student_group_watch = {}
+            for room_idx, class_event_idx in enumerate(simultaneous_class_events):
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    if class_event is not None:
+                        student_group = class_event.student_group
+                        if student_group.id in student_group_watch:
+                            first_event = student_group_watch[student_group.id]
+                            first_course = self.input_data.getCourse(first_event.course_id)
+                            second_course = self.input_data.getCourse(class_event.course_id)
+                            
+                            timeslot = self.timeslots[i]
+                            day_abbr = days_map.get(timeslot.day)
+                            time = timeslot.start_time + 9
+                            
+                            student_group_clashes.append({
+                                'group': student_group.name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'courses': [first_course.code, second_course.code],
+                                'location': f"{day_abbr} at {time}:00"
+                            })
+                        else:
+                            student_group_watch[student_group.id] = class_event
+        
+        detailed_violations['Same Student Group Overlaps'] = student_group_clashes
+        
+        # 2. Room Time Slot Conflicts (Different Student Group Overlaps)
+        room_conflicts = []
+        for room_idx in range(len(self.rooms)):
+            room = self.rooms[room_idx]
+            for timeslot_idx in range(len(self.timeslots)):
+                event = chromosome[room_idx][timeslot_idx]
+                if event is not None and isinstance(event, list) and len(event) > 1:
+                    timeslot = self.timeslots[timeslot_idx]
+                    day_abbr = days_map.get(timeslot.day)
+                    time = timeslot.start_time + 9
+                    
+                    event_details = []
+                    for event_id in event:
+                        class_event = self.events_map.get(event_id)
+                        if class_event:
+                            course = self.input_data.getCourse(class_event.course_id)
+                            event_details.append(f"'{course.code}' (Group: '{class_event.student_group.name}')")
+                    
+                    room_conflicts.append({
+                        'room': room.name,
+                        'day': day_abbr,
+                        'time': f"{time}:00",
+                        'events': event_details,
+                        'location': f"{room.name} on {day_abbr} at {time}:00"
+                    })
+        
+        detailed_violations['Different Student Group Overlaps'] = room_conflicts
+        
+        # 3. Lecturer Clashes
+        lecturer_clashes = []
+        for i in range(len(self.timeslots)):
+            simultaneous_class_events = chromosome[:, i]
+            lecturer_watch = {}
+            for room_idx, class_event_idx in enumerate(simultaneous_class_events):
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    if class_event is not None and class_event.faculty_id:
+                        faculty_id = class_event.faculty_id
+                        if faculty_id in lecturer_watch:
+                            first_event = lecturer_watch[faculty_id]
+                            first_course = self.input_data.getCourse(first_event.course_id)
+                            second_course = self.input_data.getCourse(class_event.course_id)
+                            faculty = self.input_data.getFaculty(faculty_id)
+                            
+                            timeslot = self.timeslots[i]
+                            day_abbr = days_map.get(timeslot.day)
+                            time = timeslot.start_time + 9
+                            
+                            # Use faculty name if available, otherwise use faculty_id (email)
+                            lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+                            
+                            lecturer_clashes.append({
+                                'lecturer': lecturer_name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'courses': [first_course.code, second_course.code],
+                                'groups': [first_event.student_group.name, class_event.student_group.name],
+                                'location': f"{day_abbr} at {time}:00"
+                            })
+                        else:
+                            lecturer_watch[faculty_id] = class_event
+        
+        detailed_violations['Lecturer Clashes'] = lecturer_clashes
+        
+        # 4. Lecturer Schedule Conflicts (Day/Time)
+        lecturer_schedule_conflicts = []
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                class_event_idx = chromosome[room_idx][timeslot_idx]
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    if class_event is not None and class_event.faculty_id:
+                        faculty = self.input_data.getFaculty(class_event.faculty_id)
+                        if faculty:
+                            timeslot = self.timeslots[timeslot_idx]
+                            day_abbr = days_map.get(timeslot.day, "Unknown")
+                            slot_hour = timeslot.start_time + 9
+                            
+                            # Check day availability
+                            is_available_day = self._is_faculty_available_day(faculty, day_abbr)
+                            is_available_time = self._is_faculty_available_time(faculty, slot_hour)
+                            
+                            if not is_available_day or not is_available_time:
+                                course = self.input_data.getCourse(class_event.course_id)
+                                
+                                # Use faculty name if available, otherwise use faculty_id (email)
+                                lecturer_name = faculty.name if faculty.name else faculty.faculty_id
+                                
+                                # Format available days and times properly
+                                available_days_display = faculty.avail_days if faculty.avail_days else "Not specified"
+                                available_times_display = faculty.avail_times if faculty.avail_times else "Not specified"
+                                
+                                lecturer_schedule_conflicts.append({
+                                    'lecturer': lecturer_name,
+                                    'day': day_abbr,
+                                    'time': f"{slot_hour}:00",
+                                    'course': course.code,
+                                    'group': class_event.student_group.name,
+                                    'available_days': available_days_display,
+                                    'available_times': available_times_display,
+                                    'location': f"{day_abbr} at {slot_hour}:00"
+                                })
+        
+        detailed_violations['Lecturer Schedule Conflicts (Day/Time)'] = lecturer_schedule_conflicts
+        
+        # 5. Lecturer Workload Violations
+        lecturer_workload_violations = []
+        lecturer_schedules = {}  # {faculty_id: {day: [(hour_index, course_name)]}}
+        
+        # Build lecturer schedules with course details
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    class_event = self.events_map.get(event_id)
+                    if class_event and class_event.faculty_id is not None:
+                        faculty_id = class_event.faculty_id
+                        timeslot = self.timeslots[timeslot_idx]
+                        day_idx = timeslot.day
+                        hour_in_day = timeslot.start_time
+                        
+                        # Get course details
+                        course = self.input_data.getCourse(class_event.course_id)
+                        course_name = course.name if course else class_event.course_id
+                        
+                        if faculty_id not in lecturer_schedules:
+                            lecturer_schedules[faculty_id] = {}
+                        if day_idx not in lecturer_schedules[faculty_id]:
+                            lecturer_schedules[faculty_id][day_idx] = []
+                        
+                        lecturer_schedules[faculty_id][day_idx].append((hour_in_day, course_name))
+        
+        # Check workload violations
+        for faculty_id, days_schedule in lecturer_schedules.items():
+            faculty = self.input_data.getFaculty(faculty_id)
+            lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+            
+            for day_idx, hour_course_pairs in days_schedule.items():
+                day_abbr = days_map.get(day_idx, "Unknown")
+                
+                # Extract hours and courses
+                hours = [pair[0] for pair in hour_course_pairs]
+                courses = [pair[1] for pair in hour_course_pairs]
+                
+                # Remove duplicates and sort hours
+                hours_sorted = sorted(set(hours))
+                total_hours = len(hours_sorted)
+                
+                # Get unique courses for this day
+                unique_courses = list(set(courses))
+                courses_text = ", ".join(unique_courses)
+                
+                # Check total hours violation
+                if total_hours > 4:
+                    lecturer_workload_violations.append({
+                        'type': 'Excessive Daily Hours',
+                        'lecturer': lecturer_name,
+                        'day': day_abbr,
+                        'hours_scheduled': total_hours,
+                        'max_allowed': 4,
+                        'courses': courses_text,
+                        'violation': f"{total_hours - 4} extra hours",
+                        'location': f"{lecturer_name} on {day_abbr}"
+                    })
+                
+                # Check consecutive hours violation
+                if len(hours_sorted) >= 4:
+                    consecutive_count = 1
+                    max_consecutive = 1
+                    
+                    for i in range(1, len(hours_sorted)):
+                        if hours_sorted[i] == hours_sorted[i-1] + 1:
+                            consecutive_count += 1
+                            max_consecutive = max(max_consecutive, consecutive_count)
+                        else:
+                            consecutive_count = 1
+                    
+                    if max_consecutive > 3:
+                        hour_labels = [f"{h + 9}:00" for h in hours_sorted]
+                        lecturer_workload_violations.append({
+                            'type': 'Excessive Consecutive Hours',
+                            'lecturer': lecturer_name,
+                            'day': day_abbr,
+                            'consecutive_hours': max_consecutive,
+                            'max_allowed': 3,
+                            'courses': courses_text,
+                            'hours_times': hour_labels,
+                            'violation': f"{max_consecutive - 3} extra consecutive hours",
+                            'location': f"{lecturer_name} on {day_abbr}"
+                        })
+        
+        detailed_violations['Lecturer Workload Violations'] = lecturer_workload_violations
+        
+        # 6. Consecutive Slot Violations
+        consecutive_violations = []
+        events_by_course = {}
+        for r_idx in range(len(self.rooms)):
+            for t_idx in range(len(self.timeslots)):
+                event_id = chromosome[r_idx][t_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        course_key = (event.course_id, event.student_group.id)
+                        if course_key not in events_by_course:
+                            events_by_course[course_key] = []
+                        events_by_course[course_key].append((r_idx, t_idx))
+        
+        for course_key, events in events_by_course.items():
+            course_id, student_group_id = course_key
+            course = self.input_data.getCourse(course_id)
+            student_group = self.input_data.getStudentGroup(student_group_id)
+            
+            if not course or course.credits <= 1:
+                continue
+            
+            # Group timeslots
+            timeslots = [t_idx for _, t_idx in events]
+            timeslots.sort()
+            
+            if course.credits == 2:
+                # 2-credit courses MUST be consecutive
+                if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
+                    times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
+                    consecutive_violations.append({
+                        'course': course.code,
+                        'course_name': course.name,
+                        'group': student_group.name,
+                        'times': times,
+                        'credits': course.credits,
+                        'location': f"{course.code} for {student_group.name}",
+                        'reason': f"2-hour course not scheduled consecutively"
+                    })
+            
+            elif course.credits == 3:
+                # 3-credit courses MUST have at least a 2-hour block
+                if len(timeslots) == 3:
+                    is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
+                                    (timeslots[2] - timeslots[1] == 1)
+                    if not is_block_of_2:
+                        times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
+                        consecutive_violations.append({
+                            'course': course.code,
+                            'course_name': course.name,
+                            'group': student_group.name,
+                            'times': times,
+                            'credits': course.credits,
+                            'location': f"{course.code} for {student_group.name}",
+                            'reason': f"3-hour course has all hours at different times with no 2-hour consecutive block"
+                        })
+        
+        detailed_violations['Consecutive Slot Violations'] = consecutive_violations
+        
+        # 7. Missing or Extra Classes
+        course_allocation_issues = []
+        for student_group in self.student_groups:
+            course_counts = {}
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        event = self.events_map.get(event_id)
+                        if event and event.student_group.id == student_group.id:
+                            course_id = event.course_id
+                            course_counts[course_id] = course_counts.get(course_id, 0) + 1
+            
+            for i, course_id in enumerate(student_group.courseIDs):
+                # Get the course to check if it's a 1-credit course that should be 3 hours
+                course = self.input_data.getCourse(course_id)
+                
+                # SPECIAL HANDLING FOR 1-CREDIT COURSES:
+                # If course has 1 credit, it must have 3 hours (not flagged as extra)
+                if course and course.credits == 1:
+                    expected = 3  # 1-credit courses should have 3 hours
+                else:
+                    expected = student_group.hours_required[i]
+                    
+                actual = course_counts.get(course_id, 0)
+                if actual != expected:
+                    issue_type = "Missing" if actual < expected else "Extra"
+                    credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
+                    course_allocation_issues.append({
+                        'group': student_group.name,
+                        'course': course.code,
+                        'expected': expected,
+                        'actual': actual,
+                        'issue': issue_type,
+                        'location': f"{course.code} for {student_group.name}{credit_info}"
+                    })
+        
+        detailed_violations['Missing or Extra Classes'] = course_allocation_issues
+        
+        # 8. Same Course in Multiple Rooms on Same Day
+        same_course_violations = []
+        for student_group in self.student_groups:
+            for course_id in student_group.courseIDs:
+                events_by_day = {}
+                for room_idx in range(len(self.rooms)):
+                    for timeslot_idx in range(len(self.timeslots)):
+                        event_id = chromosome[room_idx][timeslot_idx]
+                        if event_id is not None:
+                            event = self.events_map.get(event_id)
+                            if (event and event.student_group.id == student_group.id 
+                                and event.course_id == course_id):
+                                day = self.timeslots[timeslot_idx].day
+                                if day not in events_by_day:
+                                    events_by_day[day] = set()
+                                events_by_day[day].add(room_idx)
+                
+                for day, rooms_used in events_by_day.items():
+                    if len(rooms_used) > 1:
+                        course = self.input_data.getCourse(course_id)
+                        day_abbr = days_map.get(day, "Unknown")
+                        room_names = [self.rooms[r_idx].name for r_idx in rooms_used]
+                        same_course_violations.append({
+                            'course': course.code,
+                            'group': student_group.name,
+                            'day': day_abbr,
+                            'rooms': room_names,
+                            'location': f"{course.code} for {student_group.name} on {day_abbr}"
+                        })
+        
+        detailed_violations['Same Course in Multiple Rooms on Same Day'] = same_course_violations
+        
+        # 9. Room Capacity/Type Conflicts
+        room_capacity_conflicts = []
+        for room_idx in range(len(self.rooms)):
+            room = self.rooms[room_idx]
+            for timeslot_idx in range(len(self.timeslots)):
+                class_event_idx = chromosome[room_idx][timeslot_idx]
+                if class_event_idx is not None:
+                    class_event = self.events_map.get(class_event_idx)
+                    if class_event is not None:
+                        course = self.input_data.getCourse(class_event.course_id)
+                        timeslot = self.timeslots[timeslot_idx]
+                        day_abbr = days_map.get(timeslot.day)
+                        time = timeslot.start_time + 9
+                        
+                        # Check room type
+                        if room.room_type != course.required_room_type:
+                            room_capacity_conflicts.append({
+                                'type': 'Room Type Mismatch',
+                                'room': room.name,
+                                'room_type': room.room_type,
+                                'required_type': course.required_room_type,
+                                'course': course.code,
+                                'group': class_event.student_group.name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                            })
+                        
+                        # Check room capacity
+                        if class_event.student_group.no_students > room.capacity:
+                            room_capacity_conflicts.append({
+                                'type': 'Room Capacity Exceeded',
+                                'room': room.name,
+                                'capacity': room.capacity,
+                                'students': class_event.student_group.no_students,
+                                'course': course.code,
+                                'group': class_event.student_group.name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                            })
+        
+        detailed_violations['Room Capacity/Type Conflicts'] = room_capacity_conflicts
+        
+        # 10. Classes During Break Time
+        break_time_violations = []
+        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                timeslot = self.timeslots[timeslot_idx]
+                if timeslot.start_time == break_hour and timeslot.day in [0, 2, 4]:  # Mon, Wed, Fri
+                    class_event_idx = chromosome[room_idx][timeslot_idx]
+                    if class_event_idx is not None:
+                        class_event = self.events_map.get(class_event_idx)
+                        if class_event is not None:
+                            course = self.input_data.getCourse(class_event.course_id)
+                            day_abbr = days_map.get(timeslot.day)
+                            time = timeslot.start_time + 9
+                            room = self.rooms[room_idx]
+                            break_time_violations.append({
+                                'course': course.code,
+                                'group': class_event.student_group.name,
+                                'room': room.name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                            })
+        
+        detailed_violations['Classes During Break Time'] = break_time_violations
+        
+        return detailed_violations
+    
+    def _is_faculty_available_day(self, faculty, day_abbr):
+        """Helper method to check if faculty is available on a specific day"""
+        if isinstance(faculty.avail_days, str):
+            if faculty.avail_days.upper() == 'ALL':
+                return True
+            days_list = [d.strip() for d in faculty.avail_days.split(',')]
+        elif isinstance(faculty.avail_days, list):
+            # Check if any element in the list is 'ALL'
+            if any(str(day).upper() == 'ALL' for day in faculty.avail_days):
+                return True
+            days_list = [str(day).strip() for day in faculty.avail_days]
+        else:
+            # Handle any other case by converting to string
+            avail_days_str = str(faculty.avail_days)
+            if avail_days_str.upper() == 'ALL':
+                return True
+            days_list = [d.strip() for d in avail_days_str.split(',')]
+        
+        return day_abbr in days_list or day_abbr.capitalize() in days_list
+    
+    def _is_faculty_available_time(self, faculty, slot_hour):
+        """Helper method to check if faculty is available at a specific time"""
+        if isinstance(faculty.avail_times, str):
+            if faculty.avail_times.upper() == 'ALL':
+                return True
+            time_specs = [t.strip() for t in faculty.avail_times.split(',')]
+        elif isinstance(faculty.avail_times, list):
+            # Check if any element in the list is 'ALL'
+            if any(str(time).upper() == 'ALL' for time in faculty.avail_times):
+                return True
+            time_specs = [str(time).strip() for time in faculty.avail_times]
+        else:
+            # Handle any other case by converting to string
+            avail_times_str = str(faculty.avail_times)
+            if avail_times_str.upper() == 'ALL':
+                return True
+            time_specs = [t.strip() for t in avail_times_str.split(',')]
+        
+        for time_spec in time_specs:
+            if '-' in time_spec:
+                try:
+                    start_str, end_str = time_spec.split('-')
+                    start_h = int(start_str.split(':')[0])
+                    end_h = int(end_str.split(':')[0])
+                    if start_h <= slot_hour < end_h:
+                        return True
+                except (ValueError, IndexError):
+                    continue
+            else:
+                try:
+                    h = int(time_spec.split(':')[0])
+                    if h == slot_hour:
+                        return True
+                except (ValueError, IndexError):
+                    continue
+        
+        return False
 
     def check_student_group_clash_at_slot(self, chromosome, student_group_id, timeslot_idx, ignore_room_idx=-1):
         """Checks if a specific student group has a clash at a given timeslot, optionally ignoring one room."""

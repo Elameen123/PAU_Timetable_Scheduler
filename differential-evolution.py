@@ -107,7 +107,7 @@ class DifferentialEvolution:
             room, timeslot1, timeslot2 = self.find_consecutive_slots(chromosome, course)
             if room is not None:
                 # Assign the two consecutive slots to the course
-                class_event = Class(student_group=student_group, faculty_id=course.facultyId, course_id=course.code)
+                class_event = Class(student_group=student_group, faculty_id=course.primary_faculty_id, course_id=course.code)
                 chromosome[room][timeslot1] = class_event
                 chromosome[room][timeslot2] = class_event
         
@@ -115,7 +115,7 @@ class DifferentialEvolution:
         if remaining_hours > 0:
             room, timeslot = self.find_single_slot(chromosome, course)
             if room is not None:
-                class_event = Class(student_group=student_group, faculty_id=course.facultyId, course_id=course.code)
+                class_event = Class(student_group=student_group, faculty_id=course.primary_faculty_id, course_id=course.code)
                 chromosome[room][timeslot] = class_event
 
     def find_consecutive_slots(self, chromosome, course):
