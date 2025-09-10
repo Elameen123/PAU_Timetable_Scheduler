@@ -8,26 +8,26 @@
       [
         "9:00",
         "",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        ""
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
+        "",
+        "GET 101\nMaiduguri\nDr. Darlington Agholor"
       ],
       [
         "10:00",
         "",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        ""
+        "GET 101\nMaiduguri\nDr. Darlington Agholor"
       ],
       [
         "11:00",
         "",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        ""
+        "GET 101\nMaiduguri\nDr. Darlington Agholor"
       ],
       [
         "12:00",
@@ -47,27 +47,27 @@
       ],
       [
         "14:00",
-        "GET 101\nClassroom 1\nDr. Darlington Agholor",
         "",
         "",
+        "EEE 102\nClassroom 3\nDr. Edomah",
         "",
         ""
       ],
       [
         "15:00",
-        "GET 101\nClassroom 1\nDr. Darlington Agholor",
         "",
-        "EEE 102\nTelecoms Lab\nDr. Edomah",
-        "MCT 102\nClassroom 2\nProf. Christian Bolu",
-        "PAU-MCT 192\nClassroom 1\nFr. Leo Ogbanufe"
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
+        "EEE 102\nClassroom 3\nDr. Edomah",
+        "MCT 102\nClassroom 1\nProf. Christian Bolu",
+        "PAU-MCT 192\nClassroom 3\nFr. Leo Ogbanufe"
       ],
       [
         "16:00",
-        "GET 101\nClassroom 1\nDr. Darlington Agholor",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
-        "EEE 102\nTelecoms Lab\nDr. Edomah",
-        "MCT 102\nClassroom 2\nProf. Christian Bolu",
-        "PAU-MCT 192\nClassroom 1\nFr. Leo Ogbanufe"
+        "",
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
+        "",
+        "MCT 102\nClassroom 1\nProf. Christian Bolu",
+        "PAU-MCT 192\nClassroom 3\nFr. Leo Ogbanufe"
       ]
     ]
   },
@@ -224,66 +224,66 @@
       [
         "9:00",
         "",
-        "PAU-EEE 413\nClassroom 3\nDr. Darlington Agholor",
         "",
         "",
-        ""
+        "",
+        "PAU-EEE 411\nClassroom 5\nMr. Makinde"
       ],
       [
         "10:00",
-        "PAU-EEE 407\nClassroom 3\nDr. Jeremiah Bandele",
-        "PAU-EEE 413\nClassroom 3\nDr. Darlington Agholor",
+        "PAU-EEE 407\nEPM Lab\nDr. Jeremiah Bandele",
         "",
-        "",
-        ""
+        "PAU-EEE 401\nClassroom 2\nUnknown",
+        "PAU-EEE 409\nClassroom 5\nDr. Daniel Okojie",
+        "PAU-EEE 411\nClassroom 5\nMr. Makinde"
       ],
       [
         "11:00",
-        "PAU-EEE 407\nClassroom 3\nDr. Jeremiah Bandele",
-        "PAU-EEE 403\nEPM Lab\nDr. Micheal Adelabu",
-        "PAU-EEE 405\nClassroom 5\nDr. Daniel Okojie",
+        "PAU-EEE 407\nEPM Lab\nDr. Jeremiah Bandele",
         "",
+        "PAU-EEE 401\nClassroom 2\nUnknown",
+        "PAU-EEE 409\nClassroom 5\nDr. Daniel Okojie",
         ""
       ],
       [
         "12:00",
-        "PAU-EEE 407\nClassroom 3\nDr. Jeremiah Bandele",
-        "PAU-EEE 403\nEPM Lab\nDr. Micheal Adelabu",
-        "PAU-EEE 405\nClassroom 5\nDr. Daniel Okojie",
+        "PAU-EEE 407\nEPM Lab\nDr. Jeremiah Bandele",
+        "PAU-EEE 413\nClassroom 1\nDr. Darlington Agholor",
+        "",
         "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "",
+        "PAU-EEE 413\nClassroom 1\nDr. Darlington Agholor",
         "BREAK",
-        "PAU-EEE 409\nClassroom 1\nDr. Daniel Okojie",
+        "",
         "BREAK"
       ],
       [
         "14:00",
         "",
         "",
-        "PAU-EEE 401\nClassroom 3\nUnknown",
-        "PAU-EEE 409\nClassroom 1\nDr. Daniel Okojie",
+        "PAU-EEE 405\nTelecoms Lab\nDr. Daniel Okojie",
+        "",
         ""
       ],
       [
         "15:00",
         "",
+        "PAU-EEE 403\nClassroom 3\nDr. Micheal Adelabu",
+        "PAU-EEE 405\nTelecoms Lab\nDr. Daniel Okojie",
         "",
-        "PAU-EEE 401\nClassroom 3\nUnknown",
-        "",
-        "PAU-EEE 411\nLokoja\nMr. Makinde"
+        ""
       ],
       [
         "16:00",
         "",
+        "PAU-EEE 403\nClassroom 3\nDr. Micheal Adelabu",
         "",
         "",
-        "",
-        "PAU-EEE 411\nLokoja\nMr. Makinde"
+        ""
       ]
     ]
   },
@@ -307,7 +307,7 @@
         "",
         "",
         "",
-        ""
+        "EEE 593\nBauchi\nUnknown"
       ],
       [
         "11:00",
@@ -315,7 +315,7 @@
         "",
         "",
         "",
-        ""
+        "EEE 593\nBauchi\nUnknown"
       ],
       [
         "12:00",
@@ -323,7 +323,7 @@
         "",
         "",
         "",
-        ""
+        "EEE 593\nBauchi\nUnknown"
       ],
       [
         "13:00",
@@ -335,7 +335,7 @@
       ],
       [
         "14:00",
-        "EEE 593\nClassroom 3\nUnknown",
+        "",
         "",
         "",
         "",
@@ -343,7 +343,7 @@
       ],
       [
         "15:00",
-        "EEE 593\nClassroom 3\nUnknown",
+        "",
         "",
         "",
         "",
@@ -351,7 +351,7 @@
       ],
       [
         "16:00",
-        "EEE 593\nClassroom 3\nUnknown",
+        "",
         "",
         "",
         "",
@@ -367,66 +367,66 @@
     "timetable": [
       [
         "9:00",
-        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
+        "",
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
         "",
-        "",
-        "GET 101\nAbeokuta\nDr. Darlington Agholor"
+        ""
       ],
       [
         "10:00",
-        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
         "",
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
-        "",
+        "GET 101\nJalingo\nDr. Darlington Agholor",
         ""
       ],
       [
         "11:00",
         "",
+        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
-        "",
-        "",
+        "GET 101\nJalingo\nDr. Darlington Agholor",
         ""
       ],
       [
         "12:00",
         "",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
         "",
+        "GET 101\nJalingo\nDr. Darlington Agholor",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
+        "",
         "BREAK",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
+        "",
         "BREAK"
       ],
       [
         "14:00",
-        "MCT 102\nClassroom 2\nProf. Christian Bolu",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
+        "MEE 101\nClassroom 1\nProf. Joseph Ajiboye",
+        "MEE 101\nZaria\nProf. Joseph Ajiboye",
         "",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
+        "",
         ""
       ],
       [
         "15:00",
-        "MCT 102\nClassroom 2\nProf. Christian Bolu",
-        "MEE 101\nClassroom 1\nProf. Joseph Ajiboye",
+        "PAU-MCT 192\nClassroom 3\nFr. Leo Ogbanufe",
+        "MCT 102\nClassroom 5\nProf. Christian Bolu",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        "GET 101\nAbeokuta\nDr. Darlington Agholor",
         ""
       ],
       [
         "16:00",
+        "PAU-MCT 192\nClassroom 3\nFr. Leo Ogbanufe",
+        "MCT 102\nClassroom 5\nProf. Christian Bolu",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        "MEE 101\nClassroom 1\nProf. Joseph Ajiboye",
-        "",
-        "GET 101\nAbeokuta\nDr. Darlington Agholor",
         ""
       ]
     ]
@@ -584,7 +584,7 @@
       [
         "9:00",
         "",
-        "PAU-MEE 409\nClassroom 2\nProf. Roland Loto",
+        "",
         "",
         "",
         ""
@@ -592,7 +592,7 @@
       [
         "10:00",
         "",
-        "PAU-MEE 409\nClassroom 2\nProf. Roland Loto",
+        "PAU-MEE 409\nTelecoms Lab\nProf. Roland Loto",
         "",
         "",
         ""
@@ -600,9 +600,9 @@
       [
         "11:00",
         "",
+        "PAU-MEE 409\nTelecoms Lab\nProf. Roland Loto",
         "",
         "",
-        "PAU-MEE 402\nUmuahia\nDr. Darlington Agholor",
         ""
       ],
       [
@@ -610,7 +610,7 @@
         "",
         "",
         "",
-        "PAU-MEE 402\nUmuahia\nDr. Darlington Agholor",
+        "",
         ""
       ],
       [
@@ -623,7 +623,7 @@
       ],
       [
         "14:00",
-        "MEE 407\nEPM Lab\nProf. Joseph Ajiboye",
+        "",
         "",
         "",
         "",
@@ -631,16 +631,16 @@
       ],
       [
         "15:00",
-        "MEE 407\nEPM Lab\nProf. Joseph Ajiboye",
-        "",
+        "MEE 407\nClassroom 2\nProf. Joseph Ajiboye",
+        "PAU-MEE 402\nClassroom 1\nDr. Darlington Agholor",
         "",
         "",
         ""
       ],
       [
         "16:00",
-        "",
-        "",
+        "MEE 407\nClassroom 2\nProf. Joseph Ajiboye",
+        "PAU-MEE 402\nClassroom 1\nDr. Darlington Agholor",
         "",
         "",
         ""
@@ -655,26 +655,26 @@
     "timetable": [
       [
         "9:00",
-        "",
-        "",
-        "",
-        "",
-        "MEE 590\nUyo\nUnknown"
-      ],
-      [
-        "10:00",
-        "",
+        "GET 501\nClassroom 1\nDr. Benjamin Anyaegbuna",
         "",
         "",
         "",
         ""
       ],
       [
+        "10:00",
+        "GET 501\nClassroom 1\nDr. Benjamin Anyaegbuna",
+        "",
+        "",
+        "PAU-MEE 511\nClassroom 4\nDr. Anthony Onokwai",
+        ""
+      ],
+      [
         "11:00",
+        "GET 501\nClassroom 1\nDr. Benjamin Anyaegbuna",
         "",
         "",
-        "",
-        "PAU-MEE 511\nTelecoms Lab\nDr. Anthony Onokwai",
+        "PAU-MEE 511\nClassroom 4\nDr. Anthony Onokwai",
         ""
       ],
       [
@@ -682,39 +682,39 @@
         "",
         "",
         "",
-        "PAU-MEE 511\nTelecoms Lab\nDr. Anthony Onokwai",
+        "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "",
+        "MEE 590\nClassroom 2\nUnknown",
         "BREAK",
-        "",
+        "PAU-MEE 522\nOshogbo\nUnknown",
         "BREAK"
       ],
       [
         "14:00",
-        "GET 501\nEnugu\nDr. Benjamin Anyaegbuna",
         "",
-        "PAU-MEE 507\nJos\nProf. Joseph Ajiboye",
-        "",
-        "PAU-MEE 522\nClassroom 3\nUnknown"
+        "MEE 590\nClassroom 2\nUnknown",
+        "PAU-MEE 507\nClassroom 4\nProf. Joseph Ajiboye",
+        "PAU-MEE 522\nOshogbo\nUnknown",
+        ""
       ],
       [
         "15:00",
-        "GET 501\nEnugu\nDr. Benjamin Anyaegbuna",
-        "PAU-MEE 517\nClassroom 3\nProf. Christian Bolu",
-        "PAU-MEE 507\nJos\nProf. Joseph Ajiboye",
-        "MEE 590\nUyo\nUnknown",
-        "PAU-MEE 522\nClassroom 3\nUnknown"
+        "PAU-MEE 517\nClassroom 1\nProf. Christian Bolu",
+        "MEE 590\nClassroom 2\nUnknown",
+        "PAU-MEE 507\nClassroom 4\nProf. Joseph Ajiboye",
+        "",
+        ""
       ],
       [
         "16:00",
-        "GET 501\nEnugu\nDr. Benjamin Anyaegbuna",
-        "PAU-MEE 517\nClassroom 3\nProf. Christian Bolu",
-        "PAU-MEE 507\nJos\nProf. Joseph Ajiboye",
-        "MEE 590\nUyo\nUnknown",
+        "PAU-MEE 517\nClassroom 1\nProf. Christian Bolu",
+        "",
+        "PAU-MEE 507\nClassroom 4\nProf. Joseph Ajiboye",
+        "",
         ""
       ]
     ]
@@ -731,31 +731,31 @@
         "",
         "",
         "",
-        ""
+        "CHM 107\nChem Lab\nDr. Edith Ofor"
       ],
       [
         "10:00",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
         "",
+        "GET 101\nLokoja\nDr. Darlington Agholor",
         "",
-        "GET 101\nAdo-Ekiti\nDr. Darlington Agholor"
+        "CHM 107\nChem Lab\nDr. Edith Ofor"
       ],
       [
         "11:00",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        "GET 101\nAdo-Ekiti\nDr. Darlington Agholor"
+        "GET 101\nLokoja\nDr. Darlington Agholor",
+        "",
+        "CHM 107\nChem Lab\nDr. Edith Ofor"
       ],
       [
         "12:00",
-        "CHM 107\nChem Lab\nDr. Edith Ofor",
         "",
-        "CHM 101\nChem Lab\nDr. Edith Ofor",
         "",
-        "GET 101\nAdo-Ekiti\nDr. Darlington Agholor"
+        "GET 101\nLokoja\nDr. Darlington Agholor",
+        "",
+        ""
       ],
       [
         "13:00",
@@ -767,25 +767,25 @@
       ],
       [
         "14:00",
-        "",
-        "MCT 102\nUyo\nProf. Christian Bolu",
-        "",
+        "MCT 102\nAbeokuta\nProf. Christian Bolu",
         "MCT 102\nEnugu\nProf. Christian Bolu",
+        "",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         ""
       ],
       [
         "15:00",
         "",
         "",
-        "PAU-MCT 192\nClassroom 4\nFr. Leo Ogbanufe",
-        "",
+        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
+        "CHM 101\nChem Lab\nDr. Edith Ofor",
         ""
       ],
       [
         "16:00",
         "",
         "",
-        "PAU-MCT 192\nClassroom 4\nFr. Leo Ogbanufe",
+        "PAU-MCT 192\nEPM Lab\nFr. Leo Ogbanufe",
         "",
         ""
       ]
@@ -1087,7 +1087,7 @@
     "timetable": [
       [
         "9:00",
-        "PAU-SEN 111\nComputer Lab 1\nMs. Mercy Uduehi",
+        "",
         "",
         "",
         "ENT 211\nEPM Lab\nUnknown",
@@ -1095,7 +1095,7 @@
       ],
       [
         "10:00",
-        "PAU-SEN 111\nComputer Lab 1\nMs. Mercy Uduehi",
+        "",
         "",
         "",
         "ENT 211\nEPM Lab\nUnknown",
@@ -1103,7 +1103,7 @@
       ],
       [
         "11:00",
-        "PAU-SEN 111\nComputer Lab 1\nMs. Mercy Uduehi",
+        "",
         "",
         "",
         "",
@@ -1112,7 +1112,7 @@
       [
         "12:00",
         "",
-        "",
+        "CSC 203\nTelecoms Lab\nDr Oyebode",
         "",
         "",
         "IFT 211\nClassroom 5\nDr. Micheal Adelabu"
@@ -1120,30 +1120,30 @@
       [
         "13:00",
         "BREAK",
-        "",
+        "CSC 203\nTelecoms Lab\nDr Oyebode",
         "BREAK",
         "",
         "BREAK"
       ],
       [
         "14:00",
-        "CSC 203\nOshogbo\nDr Oyebode",
+        "PAU-SEN 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
         "PAU-CSC 211\nComputer Lab 2\nMr. Eshiramhe",
-        "SEN 201\nClassroom 3\nMs. Mercy Uduehi",
+        "SEN 201\nTelecoms Lab\nMs. Mercy Uduehi",
         ""
       ],
       [
         "15:00",
-        "CSC 203\nOshogbo\nDr Oyebode",
+        "PAU-SEN 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
         "PAU-CSC 211\nComputer Lab 2\nMr. Eshiramhe",
-        "SEN 201\nClassroom 3\nMs. Mercy Uduehi",
+        "SEN 201\nTelecoms Lab\nMs. Mercy Uduehi",
         ""
       ],
       [
         "16:00",
-        "",
+        "PAU-SEN 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
         "PAU-CSC 211\nComputer Lab 2\nMr. Eshiramhe",
         "",
@@ -1376,66 +1376,66 @@
       [
         "9:00",
         "",
-        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
-        "",
-        "",
-        ""
+        "COS 101\nMakurdi\nDr Pius Onobhayedo",
+        "STA 111\nAsaba\nMrs Grace Okoacha",
+        "PAU-CSC 192\nClassroom 1\nFr. Ifeanyi Ogboh",
+        "MTH101\nEPM Lab\nDr Clinton Ifegwu"
       ],
       [
         "10:00",
         "",
-        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
-        "PAU-CSC 192\nClassroom 5\nFr. Ifeanyi Ogboh",
-        "PHY101\nPhysics lab\nDr Rilwan Balogun"
+        "COS 101\nMakurdi\nDr Pius Onobhayedo",
+        "STA 111\nAsaba\nMrs Grace Okoacha",
+        "PAU-CSC 192\nClassroom 1\nFr. Ifeanyi Ogboh",
+        "MTH101\nEPM Lab\nDr Clinton Ifegwu"
       ],
       [
         "11:00",
         "",
         "",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
-        "PAU-CSC 192\nClassroom 5\nFr. Ifeanyi Ogboh",
-        "PHY101\nPhysics lab\nDr Rilwan Balogun"
+        "STA 111\nAsaba\nMrs Grace Okoacha",
+        "",
+        ""
       ],
       [
         "12:00",
         "",
         "",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "",
         "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "STA 111\nEnugu\nMrs Grace Okoacha",
+        "",
         "BREAK",
-        "COS 101\nClassroom 4\nDr Pius Onobhayedo",
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "BREAK"
       ],
       [
         "14:00",
         "",
-        "STA 111\nEnugu\nMrs Grace Okoacha",
+        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
-        "COS 101\nClassroom 4\nDr Pius Onobhayedo",
-        ""
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "PHY101\nPhysics lab\nDr Rilwan Balogun"
       ],
       [
         "15:00",
         "",
-        "STA 111\nEnugu\nMrs Grace Okoacha",
+        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
-        "COS 101\nClassroom 4\nDr Pius Onobhayedo",
-        "MTH101\nTelecoms Lab\nDr Clinton Ifegwu"
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "PHY101\nPhysics lab\nDr Rilwan Balogun"
       ],
       [
         "16:00",
+        "COS 101\nMakurdi\nDr Pius Onobhayedo",
         "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
         "",
-        "",
-        "MTH101\nTelecoms Lab\nDr Clinton Ifegwu"
+        ""
       ]
     ]
   },
@@ -1451,30 +1451,30 @@
         "",
         "",
         "",
-        ""
+        "PHY101\nPhysics lab\nDr Rilwan Balogun"
       ],
       [
         "10:00",
-        "PAU-CSC 192\nEPM Lab\nFr. Ifeanyi Ogboh",
+        "PAU-CSC 192\nClassroom 4\nFr. Ifeanyi Ogboh",
         "",
-        "COS 101\nPortharcourt\nDr Pius Onobhayedo",
+        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
-        "MTH101\nEnugu\nDr Clinton Ifegwu"
+        "PHY101\nPhysics lab\nDr Rilwan Balogun"
       ],
       [
         "11:00",
-        "PAU-CSC 192\nEPM Lab\nFr. Ifeanyi Ogboh",
+        "PAU-CSC 192\nClassroom 4\nFr. Ifeanyi Ogboh",
         "",
-        "COS 101\nPortharcourt\nDr Pius Onobhayedo",
-        "",
-        "MTH101\nEnugu\nDr Clinton Ifegwu"
+        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
+        "STA 111\nAdo-Ekiti\nMrs Grace Okoacha",
+        ""
       ],
       [
         "12:00",
         "",
+        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
         "",
-        "COS 101\nPortharcourt\nDr Pius Onobhayedo",
-        "",
+        "STA 111\nAdo-Ekiti\nMrs Grace Okoacha",
         ""
       ],
       [
@@ -1482,31 +1482,31 @@
         "BREAK",
         "",
         "BREAK",
-        "",
+        "STA 111\nAdo-Ekiti\nMrs Grace Okoacha",
         "BREAK"
       ],
       [
         "14:00",
-        "STA 111\nTelecoms Lab\nMrs Grace Okoacha",
-        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "",
-        "PHY101\nPhysics lab\nDr Rilwan Balogun"
+        "",
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "COS 101\nClassroom 3\nDr Pius Onobhayedo",
+        "MTH101\nEPM Lab\nDr Clinton Ifegwu"
       ],
       [
         "15:00",
-        "STA 111\nTelecoms Lab\nMrs Grace Okoacha",
-        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "",
-        "PHY101\nPhysics lab\nDr Rilwan Balogun"
+        "",
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "COS 101\nClassroom 3\nDr Pius Onobhayedo",
+        "MTH101\nEPM Lab\nDr Clinton Ifegwu"
       ],
       [
         "16:00",
-        "STA 111\nTelecoms Lab\nMrs Grace Okoacha",
-        "PAU-CSC 111\nComputer Lab 2\nMs. Mercy Uduehi",
-        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
         "",
+        "",
+        "PHY 107\nPhysics lab\nDr Rilwan Balogun",
+        "COS 101\nClassroom 3\nDr Pius Onobhayedo",
         ""
       ]
     ]
@@ -1593,32 +1593,32 @@
         "9:00",
         "",
         "",
-        "CSC 309\nClassroom 4\nDr Oyebode",
-        "GST 312\nClassroom 1\nMr Kezie",
+        "",
+        "",
         ""
       ],
       [
         "10:00",
+        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
         "",
         "",
-        "CSC 309\nClassroom 4\nDr Oyebode",
-        "GST 312\nClassroom 1\nMr Kezie",
+        "",
         ""
       ],
       [
         "11:00",
+        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
         "",
-        "",
-        "",
-        "",
+        "CSC 309\nTelecoms Lab\nDr Oyebode",
+        "CSC 322\nBauchi\nDr Pius Onobhayedo",
         ""
       ],
       [
         "12:00",
+        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
         "",
-        "",
-        "",
-        "",
+        "CSC 309\nTelecoms Lab\nDr Oyebode",
+        "CSC 322\nBauchi\nDr Pius Onobhayedo",
         ""
       ],
       [
@@ -1631,27 +1631,27 @@
       ],
       [
         "14:00",
-        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
-        "GST 303\nClassroom 2\nDr. Emeka Isitua",
+        "PAU-CSC 310\nClassroom 4\nProf Kingsely Muka",
         "",
+        "GST 312\nClassroom 5\nMr Kezie",
+        "PAU-CSC-317\nEPM Lab\nProf Kingsely Muka",
         ""
       ],
       [
         "15:00",
-        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
-        "GST 303\nClassroom 2\nDr. Emeka Isitua",
-        "PAU-CSC-317\nTelecoms Lab\nProf Kingsely Muka",
-        "CSC 322\nClassroom 5\nDr Pius Onobhayedo"
+        "PAU-CSC 310\nClassroom 4\nProf Kingsely Muka",
+        "",
+        "GST 312\nClassroom 5\nMr Kezie",
+        "PAU-CSC-317\nEPM Lab\nProf Kingsely Muka",
+        "GST 303\nClassroom 2\nDr. Emeka Isitua"
       ],
       [
         "16:00",
-        "PAU-CSC 312\nClassroom 5\nMr Taiwo Amoo",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
+        "PAU-CSC 310\nClassroom 4\nProf Kingsely Muka",
         "",
-        "PAU-CSC-317\nTelecoms Lab\nProf Kingsely Muka",
-        "CSC 322\nClassroom 5\nDr Pius Onobhayedo"
+        "",
+        "",
+        "GST 303\nClassroom 2\nDr. Emeka Isitua"
       ]
     ]
   },
@@ -1671,24 +1671,24 @@
       ],
       [
         "10:00",
-        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
         "",
         "",
-        "GST 303\nClassroom 2\nDr. Emeka Isitua",
-        ""
+        "",
+        "",
+        "CSC 309\nTelecoms Lab\nDr Oyebode"
       ],
       [
         "11:00",
-        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
         "",
         "",
-        "GST 303\nClassroom 2\nDr. Emeka Isitua",
-        ""
+        "",
+        "",
+        "CSC 309\nTelecoms Lab\nDr Oyebode"
       ],
       [
         "12:00",
-        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
-        "CSC 309\nClassroom 3\nDr Oyebode",
+        "",
+        "GST 312\nClassroom 5\nMr Kezie",
         "",
         "",
         ""
@@ -1696,34 +1696,34 @@
       [
         "13:00",
         "BREAK",
-        "CSC 309\nClassroom 3\nDr Oyebode",
+        "GST 312\nClassroom 5\nMr Kezie",
         "BREAK",
         "",
         "BREAK"
       ],
       [
         "14:00",
-        "PAU-CSC-317\nAbakaliki\nProf Kingsely Muka",
+        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
         "",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
-        "",
-        ""
+        "PAU-CSC 310\nClassroom 1\nProf Kingsely Muka",
+        "GST 303\nClassroom 2\nDr. Emeka Isitua",
+        "CSC 322\nClassroom 4\nDr Pius Onobhayedo"
       ],
       [
         "15:00",
-        "PAU-CSC-317\nAbakaliki\nProf Kingsely Muka",
-        "CSC 322\nClassroom 4\nDr Pius Onobhayedo",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
-        "",
-        "GST 312\nClassroom 2\nMr Kezie"
+        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
+        "PAU-CSC-317\nClassroom 4\nProf Kingsely Muka",
+        "PAU-CSC 310\nClassroom 1\nProf Kingsely Muka",
+        "GST 303\nClassroom 2\nDr. Emeka Isitua",
+        "CSC 322\nClassroom 4\nDr Pius Onobhayedo"
       ],
       [
         "16:00",
+        "PAU-CSC 312\nTelecoms Lab\nMr Taiwo Amoo",
+        "PAU-CSC-317\nClassroom 4\nProf Kingsely Muka",
+        "PAU-CSC 310\nClassroom 1\nProf Kingsely Muka",
         "",
-        "CSC 322\nClassroom 4\nDr Pius Onobhayedo",
-        "PAU-CSC 310\nClassroom 5\nProf Kingsely Muka",
-        "",
-        "GST 312\nClassroom 2\nMr Kezie"
+        ""
       ]
     ]
   },
@@ -1735,35 +1735,35 @@
     "timetable": [
       [
         "9:00",
-        "CSC 413\nClassroom 2\nDr. Festus Oliha",
-        "CSC 403\nClassroom 1\nDr. Stephen Ayodeji",
-        "CSC 405\nEPM Lab\nDr. Festus Oliha",
         "",
+        "",
+        "CSC 405\nClassroom 4\nDr. Festus Oliha",
+        "CSC 421\nTelecoms Lab\nMr. Igah",
         ""
       ],
       [
         "10:00",
-        "CSC 413\nClassroom 2\nDr. Festus Oliha",
-        "CSC 403\nClassroom 1\nDr. Stephen Ayodeji",
-        "CSC 405\nEPM Lab\nDr. Festus Oliha",
-        "",
-        "CSC 419\nTelecoms Lab\nDr Pius Onobhayedo"
+        "CSC 413\nTelecoms Lab\nDr. Festus Oliha",
+        "CSC 403\nEPM Lab\nDr. Stephen Ayodeji",
+        "CSC 405\nClassroom 4\nDr. Festus Oliha",
+        "CSC 421\nTelecoms Lab\nMr. Igah",
+        "CSC 419\nClassroom 3\nDr Pius Onobhayedo"
       ],
       [
         "11:00",
-        "CSC 413\nClassroom 2\nDr. Festus Oliha",
-        "CSC 403\nClassroom 1\nDr. Stephen Ayodeji",
-        "CSC 405\nEPM Lab\nDr. Festus Oliha",
-        "",
-        "CSC 419\nTelecoms Lab\nDr Pius Onobhayedo"
+        "CSC 413\nTelecoms Lab\nDr. Festus Oliha",
+        "CSC 403\nEPM Lab\nDr. Stephen Ayodeji",
+        "CSC 405\nClassroom 4\nDr. Festus Oliha",
+        "CSC 421\nTelecoms Lab\nMr. Igah",
+        "CSC 419\nClassroom 3\nDr Pius Onobhayedo"
       ],
       [
         "12:00",
+        "CSC 413\nTelecoms Lab\nDr. Festus Oliha",
+        "CSC 403\nEPM Lab\nDr. Stephen Ayodeji",
         "",
         "",
-        "",
-        "",
-        "CSC 419\nTelecoms Lab\nDr Pius Onobhayedo"
+        "CSC 419\nClassroom 3\nDr Pius Onobhayedo"
       ],
       [
         "13:00",
@@ -1775,27 +1775,27 @@
       ],
       [
         "14:00",
-        "CSC 401\nClassroom 4\nDr. S. Akinola",
+        "CSC 401\nEPM Lab\nDr. S. Akinola",
         "",
         "",
-        "CSC 421\nClassroom 5\nMr. Igah",
+        "",
         ""
       ],
       [
         "15:00",
-        "CSC 401\nClassroom 4\nDr. S. Akinola",
-        "CSC 409\nEPM Lab\nDr Oyebode",
+        "CSC 401\nEPM Lab\nDr. S. Akinola",
         "",
-        "CSC 421\nClassroom 5\nMr. Igah",
-        ""
+        "",
+        "",
+        "CSC 409\nEnugu\nDr Oyebode"
       ],
       [
         "16:00",
-        "CSC 401\nClassroom 4\nDr. S. Akinola",
-        "CSC 409\nEPM Lab\nDr Oyebode",
+        "CSC 401\nEPM Lab\nDr. S. Akinola",
         "",
-        "CSC 421\nClassroom 5\nMr. Igah",
-        ""
+        "",
+        "",
+        "CSC 409\nEnugu\nDr Oyebode"
       ]
     ]
   },
@@ -1807,64 +1807,64 @@
     "timetable": [
       [
         "9:00",
-        "",
-        "",
-        "",
-        "",
+        "PAU-ECO 105\nPortharcourt\nDr. Oluwasikemi Owolabi",
+        "GST 112\nEnugu\nMrs. Ifeyinwa Awagu",
+        "BUA 101\nAdo-Ekiti\nMrs. Oyinyechi Akagha",
+        "ECO 101\nUmuahia\nDr. Hope Agbonrofo",
         ""
       ],
       [
         "10:00",
-        "PAU-ECO 105\nLokoja\nDr. Oluwasikemi Owolabi",
-        "GST 112\nMaiduguri\nMrs. Ifeyinwa Awagu",
-        "BUA 101\nMakurdi\nMrs. Oyinyechi Akagha",
-        "",
+        "PAU-ECO 105\nPortharcourt\nDr. Oluwasikemi Owolabi",
+        "GST 112\nEnugu\nMrs. Ifeyinwa Awagu",
+        "BUA 101\nAdo-Ekiti\nMrs. Oyinyechi Akagha",
+        "ECO 101\nUmuahia\nDr. Hope Agbonrofo",
         ""
       ],
       [
         "11:00",
-        "PAU-ECO 105\nLokoja\nDr. Oluwasikemi Owolabi",
-        "GST 112\nMaiduguri\nMrs. Ifeyinwa Awagu",
-        "BUA 101\nMakurdi\nMrs. Oyinyechi Akagha",
+        "PAU-ECO 105\nPortharcourt\nDr. Oluwasikemi Owolabi",
         "",
-        ""
+        "",
+        "",
+        "ECO 103\nUyo\nDr. Stanley Nwani"
       ],
       [
         "12:00",
-        "PAU-ECO 105\nLokoja\nDr. Oluwasikemi Owolabi",
         "",
         "",
-        "ECO 101\nMaiduguri\nDr. Hope Agbonrofo",
-        ""
+        "",
+        "",
+        "ECO 103\nUyo\nDr. Stanley Nwani"
       ],
       [
         "13:00",
         "BREAK",
         "",
         "BREAK",
-        "ECO 101\nMaiduguri\nDr. Hope Agbonrofo",
+        "",
         "BREAK"
       ],
       [
         "14:00",
         "",
-        "PAU-ECO 109\nUmuahia\nDr. Fredrick Ikpesu",
         "",
         "",
-        "ECO 103\nJalingo\nDr. Stanley Nwani"
+        "",
+        ""
       ],
       [
         "15:00",
         "",
-        "PAU-ECO 109\nUmuahia\nDr. Fredrick Ikpesu",
+        "PAU-ECO 109\nOshogbo\nDr. Fredrick Ikpesu",
         "",
         "",
-        "ECO 103\nJalingo\nDr. Stanley Nwani"
+        ""
       ],
       [
         "16:00",
         "",
-        "",
+        "PAU-ECO 109\nOshogbo\nDr. Fredrick Ikpesu",
         "",
         "",
         ""
@@ -1951,7 +1951,7 @@
     "timetable": [
       [
         "9:00",
-        "ECO 325\nClassroom 4\nUnknown",
+        "",
         "",
         "",
         "",
@@ -1959,7 +1959,7 @@
       ],
       [
         "10:00",
-        "ECO 325\nClassroom 4\nUnknown",
+        "ECO 325\nUyo\nUnknown",
         "",
         "",
         "",
@@ -1967,7 +1967,7 @@
       ],
       [
         "11:00",
-        "ECO 325\nClassroom 4\nUnknown",
+        "ECO 325\nUyo\nUnknown",
         "",
         "",
         "",
@@ -1975,7 +1975,7 @@
       ],
       [
         "12:00",
-        "",
+        "ECO 325\nUyo\nUnknown",
         "",
         "",
         "",
@@ -2023,26 +2023,26 @@
     "timetable": [
       [
         "9:00",
+        "ECO 411\nJalingo\nDr. Ekundayo Mesagan",
         "",
-        "ECO 415\nOshogbo\nDr. Olaniyi Evans",
         "",
-        "",
+        "ECO 415\nJos\nDr. Olaniyi Evans",
         ""
       ],
       [
         "10:00",
+        "ECO 411\nJalingo\nDr. Ekundayo Mesagan",
         "",
-        "ECO 415\nOshogbo\nDr. Olaniyi Evans",
         "",
-        "ECO 411\nAbeokuta\nDr. Ekundayo Mesagan",
+        "ECO 415\nJos\nDr. Olaniyi Evans",
         ""
       ],
       [
         "11:00",
+        "ECO 411\nJalingo\nDr. Ekundayo Mesagan",
         "",
         "",
         "",
-        "ECO 411\nAbeokuta\nDr. Ekundayo Mesagan",
         ""
       ],
       [
@@ -2050,13 +2050,13 @@
         "",
         "",
         "",
-        "ECO 411\nAbeokuta\nDr. Ekundayo Mesagan",
+        "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "",
+        "ECO 412\nLokoja\nDr. Olaniyi Evans",
         "BREAK",
         "",
         "BREAK"
@@ -2064,26 +2064,26 @@
       [
         "14:00",
         "",
-        "ECO 412\nAsaba\nDr. Olaniyi Evans",
-        "ECO 413\nAdo-Ekiti\nProf. Sherifdeen Tella",
+        "ECO 412\nLokoja\nDr. Olaniyi Evans",
+        "ECO 413\nMaiduguri\nProf. Sherifdeen Tella",
         "",
-        ""
+        "ECO 416\nUyo\nDr. Hope Agbonrofo"
       ],
       [
         "15:00",
         "",
-        "ECO 412\nAsaba\nDr. Olaniyi Evans",
-        "ECO 413\nAdo-Ekiti\nProf. Sherifdeen Tella",
+        "ECO 412\nLokoja\nDr. Olaniyi Evans",
+        "ECO 413\nMaiduguri\nProf. Sherifdeen Tella",
         "",
-        "ECO 416\nZaria\nDr. Hope Agbonrofo"
+        "ECO 416\nUyo\nDr. Hope Agbonrofo"
       ],
       [
         "16:00",
         "",
-        "ECO 412\nAsaba\nDr. Olaniyi Evans",
-        "ECO 413\nAdo-Ekiti\nProf. Sherifdeen Tella",
         "",
-        "ECO 416\nZaria\nDr. Hope Agbonrofo"
+        "ECO 413\nMaiduguri\nProf. Sherifdeen Tella",
+        "",
+        ""
       ]
     ]
   },
@@ -2099,30 +2099,30 @@
         "",
         "",
         "",
-        "BUA 101\nZaria\nMrs. Oyinyechi Akagha"
+        "AMS 102\nAbeokuta\nDr. Olaniyi Evans"
       ],
       [
         "10:00",
-        "GST 111\nPortharcourt\nDr. Ogechi Ekechi",
+        "GST 111\nIbadan\nDr. Ogechi Ekechi",
         "",
         "",
         "",
-        "BUA 101\nZaria\nMrs. Oyinyechi Akagha"
+        "AMS 102\nAbeokuta\nDr. Olaniyi Evans"
       ],
       [
         "11:00",
-        "GST 111\nPortharcourt\nDr. Ogechi Ekechi",
+        "GST 111\nIbadan\nDr. Ogechi Ekechi",
         "",
-        "AMS 104\nClassroom 2\nDr. Glory Enyinnaya",
-        "",
-        ""
+        "BUA 101\nBauchi\nMrs. Oyinyechi Akagha",
+        "AMS 104\nUyo\nDr. Glory Enyinnaya",
+        "BUA 101\nPortharcourt\nMrs. Oyinyechi Akagha"
       ],
       [
         "12:00",
         "",
         "",
-        "AMS 104\nClassroom 2\nDr. Glory Enyinnaya",
         "",
+        "AMS 104\nUyo\nDr. Glory Enyinnaya",
         ""
       ],
       [
@@ -2137,25 +2137,25 @@
         "14:00",
         "",
         "",
-        "AMS 101\nEnugu\nDr. Olamitunji Dakare",
         "",
+        "AMS 101\nJalingo\nDr. Olamitunji Dakare",
         ""
       ],
       [
         "15:00",
         "",
-        "GST 112\nPortharcourt\nMrs. Ifeyinwa Awagu",
-        "AMS 101\nEnugu\nDr. Olamitunji Dakare",
+        "GST 112\nJalingo\nMrs. Ifeyinwa Awagu",
         "",
-        "AMS 102\nPortharcourt\nDr. Olaniyi Evans"
+        "AMS 101\nJalingo\nDr. Olamitunji Dakare",
+        ""
       ],
       [
         "16:00",
         "",
-        "GST 112\nPortharcourt\nMrs. Ifeyinwa Awagu",
+        "GST 112\nJalingo\nMrs. Ifeyinwa Awagu",
         "",
         "",
-        "AMS 102\nPortharcourt\nDr. Olaniyi Evans"
+        ""
       ]
     ]
   },
@@ -2168,7 +2168,7 @@
       [
         "9:00",
         "",
-        "PAU-FMM 292\nAbeokuta\nDr. Adaora Onaga",
+        "",
         "",
         "",
         ""
@@ -2176,7 +2176,7 @@
       [
         "10:00",
         "",
-        "PAU-FMM 292\nAbeokuta\nDr. Adaora Onaga",
+        "",
         "",
         "",
         ""
@@ -2211,19 +2211,19 @@
         "",
         "",
         "",
-        ""
+        "GST 212\nJos\nMr. Ejike Umenwaka"
       ],
       [
         "15:00",
-        "GST 212\nLokoja\nMr. Ejike Umenwaka",
+        "PAU-FMM 292\nJos\nDr. Adaora Onaga",
         "",
         "",
         "",
-        ""
+        "GST 212\nJos\nMr. Ejike Umenwaka"
       ],
       [
         "16:00",
-        "GST 212\nLokoja\nMr. Ejike Umenwaka",
+        "PAU-FMM 292\nJos\nDr. Adaora Onaga",
         "",
         "",
         "",
@@ -2239,32 +2239,32 @@
     "timetable": [
       [
         "9:00",
+        "BUS 304\nUmuahia\nDr. Emeka Osuji",
         "",
         "",
         "",
-        "",
-        "LAW 301\nIbadan\nDr. Kenneth Ajibo"
+        "LAW 301\nEnugu\nDr. Kenneth Ajibo"
       ],
       [
         "10:00",
+        "BUS 304\nUmuahia\nDr. Emeka Osuji",
         "",
         "",
         "",
-        "",
-        "LAW 301\nIbadan\nDr. Kenneth Ajibo"
+        "LAW 301\nEnugu\nDr. Kenneth Ajibo"
       ],
       [
         "11:00",
+        "BUS 304\nUmuahia\nDr. Emeka Osuji",
         "",
         "",
         "",
-        "",
-        "LAW 301\nIbadan\nDr. Kenneth Ajibo"
+        "LAW 301\nEnugu\nDr. Kenneth Ajibo"
       ],
       [
         "12:00",
         "",
-        "BUS 304\nClassroom 2\nDr. Emeka Osuji",
+        "",
         "",
         "",
         ""
@@ -2272,7 +2272,7 @@
       [
         "13:00",
         "BREAK",
-        "BUS 304\nClassroom 2\nDr. Emeka Osuji",
+        "",
         "BREAK",
         "",
         "BREAK"
@@ -2280,7 +2280,7 @@
       [
         "14:00",
         "",
-        "BUS 304\nClassroom 2\nDr. Emeka Osuji",
+        "",
         "",
         "",
         ""
@@ -2313,65 +2313,65 @@
         "9:00",
         "",
         "",
-        "BUS 499\nClassroom 1\nUnknown",
+        "",
         "",
         ""
       ],
       [
         "10:00",
-        "BUS 401\nAsaba\nDr. Samuel Okon",
+        "MIS 401\nBauchi\nDr. Olusola Oni",
+        "BUS 401\nOshogbo\nDr. Samuel Okon",
         "",
-        "BUS 499\nClassroom 1\nUnknown",
-        "BUS 402\nOshogbo\nDr. Olamitunji Dakare",
-        "ECO 401\nMaiduguri\nDr. Emeka Osuji"
+        "BUS 405\nLokoja\nDr. Samuel Okon",
+        "ECO 401\nIbadan\nDr. Emeka Osuji"
       ],
       [
         "11:00",
-        "BUS 401\nAsaba\nDr. Samuel Okon",
+        "MIS 401\nBauchi\nDr. Olusola Oni",
+        "BUS 401\nOshogbo\nDr. Samuel Okon",
         "",
-        "BUS 499\nClassroom 1\nUnknown",
-        "BUS 402\nOshogbo\nDr. Olamitunji Dakare",
-        "ECO 401\nMaiduguri\nDr. Emeka Osuji"
+        "BUS 405\nLokoja\nDr. Samuel Okon",
+        "ECO 401\nIbadan\nDr. Emeka Osuji"
       ],
       [
         "12:00",
-        "BUS 401\nAsaba\nDr. Samuel Okon",
-        "BUS 405\nBauchi\nDr. Samuel Okon",
+        "MIS 401\nBauchi\nDr. Olusola Oni",
+        "BUS 401\nOshogbo\nDr. Samuel Okon",
         "",
-        "BUS 402\nOshogbo\nDr. Olamitunji Dakare",
-        "ECO 401\nMaiduguri\nDr. Emeka Osuji"
+        "BUS 405\nLokoja\nDr. Samuel Okon",
+        "ECO 401\nIbadan\nDr. Emeka Osuji"
       ],
       [
         "13:00",
         "BREAK",
-        "BUS 405\nBauchi\nDr. Samuel Okon",
+        "BUS 402\nBauchi\nDr. Olamitunji Dakare",
         "BREAK",
         "",
         "BREAK"
       ],
       [
         "14:00",
-        "MIS 401\nAdo-Ekiti\nDr. Olusola Oni",
-        "BUS 405\nBauchi\nDr. Samuel Okon",
         "",
+        "BUS 402\nBauchi\nDr. Olamitunji Dakare",
+        "BUS 499\nAsaba\nUnknown",
         "",
-        "BUS 403\nOshogbo\nDr. Abdulazeez Lawal"
+        "BUS 403\nAsaba\nDr. Abdulazeez Lawal"
       ],
       [
         "15:00",
-        "MIS 401\nAdo-Ekiti\nDr. Olusola Oni",
         "",
+        "BUS 402\nBauchi\nDr. Olamitunji Dakare",
+        "BUS 499\nAsaba\nUnknown",
         "",
-        "",
-        "BUS 403\nOshogbo\nDr. Abdulazeez Lawal"
+        "BUS 403\nAsaba\nDr. Abdulazeez Lawal"
       ],
       [
         "16:00",
-        "MIS 401\nAdo-Ekiti\nDr. Olusola Oni",
         "",
         "",
+        "BUS 499\nAsaba\nUnknown",
         "",
-        "BUS 403\nOshogbo\nDr. Abdulazeez Lawal"
+        "BUS 403\nAsaba\nDr. Abdulazeez Lawal"
       ]
     ]
   },
@@ -2383,7 +2383,7 @@
     "timetable": [
       [
         "9:00",
-        "",
+        "ACC 101\nZaria\nDr. Japhet Imhanzenobe",
         "",
         "",
         "",
@@ -2391,42 +2391,42 @@
       ],
       [
         "10:00",
-        "ACC 101\nAbakaliki\nDr. Japhet Imhanzenobe",
+        "ACC 101\nZaria\nDr. Japhet Imhanzenobe",
+        "",
+        "GST 111\nAbakaliki\nDr. Ogechi Ekechi",
+        "",
+        ""
+      ],
+      [
+        "11:00",
+        "ACC 101\nZaria\nDr. Japhet Imhanzenobe",
+        "",
+        "GST 111\nAbakaliki\nDr. Ogechi Ekechi",
+        "",
+        ""
+      ],
+      [
+        "12:00",
+        "",
         "",
         "",
         "",
         ""
       ],
       [
-        "11:00",
-        "ACC 101\nAbakaliki\nDr. Japhet Imhanzenobe",
-        "",
-        "",
-        "",
-        "AMS 104\nPortharcourt\nDr. Glory Enyinnaya"
-      ],
-      [
-        "12:00",
-        "ACC 101\nAbakaliki\nDr. Japhet Imhanzenobe",
-        "",
-        "",
-        "AMS 102\nEnugu\nDr. Olaniyi Evans",
-        "AMS 104\nPortharcourt\nDr. Glory Enyinnaya"
-      ],
-      [
         "13:00",
         "BREAK",
-        "GST 111\nAbeokuta\nDr. Ogechi Ekechi",
+        "",
         "BREAK",
-        "AMS 102\nEnugu\nDr. Olaniyi Evans",
+        "AMS 104\nAbakaliki\nDr. Glory Enyinnaya",
         "BREAK"
       ],
       [
         "14:00",
         "",
-        "GST 111\nAbeokuta\nDr. Ogechi Ekechi",
         "",
         "",
+        "AMS 104\nAbakaliki\nDr. Glory Enyinnaya",
         ""
       ],
       [
@@ -2434,7 +2434,7 @@
         "",
         "",
         "",
-        "",
+        "AMS 102\nOshogbo\nDr. Olaniyi Evans",
         ""
       ],
       [
@@ -2442,7 +2442,7 @@
         "",
         "",
         "",
-        "",
+        "AMS 102\nOshogbo\nDr. Olaniyi Evans",
         ""
       ]
     ]
@@ -2456,23 +2456,23 @@
       [
         "9:00",
         "",
-        "",
+        "PAU-FMM 292\nAbeokuta\nDr. Adaora Onaga",
         "",
         "",
         ""
       ],
       [
         "10:00",
-        "GST 212\nAbeokuta\nMr. Ejike Umenwaka",
         "",
+        "PAU-FMM 292\nAbeokuta\nDr. Adaora Onaga",
         "",
         "",
         ""
       ],
       [
         "11:00",
-        "GST 212\nAbeokuta\nMr. Ejike Umenwaka",
-        "PAU-FMM 292\nJalingo\nDr. Adaora Onaga",
+        "",
+        "",
         "",
         "",
         ""
@@ -2480,7 +2480,7 @@
       [
         "12:00",
         "",
-        "PAU-FMM 292\nJalingo\nDr. Adaora Onaga",
+        "",
         "",
         "",
         ""
@@ -2495,7 +2495,7 @@
       ],
       [
         "14:00",
-        "",
+        "GST 212\nMaiduguri\nMr. Ejike Umenwaka",
         "",
         "",
         "",
@@ -2503,7 +2503,7 @@
       ],
       [
         "15:00",
-        "",
+        "GST 212\nMaiduguri\nMr. Ejike Umenwaka",
         "",
         "",
         "",
@@ -2601,24 +2601,24 @@
         "9:00",
         "",
         "",
-        "ACC 402\nUmuahia\nDr. Okwy Okpala",
-        "",
+        "ACC 402\nEnugu\nDr. Okwy Okpala",
+        "PAU-ECO 105\nClassroom 2\nDr. Oluwasikemi Owolabi",
         ""
       ],
       [
         "10:00",
+        "PAU-ECO 109\nAbakaliki\nDr. Fredrick Ikpesu",
         "",
-        "PAU-ECO 109\nLokoja\nDr. Fredrick Ikpesu",
-        "ACC 402\nUmuahia\nDr. Okwy Okpala",
+        "ACC 402\nEnugu\nDr. Okwy Okpala",
         "",
         ""
       ],
       [
         "11:00",
+        "PAU-ECO 109\nAbakaliki\nDr. Fredrick Ikpesu",
         "",
-        "PAU-ECO 109\nLokoja\nDr. Fredrick Ikpesu",
-        "ACC 402\nUmuahia\nDr. Okwy Okpala",
-        "",
+        "ACC 402\nEnugu\nDr. Okwy Okpala",
+        "ACC 404\nClassroom 3\nDr. Olusegun Vincent",
         ""
       ],
       [
@@ -2626,7 +2626,7 @@
         "",
         "",
         "",
-        "",
+        "ACC 404\nClassroom 3\nDr. Olusegun Vincent",
         ""
       ],
       [
@@ -2634,32 +2634,32 @@
         "BREAK",
         "",
         "BREAK",
-        "",
+        "ACC 404\nClassroom 3\nDr. Olusegun Vincent",
         "BREAK"
       ],
       [
         "14:00",
-        "PAU-ECO 105\nUmuahia\nDr. Oluwasikemi Owolabi",
-        "ACC 404\nJalingo\nDr. Olusegun Vincent",
         "",
-        "ACC 407\nZaria\nMr. Segun Agbolade",
-        "ACC 401\nAbeokuta\nDr. Innocent Okwuosa"
+        "",
+        "",
+        "ACC 407\nAbeokuta\nMr. Segun Agbolade",
+        "ACC 401\nOshogbo\nDr. Innocent Okwuosa"
       ],
       [
         "15:00",
-        "PAU-ECO 105\nUmuahia\nDr. Oluwasikemi Owolabi",
-        "ACC 404\nJalingo\nDr. Olusegun Vincent",
         "",
-        "ACC 407\nZaria\nMr. Segun Agbolade",
-        "ACC 401\nAbeokuta\nDr. Innocent Okwuosa"
+        "",
+        "PAU-ECO 105\nClassroom 2\nDr. Oluwasikemi Owolabi",
+        "ACC 407\nAbeokuta\nMr. Segun Agbolade",
+        "ACC 401\nOshogbo\nDr. Innocent Okwuosa"
       ],
       [
         "16:00",
-        "PAU-ECO 105\nUmuahia\nDr. Oluwasikemi Owolabi",
-        "ACC 404\nJalingo\nDr. Olusegun Vincent",
         "",
-        "ACC 407\nZaria\nMr. Segun Agbolade",
-        "ACC 401\nAbeokuta\nDr. Innocent Okwuosa"
+        "",
+        "PAU-ECO 105\nClassroom 2\nDr. Oluwasikemi Owolabi",
+        "ACC 407\nAbeokuta\nMr. Segun Agbolade",
+        "ACC 401\nOshogbo\nDr. Innocent Okwuosa"
       ]
     ]
   },
@@ -2671,66 +2671,66 @@
     "timetable": [
       [
         "9:00",
-        "MCM 101\nMakurdi\nDr. Margaret Agada-Mba",
-        "ISM 112\nMac Lab\nMr. Afam Okonkwo",
-        "MCM 107\nMaiduguri\nMr. Valentine Ohu",
         "",
-        ""
+        "",
+        "",
+        "",
+        "MCM 107\nUyo\nMr. Valentine Ohu"
       ],
       [
         "10:00",
-        "MCM 101\nMakurdi\nDr. Margaret Agada-Mba",
-        "ISM 112\nMac Lab\nMr. Afam Okonkwo",
-        "MCM 107\nMaiduguri\nMr. Valentine Ohu",
-        "CMS 101\nBauchi\nDr. Aifuwa Edosomwan",
-        "MCM 103\nJos\nDr. Anthony Okoeguale"
+        "",
+        "",
+        "ISM 110\nHP Lab\nDr E O",
+        "",
+        "MCM 107\nUyo\nMr. Valentine Ohu"
       ],
       [
         "11:00",
-        "MCM 101\nMakurdi\nDr. Margaret Agada-Mba",
-        "ISM 112\nMac Lab\nMr. Afam Okonkwo",
         "",
-        "CMS 101\nBauchi\nDr. Aifuwa Edosomwan",
-        "MCM 103\nJos\nDr. Anthony Okoeguale"
+        "ISM 112\nComputer Lab 1\nMr. Afam Okonkwo",
+        "ISM 110\nHP Lab\nDr E O",
+        "MCM 105\nAsaba\nDr. Nwachukwu Egbunike",
+        "MCM 103\nAbeokuta\nDr. Anthony Okoeguale"
       ],
       [
         "12:00",
         "",
-        "",
-        "",
-        "MCM 105\nPortharcourt\nDr. Nwachukwu Egbunike",
-        ""
+        "ISM 112\nComputer Lab 1\nMr. Afam Okonkwo",
+        "ISM 110\nHP Lab\nDr E O",
+        "MCM 105\nAsaba\nDr. Nwachukwu Egbunike",
+        "MCM 103\nAbeokuta\nDr. Anthony Okoeguale"
       ],
       [
         "13:00",
         "BREAK",
-        "",
+        "ISM 112\nComputer Lab 1\nMr. Afam Okonkwo",
         "BREAK",
-        "MCM 105\nPortharcourt\nDr. Nwachukwu Egbunike",
+        "",
         "BREAK"
       ],
       [
         "14:00",
+        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
         "",
         "",
-        "ISM 110\nMac Lab\nDr E O",
         "",
         ""
       ],
       [
         "15:00",
+        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
         "",
         "",
-        "ISM 110\nMac Lab\nDr E O",
-        "",
+        "CMS 101\nIbadan\nDr. Aifuwa Edosomwan",
         ""
       ],
       [
         "16:00",
+        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
         "",
         "",
-        "ISM 110\nMac Lab\nDr E O",
-        "",
+        "CMS 101\nIbadan\nDr. Aifuwa Edosomwan",
         ""
       ]
     ]
@@ -2887,66 +2887,66 @@
     "timetable": [
       [
         "9:00",
+        "ISM 405\nEnugu\nBarr. Tomi Vincent",
         "",
+        "ISM 407\nMakurdi\nDr. Anne Odoh",
         "",
-        "",
-        "",
-        "ISM 410\nComputer Lab 2\nMs. Dooshima Anger"
+        ""
       ],
       [
         "10:00",
         "ISM 405\nEnugu\nBarr. Tomi Vincent",
         "",
+        "ISM 407\nMakurdi\nDr. Anne Odoh",
         "",
-        "",
-        "ISM 410\nComputer Lab 2\nMs. Dooshima Anger"
+        "ISM 410\nMac Lab\nMs. Dooshima Anger"
       ],
       [
         "11:00",
         "ISM 405\nEnugu\nBarr. Tomi Vincent",
+        "",
         "ISM 407\nMakurdi\nDr. Anne Odoh",
         "",
-        "",
-        ""
+        "ISM 410\nMac Lab\nMs. Dooshima Anger"
       ],
       [
         "12:00",
-        "ISM 405\nEnugu\nBarr. Tomi Vincent",
-        "ISM 407\nMakurdi\nDr. Anne Odoh",
         "",
-        "ISM 403\nJalingo\nMr. Afam Okonkwo",
+        "",
+        "",
+        "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "ISM 407\nMakurdi\nDr. Anne Odoh",
+        "",
         "BREAK",
-        "ISM 403\nJalingo\nMr. Afam Okonkwo",
+        "",
         "BREAK"
       ],
       [
         "14:00",
-        "ISM 401\nMac Lab\nMr. John Abiamuwe",
+        "ISM 401\nHP Lab\nMr. John Abiamuwe",
         "",
-        "",
-        "",
-        ""
+        "ISM 415\nComputer Lab 1\nMr. Christian Sada",
+        "ISM 403\nBauchi\nMr. Afam Okonkwo",
+        "ISM 412\nMaiduguri\nMr. Afam Okonkwo"
       ],
       [
         "15:00",
-        "ISM 401\nMac Lab\nMr. John Abiamuwe",
+        "ISM 401\nHP Lab\nMr. John Abiamuwe",
         "",
         "ISM 415\nComputer Lab 1\nMr. Christian Sada",
-        "ISM 412\nUmuahia\nMr. Afam Okonkwo",
-        ""
+        "ISM 403\nBauchi\nMr. Afam Okonkwo",
+        "ISM 412\nMaiduguri\nMr. Afam Okonkwo"
       ],
       [
         "16:00",
-        "ISM 401\nMac Lab\nMr. John Abiamuwe",
+        "ISM 401\nHP Lab\nMr. John Abiamuwe",
         "",
-        "ISM 415\nComputer Lab 1\nMr. Christian Sada",
-        "ISM 412\nUmuahia\nMr. Afam Okonkwo",
+        "",
+        "",
         ""
       ]
     ]
@@ -2962,23 +2962,23 @@
         "",
         "",
         "",
-        "MCM 105\nMakurdi\nDr. Nwachukwu Egbunike",
+        "",
         ""
       ],
       [
         "10:00",
-        "MCM 107\nZaria\nMr. Valentine Ohu",
         "",
-        "MCM 103\nZaria\nDr. Anthony Okoeguale",
-        "MCM 105\nMakurdi\nDr. Nwachukwu Egbunike",
+        "CMS 101\nUyo\nDr. Aifuwa Edosomwan",
+        "MCM 107\nPortharcourt\nMr. Valentine Ohu",
+        "MCM 101\nAbakaliki\nDr. Margaret Agada-Mba",
         ""
       ],
       [
         "11:00",
-        "MCM 107\nZaria\nMr. Valentine Ohu",
         "",
-        "MCM 103\nZaria\nDr. Anthony Okoeguale",
-        "",
+        "CMS 101\nUyo\nDr. Aifuwa Edosomwan",
+        "MCM 107\nPortharcourt\nMr. Valentine Ohu",
+        "MCM 101\nAbakaliki\nDr. Margaret Agada-Mba",
         ""
       ],
       [
@@ -2986,7 +2986,7 @@
         "",
         "",
         "",
-        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
+        "MCM 101\nAbakaliki\nDr. Margaret Agada-Mba",
         ""
       ],
       [
@@ -2994,24 +2994,24 @@
         "BREAK",
         "",
         "BREAK",
-        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
+        "",
         "BREAK"
       ],
       [
         "14:00",
         "",
         "",
-        "",
-        "MCM 101\nIbadan\nDr. Margaret Agada-Mba",
+        "MCM 103\nAbeokuta\nDr. Anthony Okoeguale",
+        "MCM 105\nPortharcourt\nDr. Nwachukwu Egbunike",
         ""
       ],
       [
         "15:00",
         "",
         "",
-        "",
-        "",
-        "CMS 101\nAsaba\nDr. Aifuwa Edosomwan"
+        "MCM 103\nAbeokuta\nDr. Anthony Okoeguale",
+        "MCM 105\nPortharcourt\nDr. Nwachukwu Egbunike",
+        ""
       ],
       [
         "16:00",
@@ -3019,7 +3019,7 @@
         "",
         "",
         "",
-        "CMS 101\nAsaba\nDr. Aifuwa Edosomwan"
+        ""
       ]
     ]
   },
@@ -3175,32 +3175,32 @@
     "timetable": [
       [
         "9:00",
-        "COM 415\nClassroom 5\nDr. Anthony Okoeguale",
         "",
-        "COM 409\nAbeokuta\nDr. Folakemi Ogungbe",
-        "COM 401\nAsaba\nBarr Shola Shoyele",
+        "",
+        "",
+        "",
         ""
       ],
       [
         "10:00",
-        "COM 415\nClassroom 5\nDr. Anthony Okoeguale",
         "",
-        "COM 409\nAbeokuta\nDr. Folakemi Ogungbe",
-        "COM 401\nAsaba\nBarr Shola Shoyele",
+        "COM 415\nClassroom 3\nDr. Anthony Okoeguale",
+        "",
+        "COM 401\nEnugu\nBarr Shola Shoyele",
         ""
       ],
       [
         "11:00",
-        "COM 415\nClassroom 5\nDr. Anthony Okoeguale",
         "",
-        "COM 409\nAbeokuta\nDr. Folakemi Ogungbe",
+        "COM 415\nClassroom 3\nDr. Anthony Okoeguale",
         "",
+        "COM 401\nEnugu\nBarr Shola Shoyele",
         ""
       ],
       [
         "12:00",
         "",
-        "",
+        "COM 415\nClassroom 3\nDr. Anthony Okoeguale",
         "",
         "",
         ""
@@ -3216,26 +3216,26 @@
       [
         "14:00",
         "",
-        "COM 405\nLokoja\nDr. Goodluck Lakinbofa",
+        "COM 405\nPortharcourt\nDr. Goodluck Lakinbofa",
+        "COM 409\nAbakaliki\nDr. Folakemi Ogungbe",
         "",
-        "COM 413\nAdo-Ekiti\nDr. Sunday John",
-        ""
+        "COM 403\nIbadan\nMr. Jide Benson"
       ],
       [
         "15:00",
         "",
-        "COM 405\nLokoja\nDr. Goodluck Lakinbofa",
-        "",
-        "COM 413\nAdo-Ekiti\nDr. Sunday John",
-        "COM 403\nUmuahia\nMr. Jide Benson"
+        "COM 405\nPortharcourt\nDr. Goodluck Lakinbofa",
+        "COM 409\nAbakaliki\nDr. Folakemi Ogungbe",
+        "COM 413\nEnugu\nDr. Sunday John",
+        "COM 403\nIbadan\nMr. Jide Benson"
       ],
       [
         "16:00",
         "",
-        "COM 405\nLokoja\nDr. Goodluck Lakinbofa",
-        "",
-        "",
-        "COM 403\nUmuahia\nMr. Jide Benson"
+        "COM 405\nPortharcourt\nDr. Goodluck Lakinbofa",
+        "COM 409\nAbakaliki\nDr. Folakemi Ogungbe",
+        "COM 413\nEnugu\nDr. Sunday John",
+        ""
       ]
     ]
   },
@@ -3247,35 +3247,35 @@
     "timetable": [
       [
         "9:00",
-        "PAU-FMM-103\nMaiduguri\nMs. Nkem Ikeh",
         "",
-        "GST 111\nJalingo\nDr. Ogechi Ekechi",
-        "FMM 101\nAdo-Ekiti\nDr. Folakemi Ogungbe",
-        "MCM 107\nClassroom 2\nMr. Valentine Ohu"
+        "",
+        "",
+        "FMM 101\nZaria\nDr. Folakemi Ogungbe",
+        ""
       ],
       [
         "10:00",
-        "PAU-FMM-103\nMaiduguri\nMs. Nkem Ikeh",
+        "MCM 107\nJos\nMr. Valentine Ohu",
         "",
-        "GST 111\nJalingo\nDr. Ogechi Ekechi",
-        "FMM 101\nAdo-Ekiti\nDr. Folakemi Ogungbe",
-        "MCM 107\nClassroom 2\nMr. Valentine Ohu"
+        "",
+        "FMM 101\nZaria\nDr. Folakemi Ogungbe",
+        ""
       ],
       [
         "11:00",
-        "PAU-FMM-103\nMaiduguri\nMs. Nkem Ikeh",
+        "MCM 107\nJos\nMr. Valentine Ohu",
         "",
-        "",
-        "",
-        "MCM 105\nZaria\nDr. Nwachukwu Egbunike"
+        "CMS 101\nJos\nDr. Aifuwa Edosomwan",
+        "MCM 103\nJos\nDr. Anthony Okoeguale",
+        "MCM 105\nAdo-Ekiti\nDr. Nwachukwu Egbunike"
       ],
       [
         "12:00",
         "",
         "",
-        "",
-        "",
-        "MCM 105\nZaria\nDr. Nwachukwu Egbunike"
+        "CMS 101\nJos\nDr. Aifuwa Edosomwan",
+        "MCM 103\nJos\nDr. Anthony Okoeguale",
+        "MCM 105\nAdo-Ekiti\nDr. Nwachukwu Egbunike"
       ],
       [
         "13:00",
@@ -3287,27 +3287,27 @@
       ],
       [
         "14:00",
+        "PAU-FMM-103\nPortharcourt\nMs. Nkem Ikeh",
+        "MCM 101\nUyo\nDr. Margaret Agada-Mba",
         "",
-        "MCM 101\nAdo-Ekiti\nDr. Margaret Agada-Mba",
         "",
-        "",
-        ""
+        "PAU-FMM 104\nAbeokuta\nMs. Nkem Ikeh"
       ],
       [
         "15:00",
+        "PAU-FMM-103\nPortharcourt\nMs. Nkem Ikeh",
+        "MCM 101\nUyo\nDr. Margaret Agada-Mba",
+        "GST 111\nOshogbo\nDr. Ogechi Ekechi",
         "",
-        "MCM 101\nAdo-Ekiti\nDr. Margaret Agada-Mba",
-        "CMS 101\nJalingo\nDr. Aifuwa Edosomwan",
-        "MCM 103\nMaiduguri\nDr. Anthony Okoeguale",
-        "PAU-FMM 104\nAdo-Ekiti\nMs. Nkem Ikeh"
+        "PAU-FMM 104\nAbeokuta\nMs. Nkem Ikeh"
       ],
       [
         "16:00",
+        "PAU-FMM-103\nPortharcourt\nMs. Nkem Ikeh",
+        "MCM 101\nUyo\nDr. Margaret Agada-Mba",
+        "GST 111\nOshogbo\nDr. Ogechi Ekechi",
         "",
-        "MCM 101\nAdo-Ekiti\nDr. Margaret Agada-Mba",
-        "CMS 101\nJalingo\nDr. Aifuwa Edosomwan",
-        "MCM 103\nMaiduguri\nDr. Anthony Okoeguale",
-        "PAU-FMM 104\nAdo-Ekiti\nMs. Nkem Ikeh"
+        ""
       ]
     ]
   },
@@ -3319,40 +3319,40 @@
     "timetable": [
       [
         "9:00",
-        "FMM 203\nJalingo\nDr. Chiemela Ogbonna",
+        "FMM 203\nAdo-Ekiti\nDr. Chiemela Ogbonna",
         "",
-        "CMS 201\nEnugu\nDr. Aifuwa Edosomwan",
-        "",
+        "PAU-FMM 292\nBauchi\nDr. Adaora Onaga",
+        "FMM 201\nMakurdi\nMr. Lawrence Akande",
         ""
       ],
       [
         "10:00",
-        "FMM 203\nJalingo\nDr. Chiemela Ogbonna",
+        "FMM 203\nAdo-Ekiti\nDr. Chiemela Ogbonna",
         "",
-        "CMS 201\nEnugu\nDr. Aifuwa Edosomwan",
-        "",
+        "PAU-FMM 292\nBauchi\nDr. Adaora Onaga",
+        "FMM 201\nMakurdi\nMr. Lawrence Akande",
         ""
       ],
       [
         "11:00",
-        "FMM 203\nJalingo\nDr. Chiemela Ogbonna",
+        "FMM 203\nAdo-Ekiti\nDr. Chiemela Ogbonna",
+        "GST 212\nAbeokuta\nMr. Ejike Umenwaka",
         "",
-        "PAU-FMM 292\nJalingo\nDr. Adaora Onaga",
         "",
         ""
       ],
       [
         "12:00",
         "",
+        "GST 212\nAbeokuta\nMr. Ejike Umenwaka",
         "",
-        "PAU-FMM 292\nJalingo\nDr. Adaora Onaga",
         "",
         ""
       ],
       [
         "13:00",
         "BREAK",
-        "ENT 211\nMaiduguri\nHalima Rabiu",
+        "ENT 211\nAdo-Ekiti\nHalima Rabiu",
         "BREAK",
         "",
         "BREAK"
@@ -3360,26 +3360,26 @@
       [
         "14:00",
         "",
-        "ENT 211\nMaiduguri\nHalima Rabiu",
+        "ENT 211\nAdo-Ekiti\nHalima Rabiu",
         "",
         "",
-        "FMM 205\nAbakaliki\nMr. Wammanda Usaku"
+        ""
       ],
       [
         "15:00",
         "",
-        "GST 212\nIbadan\nMr. Ejike Umenwaka",
         "",
-        "FMM 201\nIbadan\nMr. Lawrence Akande",
-        "FMM 205\nAbakaliki\nMr. Wammanda Usaku"
+        "CMS 201\nMakurdi\nDr. Aifuwa Edosomwan",
+        "",
+        "FMM 205\nLokoja\nMr. Wammanda Usaku"
       ],
       [
         "16:00",
         "",
-        "GST 212\nIbadan\nMr. Ejike Umenwaka",
         "",
-        "FMM 201\nIbadan\nMr. Lawrence Akande",
-        ""
+        "CMS 201\nMakurdi\nDr. Aifuwa Edosomwan",
+        "",
+        "FMM 205\nLokoja\nMr. Wammanda Usaku"
       ]
     ]
   },
@@ -3463,34 +3463,34 @@
     "timetable": [
       [
         "9:00",
-        "COM 401\nUmuahia\nBarr Shola Shoyele",
+        "COM 415\nMakurdi\nDr. Anthony Okoeguale",
+        "COM 401\nPortharcourt\nBarr Shola Shoyele",
         "",
-        "",
-        "",
-        "COM 409\nClassroom 1\nDr. Folakemi Ogungbe"
+        "COM 401\nAbakaliki\nBarr Shola Shoyele",
+        ""
       ],
       [
         "10:00",
-        "COM 401\nUmuahia\nBarr Shola Shoyele",
+        "COM 415\nMakurdi\nDr. Anthony Okoeguale",
+        "COM 409\nMaiduguri\nDr. Folakemi Ogungbe",
         "",
         "",
-        "",
-        "COM 409\nClassroom 1\nDr. Folakemi Ogungbe"
+        ""
       ],
       [
         "11:00",
+        "COM 415\nMakurdi\nDr. Anthony Okoeguale",
+        "COM 409\nMaiduguri\nDr. Folakemi Ogungbe",
         "",
         "",
-        "",
-        "COM 413\nUyo\nDr. Sunday John",
-        "COM 409\nClassroom 1\nDr. Folakemi Ogungbe"
+        ""
       ],
       [
         "12:00",
         "",
+        "COM 409\nMaiduguri\nDr. Folakemi Ogungbe",
         "",
-        "",
-        "COM 413\nUyo\nDr. Sunday John",
+        "COM 413\nMaiduguri\nDr. Sunday John",
         ""
       ],
       [
@@ -3498,30 +3498,30 @@
         "BREAK",
         "",
         "BREAK",
-        "",
+        "COM 413\nMaiduguri\nDr. Sunday John",
         "BREAK"
       ],
       [
         "14:00",
-        "COM 415\nAbeokuta\nDr. Anthony Okoeguale",
         "",
-        "COM 405\nAsaba\nDr. Goodluck Lakinbofa",
+        "",
+        "COM 405\nUmuahia\nDr. Goodluck Lakinbofa",
         "",
         ""
       ],
       [
         "15:00",
-        "COM 415\nAbeokuta\nDr. Anthony Okoeguale",
-        "COM 403\nMaiduguri\nMr. Jide Benson",
-        "COM 405\nAsaba\nDr. Goodluck Lakinbofa",
+        "",
+        "COM 403\nIbadan\nMr. Jide Benson",
+        "COM 405\nUmuahia\nDr. Goodluck Lakinbofa",
         "",
         ""
       ],
       [
         "16:00",
-        "COM 415\nAbeokuta\nDr. Anthony Okoeguale",
-        "COM 403\nMaiduguri\nMr. Jide Benson",
-        "COM 405\nAsaba\nDr. Goodluck Lakinbofa",
+        "",
+        "COM 403\nIbadan\nMr. Jide Benson",
+        "COM 405\nUmuahia\nDr. Goodluck Lakinbofa",
         "",
         ""
       ]
@@ -3537,9 +3537,9 @@
         "9:00",
         "",
         "",
-        "BUA 101\nUyo\nMrs. Oyinyechi Akagha",
         "",
-        ""
+        "",
+        "BUA 101\nUmuahia\nMrs. Oyinyechi Akagha"
       ],
       [
         "10:00",
@@ -3547,20 +3547,20 @@
         "",
         "",
         "",
-        ""
+        "BUA 101\nUmuahia\nMrs. Oyinyechi Akagha"
       ],
       [
         "11:00",
         "",
-        "AMS 104\nOshogbo\nDr. Glory Enyinnaya",
+        "AMS 104\nIbadan\nDr. Glory Enyinnaya",
         "",
         "",
-        "BUA 101\nLokoja\nMrs. Oyinyechi Akagha"
+        ""
       ],
       [
         "12:00",
         "",
-        "AMS 104\nOshogbo\nDr. Glory Enyinnaya",
+        "AMS 104\nIbadan\nDr. Glory Enyinnaya",
         "",
         "",
         ""
@@ -3577,21 +3577,21 @@
         "14:00",
         "",
         "",
-        "AMS 102\nZaria\nDr. Olaniyi Evans",
+        "",
         "FIN 101\nLokoja\nDr. Ikpesu Olapeju",
         ""
       ],
       [
         "15:00",
+        "AMS 102\nLokoja\nDr. Olaniyi Evans",
         "",
         "",
-        "AMS 102\nZaria\nDr. Olaniyi Evans",
         "FIN 101\nLokoja\nDr. Ikpesu Olapeju",
         ""
       ],
       [
         "16:00",
-        "",
+        "AMS 102\nLokoja\nDr. Olaniyi Evans",
         "",
         "",
         "",
@@ -3608,14 +3608,14 @@
       [
         "9:00",
         "",
-        "",
+        "FIN 209\nAdo-Ekiti\nDr. Fredrick Ikpesu",
         "",
         "",
         ""
       ],
       [
         "10:00",
-        "FIN 209\nOshogbo\nDr. Fredrick Ikpesu",
+        "",
         "",
         "",
         "",
@@ -3623,7 +3623,7 @@
       ],
       [
         "11:00",
-        "FIN 209\nOshogbo\nDr. Fredrick Ikpesu",
+        "",
         "",
         "",
         "",
@@ -3631,7 +3631,7 @@
       ],
       [
         "12:00",
-        "FIN 209\nOshogbo\nDr. Fredrick Ikpesu",
+        "",
         "",
         "",
         "",
@@ -3655,7 +3655,7 @@
       ],
       [
         "15:00",
-        "",
+        "FIN 209\nAdo-Ekiti\nDr. Fredrick Ikpesu",
         "",
         "",
         "",
@@ -3663,7 +3663,7 @@
       ],
       [
         "16:00",
-        "",
+        "FIN 209\nAdo-Ekiti\nDr. Fredrick Ikpesu",
         "",
         "",
         "",
@@ -3680,32 +3680,32 @@
       [
         "9:00",
         "",
+        "FIN 303\nUyo\nDr. Stanley Nwani",
         "",
-        "",
-        "",
-        "FIN 305\nMakurdi\nMr. Innocent Unah"
+        "FIN 302\nAbeokuta\nDr. Ikpesu Olapeju",
+        ""
       ],
       [
         "10:00",
         "",
+        "FIN 301\nJalingo\nDr. Oluwasikemi Owolabi",
         "",
-        "FIN 303\nJos\nDr. Stanley Nwani",
-        "",
-        "FIN 305\nMakurdi\nMr. Innocent Unah"
+        "FIN 302\nAbeokuta\nDr. Ikpesu Olapeju",
+        ""
       ],
       [
         "11:00",
         "",
+        "FIN 301\nJalingo\nDr. Oluwasikemi Owolabi",
         "",
-        "FIN 303\nJos\nDr. Stanley Nwani",
-        "",
-        "FIN 305\nMakurdi\nMr. Innocent Unah"
+        "FIN 302\nAbeokuta\nDr. Ikpesu Olapeju",
+        ""
       ],
       [
         "12:00",
         "",
+        "FIN 301\nJalingo\nDr. Oluwasikemi Owolabi",
         "",
-        "FIN 303\nJos\nDr. Stanley Nwani",
         "",
         ""
       ],
@@ -3714,31 +3714,31 @@
         "BREAK",
         "",
         "BREAK",
-        "FIN 304\nBauchi\nMrs. Ibironike Olaniyi",
+        "",
         "BREAK"
       ],
       [
         "14:00",
-        "FIN 302\nMaiduguri\nDr. Ikpesu Olapeju",
         "",
-        "FIN 301\nPortharcourt\nDr. Oluwasikemi Owolabi",
-        "FIN 304\nBauchi\nMrs. Ibironike Olaniyi",
+        "",
+        "FIN 305\nAdo-Ekiti\nMr. Innocent Unah",
+        "FIN 304\nMaiduguri\nMrs. Ibironike Olaniyi",
         ""
       ],
       [
         "15:00",
-        "FIN 302\nMaiduguri\nDr. Ikpesu Olapeju",
+        "FIN 303\nUyo\nDr. Stanley Nwani",
         "",
-        "FIN 301\nPortharcourt\nDr. Oluwasikemi Owolabi",
-        "FIN 304\nBauchi\nMrs. Ibironike Olaniyi",
+        "FIN 305\nAdo-Ekiti\nMr. Innocent Unah",
+        "FIN 304\nMaiduguri\nMrs. Ibironike Olaniyi",
         ""
       ],
       [
         "16:00",
-        "FIN 302\nMaiduguri\nDr. Ikpesu Olapeju",
+        "FIN 303\nUyo\nDr. Stanley Nwani",
         "",
-        "FIN 301\nPortharcourt\nDr. Oluwasikemi Owolabi",
-        "",
+        "FIN 305\nAdo-Ekiti\nMr. Innocent Unah",
+        "FIN 304\nMaiduguri\nMrs. Ibironike Olaniyi",
         ""
       ]
     ]
@@ -3770,7 +3770,7 @@
         "",
         "",
         "",
-        "",
+        "FIN 401\nClassroom 2\nDr. Fredrick Ikpesu",
         ""
       ],
       [
@@ -3778,7 +3778,7 @@
         "",
         "",
         "",
-        "",
+        "FIN 401\nClassroom 2\nDr. Fredrick Ikpesu",
         ""
       ],
       [
@@ -3799,7 +3799,7 @@
       ],
       [
         "15:00",
-        "FIN 401\nAsaba\nDr. Fredrick Ikpesu",
+        "",
         "",
         "",
         "",
@@ -3807,7 +3807,7 @@
       ],
       [
         "16:00",
-        "FIN 401\nAsaba\nDr. Fredrick Ikpesu",
+        "",
         "",
         "",
         "",

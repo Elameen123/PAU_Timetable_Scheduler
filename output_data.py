@@ -16,9 +16,10 @@ class TimetableExporter:
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
         
-        # Load course and room data
+        # Load course, room, and faculty data
         self.course_data = self.load_course_data()
         self.room_data = self.load_room_data()
+        self.faculty_data = self.load_faculty_data()
         
         # Keywords to identify SST (engineering) groups
         self.sst_keywords = [
@@ -67,6 +68,23 @@ class TimetableExporter:
             return room_map
         except Exception as e:
             print(f"❌ Error loading room data: {e}")
+            return {}
+
+    def load_faculty_data(self):
+        """Load faculty data from JSON file"""
+        try:
+            faculty_path = os.path.join(os.path.dirname(__file__), 'data', 'faculty-data.json')
+            with open(faculty_path, 'r', encoding='utf-8') as f:
+                faculty = json.load(f)
+            
+            # Create a mapping from faculty ID to faculty info
+            faculty_map = {}
+            for fac in faculty:
+                faculty_map[fac['id']] = fac  # Use 'id' field instead of 'faculty_id'
+            
+            return faculty_map
+        except Exception as e:
+            print(f"❌ Error loading faculty data: {e}")
             return {}
 
     def load_saved_timetable_data(self):
@@ -705,18 +723,32 @@ class TimetableExporter:
                             cell_content = row_data[day_idx + 1]
                             lecturer_info = self.extract_lecturer_info(cell_content)
                             
-                            if lecturer_info and lecturer_info['faculty']:
-                                lecturer_name = lecturer_info['faculty']
+                            if lecturer_info and lecturer_info['course_code']:
+                                course_code = lecturer_info['course_code']
                                 
-                                # Skip generic entries
-                                if lecturer_name.lower() not in ['unknown', 'tbd', 'staff', '']:
-                                    lecturer_schedules[lecturer_name].append({
-                                        'time_slot': time_slot_idx,
-                                        'day': day_idx,
-                                        'course_code': lecturer_info['course_code'],
-                                        'room': lecturer_info['room'],
-                                        'student_group': student_group_name
-                                    })
+                                # Get all faculty for this course from course data
+                                course_info = self.course_data.get(course_code, {})
+                                faculty_ids = course_info.get('facultyId', [])
+                                
+                                # If facultyId is a string, convert to list
+                                if isinstance(faculty_ids, str):
+                                    faculty_ids = [faculty_ids]
+                                
+                                # Create schedule entries for ALL faculty members
+                                for faculty_id in faculty_ids:
+                                    # Get faculty name from faculty data
+                                    faculty_info = self.faculty_data.get(faculty_id, {})
+                                    lecturer_name = faculty_info.get('name', faculty_id)
+                                    
+                                    # Skip generic entries
+                                    if lecturer_name.lower() not in ['unknown', 'tbd', 'staff', '']:
+                                        lecturer_schedules[lecturer_name].append({
+                                            'time_slot': time_slot_idx,
+                                            'day': day_idx,
+                                            'course_code': course_code,
+                                            'room': lecturer_info['room'],
+                                            'student_group': student_group_name
+                                        })
             
             if not lecturer_schedules:
                 return False, "No lecturer data found"
