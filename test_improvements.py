@@ -1,67 +1,136 @@
 #!/usr/bin/env python3
 
+"""
+Test script to verify the improved differential evolution implementation
+prevents student group clashes and missing classes from the very beginning.
+"""
+
 from differential_evolution import DifferentialEvolution
 from input_data import input_data
 
-def test_improvements():
-    print("Testing improved differential evolution algorithm...")
-    print("=" * 60)
+def test_clash_free_initialization():
+    """Test that all chromosomes in initial population are clash-free"""
+    print("🧪 TESTING CLASH-FREE INITIALIZATION")
+    print("="*50)
     
-    # Create DE instance with smaller population for testing
-    de = DifferentialEvolution(input_data, 10, 0.4, 0.9)
+    # Create DE instance with small population for testing
+    de = DifferentialEvolution(input_data, pop_size=5, F=0.4, CR=0.9)
     
-    print("\nEngineering groups identified:")
-    for group_id in de.engineering_groups:
-        group = next(g for g in de.student_groups if g.id == group_id)
-        print(f"  {group_id}: {group.name}")
+    print(f"📊 Test Results:")
+    print(f"   Total events that should be scheduled: {len(de.events_list)}")
+    print(f"   Total student groups: {len(de.student_groups)}")
+    print(f"   Population size: {len(de.population)}")
     
-    print("\nNon-engineering groups:")
-    for group in de.student_groups:
-        if group.id not in de.engineering_groups:
-            print(f"  {group.id}: {group.name}")
+    all_good = True
     
-    print("\nRoom building assignments:")
-    sst_rooms = []
-    tyd_rooms = []
-    for idx, building in de.room_building_cache.items():
-        room = de.rooms[idx]
-        room_name = getattr(room, 'name', f'Room {idx}')
-        if building == 'SST':
-            sst_rooms.append(f"{room_name} ({room.room_type})")
-        elif building == 'TYD':
-            tyd_rooms.append(f"{room_name} ({room.room_type})")
+    for i, chromosome in enumerate(de.population):
+        print(f"\n🔍 Checking Chromosome {i+1}:")
+        
+        # Check 1: All events scheduled
+        scheduled_events = set()
+        for room_idx in range(len(de.rooms)):
+            for timeslot_idx in range(len(de.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    scheduled_events.add(event_id)
+        
+        missing_count = len(de.events_list) - len(scheduled_events)
+        print(f"   Events: {len(scheduled_events)}/{len(de.events_list)} scheduled, {missing_count} missing")
+        
+        if missing_count == 0:
+            print("   ✅ All events scheduled")
+        else:
+            print(f"   ❌ {missing_count} events missing")
+            all_good = False
+        
+        # Check 2: No student group clashes
+        clash_count = 0
+        for t_idx in range(len(de.timeslots)):
+            student_groups_at_slot = set()
+            for r_idx in range(len(de.rooms)):
+                event_id = chromosome[r_idx, t_idx]
+                if event_id is not None:
+                    event = de.events_map.get(event_id)
+                    if event:
+                        sg_id = event.student_group.id
+                        if sg_id in student_groups_at_slot:
+                            clash_count += 1
+                        else:
+                            student_groups_at_slot.add(sg_id)
+        
+        if clash_count == 0:
+            print("   ✅ No student group clashes")
+        else:
+            print(f"   ❌ {clash_count} student group clashes")
+            all_good = False
+        
+        # Check 3: Basic fitness
+        fitness = de.evaluate_fitness(chromosome)
+        print(f"   Fitness: {fitness:.2f}")
     
-    print(f"  SST rooms ({len(sst_rooms)}): {', '.join(sst_rooms[:5])}{'...' if len(sst_rooms) > 5 else ''}")
-    print(f"  TYD rooms ({len(tyd_rooms)}): {', '.join(tyd_rooms[:5])}{'...' if len(tyd_rooms) > 5 else ''}")
+    print("\n" + "="*50)
+    if all_good:
+        print("🎉 SUCCESS: All chromosomes are clash-free with no missing events!")
+        return True
+    else:
+        print("❌ FAILURE: Some chromosomes have issues")
+        return False
+
+def test_quick_evolution():
+    """Test a few generations to ensure properties are maintained"""
+    print("\n🧪 TESTING SHORT EVOLUTION MAINTAINS PROPERTIES")
+    print("="*50)
     
-    # Test initial population
-    print("\nTesting initial population...")
-    initial_fitness = [de.evaluate_fitness(ind) for ind in de.population]
-    best_fitness = min(initial_fitness)
-    avg_fitness = sum(initial_fitness) / len(initial_fitness)
+    # Create DE instance and run for a few generations
+    de = DifferentialEvolution(input_data, pop_size=3, F=0.4, CR=0.9)
     
-    print(f"Initial population results:")
-    print(f"  Best fitness: {best_fitness:.1f}")
-    print(f"  Average fitness: {avg_fitness:.1f}")
+    print("Running 3 generations...")
+    best_solution, fitness_history, generation, diversity_history = de.run(3)
     
-    # Show constraint breakdown for best initial solution
-    best_idx = initial_fitness.index(best_fitness)
-    best_solution = de.population[best_idx]
-    violations = de.constraints.get_constraint_violations(best_solution)
+    # Check final solution
+    print(f"\n🔍 Checking Final Solution:")
     
-    print(f"\nConstraint breakdown for best initial solution:")
-    for constraint, value in violations.items():
-        if value > 0:
-            print(f"  {constraint}: {value:.1f}")
+    # Count scheduled events
+    scheduled_events = set()
+    for room_idx in range(len(de.rooms)):
+        for timeslot_idx in range(len(de.timeslots)):
+            event_id = best_solution[room_idx][timeslot_idx]
+            if event_id is not None:
+                scheduled_events.add(event_id)
     
-    # Test a few generations
-    print(f"\nRunning 5 generations...")
-    best_solution, fitness_history, generation, diversity_history = de.run(5)
+    missing_count = len(de.events_list) - len(scheduled_events)
+    print(f"   Events: {len(scheduled_events)}/{len(de.events_list)} scheduled, {missing_count} missing")
     
-    print(f"\nFinal results:")
-    print(f"  Final best fitness: {fitness_history[-1]:.1f}")
-    print(f"  Improvement: {best_fitness:.1f} → {fitness_history[-1]:.1f}")
-    print(f"  Generations completed: {generation + 1}")
+    # Count clashes
+    clash_count = de.count_student_group_clashes(best_solution)
+    print(f"   Student group clashes: {clash_count}")
+    
+    # Final fitness
+    final_fitness = de.evaluate_fitness(best_solution)
+    print(f"   Final fitness: {final_fitness:.2f}")
+    
+    success = (missing_count == 0 and clash_count == 0)
+    if success:
+        print("   ✅ Evolution maintained clash-free property!")
+    else:
+        print("   ❌ Evolution introduced problems")
+    
+    return success
 
 if __name__ == "__main__":
-    test_improvements()
+    print("🚀 COMPREHENSIVE TESTING OF IMPROVED DIFFERENTIAL EVOLUTION")
+    print("="*60)
+    
+    test1_passed = test_clash_free_initialization()
+    test2_passed = test_quick_evolution()
+    
+    print("\n" + "="*60)
+    print("📋 FINAL TEST SUMMARY:")
+    print(f"   Clash-free initialization: {'✅ PASS' if test1_passed else '❌ FAIL'}")
+    print(f"   Property maintenance:       {'✅ PASS' if test2_passed else '❌ FAIL'}")
+    
+    if test1_passed and test2_passed:
+        print("\n🎉 ALL TESTS PASSED! The implementation is working correctly.")
+        print("   Student group clashes and missing classes should now be ELIMINATED.")
+    else:
+        print("\n⚠️  SOME TESTS FAILED. Further debugging needed.")

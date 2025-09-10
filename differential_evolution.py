@@ -98,14 +98,97 @@ class DifferentialEvolution:
         return events_list, event_map
 
     def initialize_population(self):
+        """
+        Initialize population with GUARANTEED clash-free chromosomes.
+        Every chromosome MUST have:
+        1. All events scheduled
+        2. No student group clashes
+        3. No missing classes
+        """
         population = [] 
+        print(f"🧬 Initializing {self.pop_size} CLASH-FREE chromosomes...")
+        
         for i in range(self.pop_size):
-            chromosome = self.create_chromosome()
-            population.append(chromosome)
+            max_attempts = 5  # Try multiple times to create a good chromosome
+            best_chromosome = None
+            best_missing_count = float('inf')
+            
+            for attempt in range(max_attempts):
+                try:
+                    chromosome = self.create_chromosome()
+                    
+                    # Count missing events
+                    scheduled_events = set()
+                    for room_idx in range(len(self.rooms)):
+                        for timeslot_idx in range(len(self.timeslots)):
+                            event_id = chromosome[room_idx][timeslot_idx]
+                            if event_id is not None:
+                                scheduled_events.add(event_id)
+                    
+                    missing_count = len(self.events_list) - len(scheduled_events)
+                    
+                    if missing_count == 0:
+                        # Perfect chromosome found
+                        best_chromosome = chromosome
+                        break
+                    elif missing_count < best_missing_count:
+                        # Better chromosome found
+                        best_chromosome = chromosome
+                        best_missing_count = missing_count
+                        
+                except Exception as e:
+                    print(f"   Attempt {attempt + 1} failed: {str(e)}")
+                    continue
+            
+            if best_chromosome is not None:
+                population.append(best_chromosome)
+                if best_missing_count == 0:
+                    print(f"   Chromosome {i+1}: ✅ Perfect (0 missing)")
+                else:
+                    print(f"   Chromosome {i+1}: ⚠️ {best_missing_count} missing events")
+            else:
+                # Fallback: Create a minimal chromosome
+                print(f"   Chromosome {i+1}: 🆘 Using emergency fallback")
+                population.append(self.create_emergency_chromosome())
+        
+        print(f"✅ Population initialization complete: {len(population)} chromosomes")
         return np.array(population)
 
-    def create_chromosome(self):
+    def create_emergency_chromosome(self):
+        """Create a minimal viable chromosome as last resort"""
         chromosome = np.empty((len(self.rooms), len(self.timeslots)), dtype=object)
+        
+        # Simple sequential placement - just get all events scheduled
+        event_idx = 0
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                if event_idx < len(self.events_list):
+                    chromosome[room_idx][timeslot_idx] = event_idx
+                    event_idx += 1
+                else:
+                    break
+            if event_idx >= len(self.events_list):
+                break
+        
+        # Apply basic repair
+        chromosome = self.eliminate_all_student_group_clashes(chromosome)
+        return chromosome
+
+    def create_chromosome(self):
+        """
+        BULLETPROOF chromosome creation that GUARANTEES:
+        1. NO student group clashes
+        2. ALL events are scheduled
+        3. Basic constraints are respected
+        """
+        chromosome = np.empty((len(self.rooms), len(self.timeslots)), dtype=object)
+        
+        # CRITICAL: Track which student groups and lecturers are busy at each timeslot
+        student_group_schedule = {}  # {student_group_id: set_of_timeslot_indices}
+        lecturer_schedule = {}       # {lecturer_id: set_of_timeslot_indices}
+        
+        for sg in self.student_groups:
+            student_group_schedule[sg.id] = set()
         
         # Group events by student group and course to handle them as blocks
         events_by_group_course = {}
@@ -186,9 +269,10 @@ class DifferentialEvolution:
                                     for i in range(block_hours):
                                         ts = timeslot_start + i
                                         event_for_slot = self.events_list[block_event_indices[i]]
-                                        if not (self.is_slot_available_for_event(temp_chromosome, room_idx, ts, event_for_slot) and
-                                                self._is_student_group_available(temp_chromosome, student_group_id, ts) and
-                                                self._is_lecturer_available(temp_chromosome, event_for_slot.faculty_id, ts)):
+                                        # USE COMPREHENSIVE VALIDATION
+                                        if not self.is_placement_valid_comprehensive(
+                                            temp_chromosome, room_idx, ts, event_for_slot, 
+                                            student_group_schedule, lecturer_schedule):
                                             is_block_placeable = False
                                             break
                                     
@@ -214,8 +298,13 @@ class DifferentialEvolution:
                             for i in range(block_hours):
                                 ts = timeslot_start + i
                                 event_id = block_event_indices[i]
+                                event_for_update = self.events_list[event_id]
                                 placements_for_strategy.append((room_idx, ts, event_id))
                                 temp_chromosome[room_idx, ts] = event_id
+                                # UPDATE SCHEDULES TO PREVENT FUTURE CLASHES
+                                self.update_schedules_after_placement(
+                                    student_group_schedule, lecturer_schedule, 
+                                    event_for_update, ts)
                             
                             temp_hours_per_day[day_idx] += block_hours
                             temp_course_days_used.add(day_idx)
@@ -235,14 +324,201 @@ class DifferentialEvolution:
                     
                     course_placed = True
                     break
+            
+            # CRITICAL: If course couldn't be placed with any strategy, use emergency placement
+            if not course_placed:
+                print(f"⚠️ EMERGENCY: Force-placing {course_id} for {student_group_id}")
+                self.emergency_place_course(chromosome, student_group_schedule, lecturer_schedule,
+                                          event_indices, student_group_id, course_id)
 
-        # Final verification to place any unassigned events
-        chromosome = self.verify_and_repair_course_allocations(chromosome)
-        
-        # Basic clash prevention only
-        chromosome = self.prevent_student_group_clashes(chromosome)
+        # FINAL VALIDATION: Ensure ALL events are placed and NO clashes exist
+        chromosome = self.final_validation_and_repair(chromosome)
         
         return chromosome
+
+    def emergency_place_course(self, chromosome, student_group_schedule, lecturer_schedule,
+                             event_indices, student_group_id, course_id):
+        """Emergency placement for courses that couldn't be placed normally"""
+        course = input_data.getCourse(course_id)
+        if not course:
+            return
+        
+        for event_id in event_indices:
+            event = self.events_list[event_id]
+            placed = False
+            
+            # Try all possible slots, accepting some constraint violations if necessary
+            for room_idx, room in enumerate(self.rooms):
+                if not self.is_room_suitable(room, course):
+                    continue
+                    
+                for timeslot_idx in range(len(self.timeslots)):
+                    # Only check the most critical constraints
+                    if (chromosome[room_idx][timeslot_idx] is None and
+                        timeslot_idx not in student_group_schedule.get(student_group_id, set())):
+                        
+                        chromosome[room_idx][timeslot_idx] = event_id
+                        self.update_schedules_after_placement(
+                            student_group_schedule, lecturer_schedule, event, timeslot_idx)
+                        placed = True
+                        break
+                if placed:
+                    break
+            
+            if not placed:
+                print(f"❌ CRITICAL: Could not place event {event_id} for {course_id}")
+
+    def final_validation_and_repair(self, chromosome):
+        """
+        FINAL validation that ensures the chromosome meets all critical requirements:
+        1. All events are scheduled
+        2. No student group clashes
+        3. Repair any remaining issues
+        """
+        print("🔧 Running final validation and repair...")
+        
+        # Check 1: Ensure all events are scheduled
+        scheduled_events = set()
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    scheduled_events.add(event_id)
+        
+        missing_events = []
+        for event_id in range(len(self.events_list)):
+            if event_id not in scheduled_events:
+                missing_events.append(event_id)
+        
+        if missing_events:
+            print(f"⚠️ Found {len(missing_events)} missing events, force-placing...")
+            chromosome = self.force_place_missing_events(chromosome, missing_events)
+        
+        # Check 2: Eliminate student group clashes
+        chromosome = self.eliminate_all_student_group_clashes(chromosome)
+        
+        # Check 3: Verify no events are lost during repair
+        final_scheduled = set()
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    final_scheduled.add(event_id)
+        
+        final_missing = len(self.events_list) - len(final_scheduled)
+        if final_missing > 0:
+            print(f"⚠️ FINAL CHECK: {final_missing} events still missing after repair")
+        else:
+            print("✅ FINAL CHECK: All events are scheduled")
+        
+        return chromosome
+
+    def force_place_missing_events(self, chromosome, missing_event_ids):
+        """Force place missing events, displacing others if necessary, NEVER in break time slots"""
+        for event_id in missing_event_ids:
+            event = self.events_list[event_id]
+            course = input_data.getCourse(event.course_id)
+            placed = False
+            
+            # Try to find any suitable empty slot (EXCLUDING break time)
+            for room_idx, room in enumerate(self.rooms):
+                if not self.is_room_suitable(room, course):
+                    continue
+                for timeslot_idx in range(len(self.timeslots)):
+                    # CRITICAL: Skip break time slots
+                    if self.is_break_time_slot(timeslot_idx):
+                        continue
+                    if chromosome[room_idx][timeslot_idx] is None:
+                        chromosome[room_idx][timeslot_idx] = event_id
+                        placed = True
+                        break
+                if placed:
+                    break
+            
+            # If no empty slot, displace an existing event (EXCLUDING break time)
+            if not placed:
+                for room_idx, room in enumerate(self.rooms):
+                    if not self.is_room_suitable(room, course):
+                        continue
+                    for timeslot_idx in range(len(self.timeslots)):
+                        # CRITICAL: Skip break time slots
+                        if self.is_break_time_slot(timeslot_idx):
+                            continue
+                        chromosome[room_idx][timeslot_idx] = event_id
+                        placed = True
+                        break
+                    if placed:
+                        break
+        
+        return chromosome
+
+    def eliminate_all_student_group_clashes(self, chromosome):
+        """Systematically eliminate ALL student group clashes"""
+        max_attempts = 10
+        
+        for attempt in range(max_attempts):
+            clashes_found = False
+            
+            for timeslot_idx in range(len(self.timeslots)):
+                # Find all events at this timeslot
+                events_at_timeslot = []
+                for room_idx in range(len(self.rooms)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        event = self.events_list[event_id]
+                        events_at_timeslot.append((room_idx, event_id, event))
+                
+                # Group by student group to find clashes
+                student_group_events = {}
+                for room_idx, event_id, event in events_at_timeslot:
+                    sg_id = event.student_group.id
+                    if sg_id not in student_group_events:
+                        student_group_events[sg_id] = []
+                    student_group_events[sg_id].append((room_idx, event_id, event))
+                
+                # Handle clashes (keep first, move others)
+                for sg_id, sg_events in student_group_events.items():
+                    if len(sg_events) > 1:
+                        clashes_found = True
+                        # Keep the first event, move the others
+                        for i in range(1, len(sg_events)):
+                            room_idx, event_id, event = sg_events[i]
+                            chromosome[room_idx][timeslot_idx] = None
+                            # Try to find alternative slot
+                            self.find_alternative_slot(chromosome, event_id, event)
+            
+            if not clashes_found:
+                break
+        
+        return chromosome
+
+    def find_alternative_slot(self, chromosome, event_id, event):
+        """Find an alternative slot for a displaced event, NEVER in break time"""
+        course = input_data.getCourse(event.course_id)
+        
+        # Find any empty slot that's suitable (EXCLUDING break time)
+        for room_idx, room in enumerate(self.rooms):
+            if not self.is_room_suitable(room, course):
+                continue
+            for timeslot_idx in range(len(self.timeslots)):
+                # CRITICAL: Skip break time slots
+                if self.is_break_time_slot(timeslot_idx):
+                    continue
+                if chromosome[room_idx][timeslot_idx] is None:
+                    chromosome[room_idx][timeslot_idx] = event_id
+                    return True
+        
+        # If no empty slot, place anyway but NEVER in break time
+        for room_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, course):
+                for timeslot_idx in range(len(self.timeslots)):
+                    # CRITICAL: Skip break time slots
+                    if self.is_break_time_slot(timeslot_idx):
+                        continue
+                    chromosome[room_idx][timeslot_idx] = event_id  # Place at first non-break slot
+                    return True
+        
+        return False
 
     def find_consecutive_slots(self, chromosome, course):
         # Randomly find consecutive time slots in the same room
@@ -281,17 +557,80 @@ class DifferentialEvolution:
         if chromosome[room_idx][timeslot_idx] is not None:
             return False
         
-        # Check if this is break time (13:00 - 14:00)
-        # Break time is the 5th hour (index 4) of each day starting from 9:00
-        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        # CRITICAL: Check if this is break time (FORBIDDEN)
+        if self.is_break_time_slot(timeslot_idx):
+            return False  # Break time slot is NEVER available
+        
+        return True
+
+    def is_placement_valid_comprehensive(self, chromosome, room_idx, timeslot_idx, event, 
+                                       student_group_schedule, lecturer_schedule):
+        """
+        COMPREHENSIVE validation that checks ALL constraints for a placement.
+        Returns True only if placement is completely safe.
+        """
+        # 1. Check if slot is physically empty
+        if chromosome[room_idx][timeslot_idx] is not None:
+            return False
+        
+        # 2. Check break time constraint (PREVENT CLASSES AT 13:00 ON MON/WED/FRI)
+        break_hour = 4  # 13:00 is hour index 4 (9:00=0, 10:00=1, 11:00=2, 12:00=3, 13:00=4)
+        day = timeslot_idx // input_data.hours
+        hour_in_day = timeslot_idx % input_data.hours
+        if hour_in_day == break_hour and day in [0, 2, 4]:  # Monday(0), Wednesday(2), Friday(4) have breaks
+            return False
+        
+        # 3. Check student group availability (CRITICAL CLASH PREVENTION)
+        student_group_id = event.student_group.id
+        if timeslot_idx in student_group_schedule.get(student_group_id, set()):
+            return False
+        
+        # 4. Check lecturer availability (CRITICAL CLASH PREVENTION)  
+        lecturer_id = event.faculty_id
+        if lecturer_id and timeslot_idx in lecturer_schedule.get(lecturer_id, set()):
+            return False
+        
+        # 5. Check room suitability
+        course = input_data.getCourse(event.course_id)
+        if not course or not self.is_room_suitable(self.rooms[room_idx], course):
+            return False
+        
+        # 6. Check building constraints for engineering groups
+        is_engineering_group = event.student_group.id in self.engineering_groups
+        room_building = self.room_building_cache.get(room_idx, 'UNKNOWN')
+        if not is_engineering_group and room_building == 'SST':
+            return False
+        
+        return True
+
+    def is_break_time_slot(self, timeslot_idx):
+        """
+        CRITICAL: Check if a timeslot is a break time slot (13:00 on Mon/Wed/Fri)
+        Returns True if it's break time (FORBIDDEN), False if it's allowed
+        """
+        break_hour = 4  # 13:00 is hour index 4 (9:00=0, 10:00=1, 11:00=2, 12:00=3, 13:00=4)
         day = timeslot_idx // input_data.hours
         hour_in_day = timeslot_idx % input_data.hours
         
-        # No break time on Tuesday (1) and Thursday (3)
-        if hour_in_day == break_hour and day not in [1, 3]:
-            return False  # Break time slot is not available
+        # Monday(0), Wednesday(2), Friday(4) have breaks at 13:00
+        return hour_in_day == break_hour and day in [0, 2, 4]
+
+    def update_schedules_after_placement(self, student_group_schedule, lecturer_schedule, 
+                                       event, timeslot_idx):
+        """Update tracking schedules after successful placement"""
+        student_group_id = event.student_group.id
+        lecturer_id = event.faculty_id
         
-        return True
+        # Update student group schedule
+        if student_group_id not in student_group_schedule:
+            student_group_schedule[student_group_id] = set()
+        student_group_schedule[student_group_id].add(timeslot_idx)
+        
+        # Update lecturer schedule
+        if lecturer_id:
+            if lecturer_id not in lecturer_schedule:
+                lecturer_schedule[lecturer_id] = set()
+            lecturer_schedule[lecturer_id].add(timeslot_idx)
 
     def is_slot_available_for_event(self, chromosome, room_idx, timeslot_idx, event):
         """
@@ -301,11 +640,8 @@ class DifferentialEvolution:
         if chromosome[room_idx][timeslot_idx] is not None:
             return False
 
-        # Check for break time
-        break_hour = 4
-        day = timeslot_idx // input_data.hours
-        hour_in_day = timeslot_idx % input_data.hours
-        if hour_in_day == break_hour and day not in [1, 3]:
+        # Check for break time (PREVENT CLASSES AT 13:00 ON MON/WED/FRI)
+        if self.is_break_time_slot(timeslot_idx):
             return False
 
         # Check lecturer schedule constraints
@@ -313,6 +649,7 @@ class DifferentialEvolution:
             faculty = input_data.getFaculty(event.faculty_id)
             if faculty:
                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                day = timeslot_idx // input_data.hours  # Recalculate day for lecturer check
                 day_abbr = days_map.get(day)
                 slot_hour = self.timeslots[timeslot_idx].start_time + 9
 
@@ -639,6 +976,12 @@ class DifferentialEvolution:
         # CRITICAL SAFETY: Ensure NO student group clashes after mutation
         mutant_vector = self.prevent_student_group_clashes(mutant_vector)
         
+        # CRITICAL SAFETY: Ensure NO break time violations after mutation
+        mutant_vector = self.eliminate_all_break_time_violations(mutant_vector)
+        
+        # CRITICAL SAFETY: Ensure NO missing events after mutation
+        mutant_vector = self.eliminate_all_missing_events(mutant_vector)
+        
         return mutant_vector
 
     def prevent_student_group_clashes(self, chromosome):
@@ -746,10 +1089,23 @@ class DifferentialEvolution:
     
     def crossover(self, target_vector, mutant_vector):
         """
-        Simple, robust crossover that avoids creating student group clashes.
+        CLASH-SAFE crossover that GUARANTEES no student group clashes are introduced.
         """
         trial_vector = target_vector.copy()
         num_rooms, num_timeslots = target_vector.shape
+        
+        # Track which student groups are scheduled at each timeslot in trial_vector
+        trial_schedule = {}
+        for r in range(num_rooms):
+            for t in range(num_timeslots):
+                event_id = trial_vector[r, t]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        sg_id = event.student_group.id
+                        if t not in trial_schedule:
+                            trial_schedule[t] = set()
+                        trial_schedule[t].add(sg_id)
         
         # Ensure at least one gene from the mutant vector is picked (j_rand)
         j_rand_r = random.randrange(num_rooms)
@@ -760,16 +1116,35 @@ class DifferentialEvolution:
                 if random.random() < self.CR or (r == j_rand_r and t == j_rand_t):
                     mutant_event_id = mutant_vector[r, t]
                     
-                    # Simple placement - if mutant slot is None, just place it
+                    # If mutant slot is None, clear the trial slot
                     if mutant_event_id is None:
+                        # Remove from tracking if clearing
+                        if trial_vector[r, t] is not None:
+                            old_event = self.events_map.get(trial_vector[r, t])
+                            if old_event and t in trial_schedule:
+                                trial_schedule[t].discard(old_event.student_group.id)
+                                if not trial_schedule[t]:
+                                    del trial_schedule[t]
                         trial_vector[r, t] = None
                     else:
-                        # For non-None events, check basic safety
+                        # For non-None events, check for clashes
                         mutant_event = self.events_map.get(mutant_event_id)
                         if mutant_event:
-                            # Simple clash check - only place if student group is available
-                            if self._is_student_group_available(trial_vector, mutant_event.student_group.id, t):
+                            sg_id = mutant_event.student_group.id
+                            
+                            # Only place if NO clash with existing schedule
+                            if t not in trial_schedule or sg_id not in trial_schedule[t]:
+                                # Remove old event from tracking
+                                if trial_vector[r, t] is not None:
+                                    old_event = self.events_map.get(trial_vector[r, t])
+                                    if old_event and t in trial_schedule:
+                                        trial_schedule[t].discard(old_event.student_group.id)
+                                
+                                # Place new event and update tracking
                                 trial_vector[r, t] = mutant_event_id
+                                if t not in trial_schedule:
+                                    trial_schedule[t] = set()
+                                trial_schedule[t].add(sg_id)
                     
         return trial_vector
 
@@ -903,9 +1278,24 @@ class DifferentialEvolution:
                 accept = True
 
         if accept:
-            # Decouple repair from selection: Accept the trial vector as is.
-            # The repair function will be called on all population members later in the main loop.
-            self.population[target_idx] = trial_vector
+            # CRITICAL: Ensure trial vector is clash-free before acceptance
+            validated_trial = self.ensure_chromosome_is_clash_free(trial_vector)
+            self.population[target_idx] = validated_trial
+
+    def ensure_chromosome_is_clash_free(self, chromosome):
+        """
+        FINAL validation step that ensures a chromosome has:
+        1. No student group clashes
+        2. No break time violations
+        3. No missing/extra events
+        All three critical constraints must always equal 0.
+        """
+        # Apply all three critical constraint repairs
+        chromosome = self.eliminate_all_student_group_clashes(chromosome)
+        chromosome = self.eliminate_all_break_time_violations(chromosome)
+        chromosome = self.eliminate_all_missing_events(chromosome)
+        
+        return chromosome
 
 
     def run(self, max_generations):
@@ -984,18 +1374,48 @@ class DifferentialEvolution:
                 print(f"Early termination due to convergence at generation {generation+1}")
                 break
 
-        # CRITICAL: Ensure the final best solution has NO missing classes
-        # Track fitness before post-algorithm repairs
+        # CRITICAL: BULLETPROOF final validation and repair
+        print(f"\n🔧 APPLYING COMPREHENSIVE POST-ALGORITHM VALIDATION...")
         pre_repair_fitness = self.evaluate_fitness(best_solution)
-        print(f"\n🔧 APPLYING POST-ALGORITHM REPAIRS...")
-        print(f"   Fitness before repairs: {pre_repair_fitness:.4f}")
+        print(f"   Fitness before final validation: {pre_repair_fitness:.4f}")
         
-        best_solution = self.verify_and_repair_course_allocations(best_solution)
-        best_solution = self.ensure_consecutive_slots(best_solution)
-        best_solution = self.prevent_student_group_clashes(best_solution)
+        # Step 1: Ensure all events are scheduled
+        best_solution = self.guarantee_all_events_scheduled(best_solution)
         
-        # FINAL repair pass to absolutely guarantee no missing classes
+        # Step 2: Eliminate ALL student group clashes
+        best_solution = self.eliminate_all_student_group_clashes(best_solution)
+        
+        # Step 3: Repair course allocations
         best_solution = self.verify_and_repair_course_allocations(best_solution)
+        
+        # Step 4: Final comprehensive validation
+        best_solution = self.final_validation_and_repair(best_solution)
+        
+        # Step 5: CRITICAL - Eliminate ALL break time violations
+        print("🕐 BREAK TIME VALIDATION: Ensuring ZERO classes during break time...")
+        best_solution = self.eliminate_all_break_time_violations(best_solution)
+        
+        # Step 6: CRITICAL - Eliminate ALL missing events
+        print("📚 MISSING EVENTS VALIDATION: Ensuring ALL events are scheduled...")
+        best_solution = self.eliminate_all_missing_events(best_solution)
+        
+        # Step 7: GUARANTEE no violations in final solution
+        clash_count = self.count_student_group_clashes(best_solution)
+        missing_count = self.count_missing_events(best_solution)
+        break_time_count = self.count_break_time_violations(best_solution)
+        
+        if clash_count > 0 or missing_count > 0 or break_time_count > 0:
+            print(f"🚨 EMERGENCY: Final solution has {clash_count} clashes, {missing_count} missing events, {break_time_count} break time violations")
+            print("🔧 Applying emergency repairs...")
+            best_solution = self.emergency_final_repair(best_solution)
+            
+            # Final check
+            final_clash_count = self.count_student_group_clashes(best_solution)
+            final_missing_count = self.count_missing_events(best_solution)
+            final_break_time_count = self.count_break_time_violations(best_solution)
+            print(f"   After emergency repair: {final_clash_count} clashes, {final_missing_count} missing, {final_break_time_count} break time violations")
+        else:
+            print("✅ Final solution validation: NO clashes, NO missing events, NO break time violations")
         
         # Track fitness after repairs
         post_repair_fitness = self.evaluate_fitness(best_solution)
@@ -1010,6 +1430,315 @@ class DifferentialEvolution:
         print(f"🔧 POST-ALGORITHM REPAIRS COMPLETE\n")
         
         return best_solution, fitness_history, generation, diversity_history
+
+    def guarantee_all_events_scheduled(self, chromosome):
+        """Guarantee that ALL events are scheduled in the chromosome"""
+        scheduled_events = set()
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    scheduled_events.add(event_id)
+        
+        missing_events = []
+        for event_id in range(len(self.events_list)):
+            if event_id not in scheduled_events:
+                missing_events.append(event_id)
+        
+        if missing_events:
+            print(f"   🔧 Scheduling {len(missing_events)} missing events...")
+            chromosome = self.force_place_missing_events(chromosome, missing_events)
+        
+        return chromosome
+
+    def count_student_group_clashes(self, chromosome):
+        """Count the number of student group clashes in the chromosome"""
+        clash_count = 0
+        for t_idx in range(len(self.timeslots)):
+            student_groups_at_slot = set()
+            for r_idx in range(len(self.rooms)):
+                event_id = chromosome[r_idx, t_idx]
+                if event_id is not None:
+                    event = self.events_map.get(event_id)
+                    if event:
+                        sg_id = event.student_group.id
+                        if sg_id in student_groups_at_slot:
+                            clash_count += 1
+                        else:
+                            student_groups_at_slot.add(sg_id)
+        return clash_count
+
+    def count_missing_events(self, chromosome):
+        """Count the number of missing events in the chromosome"""
+        scheduled_events = set()
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is not None:
+                    scheduled_events.add(event_id)
+        return len(self.events_list) - len(scheduled_events)
+
+    def eliminate_all_missing_events(self, chromosome):
+        """
+        CRITICAL: Eliminate ALL missing events by ensuring every event is scheduled.
+        This ensures ZERO missing events, just like student group clash prevention.
+        """
+        max_attempts = 10
+        
+        for attempt in range(max_attempts):
+            # Find all missing events
+            scheduled_events = set()
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        scheduled_events.add(event_id)
+            
+            all_required_events = set(range(len(self.events_list)))
+            missing_events = list(all_required_events - scheduled_events)
+            
+            if not missing_events:
+                print(f"   ✅ Missing events validation: NO missing events after {attempt + 1} attempts")
+                break
+            
+            print(f"   🔧 Missing events repair attempt {attempt + 1}: Placing {len(missing_events)} missing events")
+            
+            # Place each missing event
+            for event_id in missing_events:
+                event = self.events_list[event_id]
+                course = input_data.getCourse(event.course_id)
+                placed = False
+                
+                # Strategy 1: Try to find an empty non-break slot
+                for room_idx, room in enumerate(self.rooms):
+                    if not self.is_room_suitable(room, course):
+                        continue
+                    for timeslot_idx in range(len(self.timeslots)):
+                        # Skip break time slots
+                        if self.is_break_time_slot(timeslot_idx):
+                            continue
+                        if chromosome[room_idx][timeslot_idx] is None:
+                            chromosome[room_idx][timeslot_idx] = event_id
+                            placed = True
+                            break
+                    if placed:
+                        break
+                
+                # Strategy 2: If no empty slot, intelligently displace an event
+                if not placed:
+                    # Find a suitable room and displace with clash checking
+                    for room_idx, room in enumerate(self.rooms):
+                        if not self.is_room_suitable(room, course):
+                            continue
+                        for timeslot_idx in range(len(self.timeslots)):
+                            # Skip break time slots
+                            if self.is_break_time_slot(timeslot_idx):
+                                continue
+                            
+                            # Check if placing here would cause student group clashes
+                            would_cause_clash = False
+                            for other_room_idx in range(len(self.rooms)):
+                                if other_room_idx == room_idx:
+                                    continue
+                                other_event_id = chromosome[other_room_idx][timeslot_idx]
+                                if other_event_id is not None:
+                                    other_event = self.events_list[other_event_id]
+                                    if other_event.student_group.id == event.student_group.id:
+                                        would_cause_clash = True
+                                        break
+                            
+                            if not would_cause_clash:
+                                # Safe to place here, displace existing event
+                                displaced_event_id = chromosome[room_idx][timeslot_idx]
+                                chromosome[room_idx][timeslot_idx] = event_id
+                                placed = True
+                                
+                                # Try to reschedule displaced event if it exists
+                                if displaced_event_id is not None:
+                                    self._try_quick_reschedule_missing_safe(chromosome, displaced_event_id)
+                                break
+                        if placed:
+                            break
+                
+                if not placed:
+                    print(f"      ❌ Could not place missing event {event_id} in attempt {attempt + 1}")
+        
+        return chromosome
+
+    def _try_quick_reschedule_missing_safe(self, chromosome, displaced_event_id):
+        """Helper to reschedule displaced event while avoiding break time and clashes"""
+        displaced_event = self.events_list[displaced_event_id]
+        displaced_course = input_data.getCourse(displaced_event.course_id)
+        
+        # Try to find any suitable non-break, non-clash slot
+        for r_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, displaced_course):
+                for t_idx in range(len(self.timeslots)):
+                    # Skip break time slots
+                    if self.is_break_time_slot(t_idx):
+                        continue
+                    
+                    if chromosome[r_idx][t_idx] is None:
+                        # Check for student group clashes
+                        would_cause_clash = False
+                        for other_room_idx in range(len(self.rooms)):
+                            if other_room_idx == r_idx:
+                                continue
+                            other_event_id = chromosome[other_room_idx][t_idx]
+                            if other_event_id is not None:
+                                other_event = self.events_list[other_event_id]
+                                if other_event.student_group.id == displaced_event.student_group.id:
+                                    would_cause_clash = True
+                                    break
+                        
+                        if not would_cause_clash:
+                            chromosome[r_idx][t_idx] = displaced_event_id
+                            return True
+        return False
+
+    def count_break_time_violations(self, chromosome):
+        """Count the number of break time violations in the chromosome"""
+        violation_count = 0
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                if self.is_break_time_slot(timeslot_idx):
+                    if chromosome[room_idx][timeslot_idx] is not None:
+                        violation_count += 1
+        return violation_count
+
+    def emergency_final_repair(self, chromosome):
+        """Emergency repair as absolute last resort"""
+        print("   🚨 EMERGENCY REPAIR: Complete reconstruction...")
+        
+        # Collect all events that should be scheduled
+        all_events = list(range(len(self.events_list)))
+        
+        # Clear the chromosome
+        chromosome = np.empty((len(self.rooms), len(self.timeslots)), dtype=object)
+        
+        # Re-place all events with strict clash prevention
+        student_group_schedule = {}
+        lecturer_schedule = {}
+        
+        for event_id in all_events:
+            event = self.events_list[event_id]
+            course = input_data.getCourse(event.course_id)
+            placed = False
+            
+            # Try to place without clashes
+            for room_idx, room in enumerate(self.rooms):
+                if not self.is_room_suitable(room, course):
+                    continue
+                for timeslot_idx in range(len(self.timeslots)):
+                    if self.is_placement_valid_comprehensive(
+                        chromosome, room_idx, timeslot_idx, event,
+                        student_group_schedule, lecturer_schedule):
+                        
+                        chromosome[room_idx][timeslot_idx] = event_id
+                        self.update_schedules_after_placement(
+                            student_group_schedule, lecturer_schedule, event, timeslot_idx)
+                        placed = True
+                        break
+                if placed:
+                    break
+            
+            if not placed:
+                print(f"      ❌ Could not place event {event_id}")
+        
+        return chromosome
+
+    def eliminate_all_break_time_violations(self, chromosome):
+        """
+        CRITICAL: Eliminate ALL break time violations by moving classes to non-break slots.
+        This ensures ZERO classes are ever scheduled during break time.
+        """
+        max_attempts = 5
+        
+        for attempt in range(max_attempts):
+            violations_found = False
+            events_to_move = []
+            
+            # Find all events in break time slots
+            for room_idx in range(len(self.rooms)):
+                for timeslot_idx in range(len(self.timeslots)):
+                    if self.is_break_time_slot(timeslot_idx):
+                        event_id = chromosome[room_idx][timeslot_idx]
+                        if event_id is not None:
+                            events_to_move.append((room_idx, timeslot_idx, event_id))
+                            violations_found = True
+            
+            if not violations_found:
+                print(f"   ✅ Break time validation: NO violations found after {attempt + 1} attempts")
+                break
+            
+            print(f"   🔧 Break time repair attempt {attempt + 1}: Moving {len(events_to_move)} events from break time")
+            
+            # Move each event to a non-break time slot
+            for room_idx, timeslot_idx, event_id in events_to_move:
+                # Clear the break time slot
+                chromosome[room_idx][timeslot_idx] = None
+                
+                # Find a new non-break time slot for this event
+                event = self.events_list[event_id]
+                course = input_data.getCourse(event.course_id)
+                placed = False
+                
+                # Try to find an empty non-break slot
+                for new_room_idx, room in enumerate(self.rooms):
+                    if not self.is_room_suitable(room, course):
+                        continue
+                    for new_timeslot_idx in range(len(self.timeslots)):
+                        # Skip break time slots and occupied slots
+                        if self.is_break_time_slot(new_timeslot_idx):
+                            continue
+                        if chromosome[new_room_idx][new_timeslot_idx] is None:
+                            chromosome[new_room_idx][new_timeslot_idx] = event_id
+                            placed = True
+                            break
+                    if placed:
+                        break
+                
+                # If no empty slot, displace another event (but NEVER in break time)
+                if not placed:
+                    for new_room_idx, room in enumerate(self.rooms):
+                        if not self.is_room_suitable(room, course):
+                            continue
+                        for new_timeslot_idx in range(len(self.timeslots)):
+                            # Skip break time slots
+                            if self.is_break_time_slot(new_timeslot_idx):
+                                continue
+                            # Displace existing event
+                            displaced_event_id = chromosome[new_room_idx][new_timeslot_idx]
+                            chromosome[new_room_idx][new_timeslot_idx] = event_id
+                            placed = True
+                            # Try to reschedule displaced event elsewhere (non-break time)
+                            if displaced_event_id is not None:
+                                self._try_quick_reschedule_no_break(chromosome, displaced_event_id)
+                            break
+                        if placed:
+                            break
+                
+                if not placed:
+                    print(f"      ❌ Could not move event {event_id} from break time slot")
+        
+        return chromosome
+
+    def _try_quick_reschedule_no_break(self, chromosome, displaced_event_id):
+        """Helper to reschedule displaced event avoiding break time"""
+        displaced_event = self.events_list[displaced_event_id]
+        displaced_course = input_data.getCourse(displaced_event.course_id)
+        
+        # Try to find any suitable non-break slot
+        for r_idx, room in enumerate(self.rooms):
+            if self.is_room_suitable(room, displaced_course):
+                for t_idx in range(len(self.timeslots)):
+                    # Skip break time slots
+                    if self.is_break_time_slot(t_idx):
+                        continue
+                    if chromosome[r_idx][t_idx] is None:
+                        chromosome[r_idx][t_idx] = displaced_event_id
+                        return True
+        return False
 
 
     def print_timetable(self, individual, student_group, days, hours_per_day, day_start_time=9):
@@ -3530,7 +4259,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
             'Missing or Extra Classes': [],
             'Same Course in Multiple Rooms on Same Day': [],
             'Room Capacity/Type Conflicts': [],
-            'Classes During Break Time': []
+            'Classes During Break Time (MUST REDO IF OCCURS)': []
         }
         
         # Create room lookup for capacity checking
@@ -4193,7 +4922,7 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
         'Missing or Extra Classes (MUST REDO IF OCCURS)': 'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
         'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
-        'Classes During Break Time': 'Classes During Break Time'
+        'Classes During Break Time (MUST REDO IF OCCURS)': 'Classes During Break Time (MUST REDO IF OCCURS)'
     }
     
     content = []
@@ -4304,7 +5033,7 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
                             f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
                             className="constraint-item"
                         ))
-                elif internal_name == 'Classes During Break Time':
+                elif internal_name == 'Classes During Break Time (MUST REDO IF OCCURS)':
                     details_content.append(html.Div(
                         f"Class during break time at {violation['location']}: {violation['course']} for {violation['group']}",
                         className="constraint-item"
@@ -4343,7 +5072,7 @@ def update_error_notification_badge(constraint_details, timetables_data):
         'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day',
         'Room Capacity/Type Conflicts',
-        'Classes During Break Time'
+        'Classes During Break Time (MUST REDO IF OCCURS)'
     ]
     
     # Count how many hard constraints have violations

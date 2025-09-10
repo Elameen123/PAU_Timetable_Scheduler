@@ -1387,7 +1387,7 @@ class Constraints:
                                 'location': f"{room.name} on {day_abbr} at {time}:00"
                             })
         
-        detailed_violations['Classes During Break Time'] = break_time_violations
+        detailed_violations['Classes During Break Time (MUST REDO IF OCCURS)'] = break_time_violations
         
         return detailed_violations
     
