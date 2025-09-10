@@ -79,7 +79,7 @@ class inputData():
         for course_x in student_group.courseIDs:
             for course in input_data.courses:
                 if course_x == course.code:
-                    facultyId = course.facultyId
+                    facultyId = course.primary_faculty_id
                     self.classes.append(Class(student_group.id, facultyId, course.code))
 
     # def __repr__(self):

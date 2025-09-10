@@ -199,14 +199,15 @@ for _, r in course_df.iterrows():
     req_raw = str(r.get("Special Requirements") or "").strip() if "Special Requirements" in course_df.columns else ""
     req_list = [p.strip() for p in re.split(r'[;,/]|[ \t]+', req_raw) if p.strip()] if req_raw else []
 
-    facultyId = lecturers[0] if lecturers else None
+    # facultyId is now an array of all lecturers, with the first one being primary
+    facultyId = lecturers if lecturers else []
     courses.append({"name": name, "code": code, "credits": credits, "student_groupsID": student_groups, "facultyId": facultyId, "required_room_type": room_type, "lecturers": lecturers, "dept": dept, "req": req_list})
 
     for g in student_groups:
         if g not in groups:
             groups[g] = {"id": g, "name": g, "level": "", "dept": dept, "no_students": 0, "courseIDs": [], "teacherIDS": [], "hours_required": []}
         groups[g]["courseIDs"].append(code)
-        # CHANGED: append *one lecturer per course* (duplicate allowed if same lecturer teaches multiple courses)
+        # CHANGED: append only the primary lecturer (first one) to maintain one-to-one mapping with courseIDs
         groups[g]["teacherIDS"].append(lecturers[0] if lecturers else None)
         groups[g]["hours_required"].append(credits)
 
