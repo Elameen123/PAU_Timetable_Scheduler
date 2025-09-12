@@ -3336,31 +3336,7 @@ clientside_callback(
     prevent_initial_call=True
 )
 
-# Client-side callback to auto-hide download modal after successful download
-clientside_callback(
-    """
-    function(status_content) {
-        if (status_content && status_content.props && status_content.props.children) {
-            const message = status_content.props.children;
-            if (typeof message === 'string' && message.includes('✅')) {
-                // Auto-hide modal after 3 seconds on successful download
-                setTimeout(function() {
-                    const modal = document.getElementById('download-modal');
-                    const overlay = document.getElementById('download-modal-overlay');
-                    if (modal && overlay) {
-                        modal.style.display = 'none';
-                        overlay.style.display = 'none';
-                    }
-                }, 3000);
-            }
-        }
-        return window.dash_clientside.no_update;
-    }
-    """,
-    Output("download-modal", "children"),
-    Input("download-status", "children"),
-    prevent_initial_call=True
-)
+
 
 # Callback to handle room selection modal and search
 @app.callback(
