@@ -93,8 +93,15 @@ class TimetableExporter:
             if os.path.exists(self.saved_data_path):
                 with open(self.saved_data_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                print(f"✅ Loaded saved timetable data: {len(data)} groups")
-                return data
+                
+                # FIX: Check for the new dictionary format containing 'timetables'
+                if isinstance(data, dict) and 'timetables' in data:
+                    print(f"✅ Loaded saved timetable data (new format): {len(data['timetables'])} groups")
+                    return data['timetables'] # Return only the list of timetables
+                else:
+                    # Handle old format for backward compatibility
+                    print(f"✅ Loaded saved timetable data (old format): {len(data)} groups")
+                    return data
             else:
                 print("❌ No saved timetable data found")
                 return None

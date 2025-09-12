@@ -1,0 +1,3608 @@
+{
+  "timetables": [
+    {
+      "student_group": {
+        "name": "Electrical Engineering - Year 1",
+        "id": "EEE 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "GET 101\nSST New Classroom (Year 4)\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "",
+          "EEE 102\nEngineering Drawing Studio\nProf. Norbert Edomah",
+          "CHM 101\nClassroom 1\neofor@pau.edu.ng"
+        ],
+        [
+          "10:00",
+          "GET 101\nSST New Classroom (Year 4)\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "GST 111 - ENG\nEngineering Drawing Studio\nDr. Ogechi Ekechi",
+          "EEE 102\nEngineering Drawing Studio\nProf. Norbert Edomah",
+          "CHM 101\nClassroom 1\neofor@pau.edu.ng"
+        ],
+        [
+          "11:00",
+          "GET 101\nSST New Classroom (Year 4)\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "GST 111 - ENG\nEngineering Drawing Studio\nDr. Ogechi Ekechi",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "MTH 101\nClassroom 1\nDr. Akudo Ijezie",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "MTH 101\nClassroom 1\nDr. Akudo Ijezie",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "PHY 102\nElectrical Power and Machines Lab\nDr. Gabriel Dosumu",
+          "PAU-EEE 191\nClassroom 3\nFr. Elobuike Asogwa",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "",
+          "PHY 101\nStrength of Materials\nDr. Oludayo Akintunde"
+        ],
+        [
+          "16:00",
+          "PHY 102\nElectrical Power and Machines Lab\nDr. Gabriel Dosumu",
+          "PAU-EEE 191\nClassroom 3\nFr. Elobuike Asogwa",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "",
+          "PHY 101\nStrength of Materials\nDr. Oludayo Akintunde"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Electrical Engineering - Year 2",
+        "id": "EEE 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "GET 201\nEngineering Drawing Studio\nProf. Norbert Edomah",
+          "",
+          "GET 207\nStrength of Materials\nProf. Roland Loto",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "GET 201\nEngineering Drawing Studio\nProf. Norbert Edomah",
+          "GET 205\nClassroom 3\nDr. Anthony Onokwai",
+          "GET 207\nStrength of Materials\nProf. Roland Loto",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "GET 201\nEngineering Drawing Studio\nProf. Norbert Edomah",
+          "GET 205\nClassroom 3\nDr. Anthony Onokwai",
+          "GET 207\nStrength of Materials\nProf. Roland Loto",
+          "GET 209\nElectronics, Control and Telecomms Lab\nDr. Adekunle Oyelami",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "GET 205\nClassroom 3\nDr. Anthony Onokwai",
+          "",
+          "GET 209\nElectronics, Control and Telecomms Lab\nDr. Adekunle Oyelami",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "GET 209\nElectronics, Control and Telecomms Lab\nDr. Adekunle Oyelami",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "PAU-EEE 292\nClassroom 3\nDr. Adaora Onaga",
+          "",
+          "GET 211\nEngineering Drawing Studio\nDr. Jeremiah Bandele"
+        ],
+        [
+          "15:00",
+          "GET 203\nSST New Classroom (Year 4)\nEngr. Patrick Onwordi",
+          "ENT 211 - EEE\nStrength of Materials\nMiss Halima Rabiu",
+          "PAU-EEE 292\nClassroom 3\nDr. Adaora Onaga",
+          "",
+          "GET 211\nEngineering Drawing Studio\nDr. Jeremiah Bandele"
+        ],
+        [
+          "16:00",
+          "GET 203\nSST New Classroom (Year 4)\nEngr. Patrick Onwordi",
+          "ENT 211 - EEE\nStrength of Materials\nMiss Halima Rabiu",
+          "",
+          "",
+          "GET 211\nEngineering Drawing Studio\nDr. Jeremiah Bandele"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Electrical Engineering - Year 3",
+        "id": "EEE 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "GET 306 - EEE\nElectrical Power and Machines Lab\nDr. Emmanuel Usen",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "GET 301 - EEE\nClassroom 2\nDr. Avbenake Onoriode",
+          "GET 305 - EEE\nClassroom 5\nDr. Avbenake Onoriode",
+          "GET 306 - EEE\nElectrical Power and Machines Lab\nDr. Emmanuel Usen",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "GET 301 - EEE\nClassroom 2\nDr. Avbenake Onoriode",
+          "GET 305 - EEE\nClassroom 5\nDr. Avbenake Onoriode",
+          "GET 306 - EEE\nElectrical Power and Machines Lab\nDr. Emmanuel Usen",
+          "EEE 321\nClassroom 4\nDr. Jeremiah Bandele",
+          "EEE 311\nEngineering Drawing Studio\noomeje@pau.edu.ng"
+        ],
+        [
+          "12:00",
+          "GET 301 - EEE\nClassroom 2\nDr. Avbenake Onoriode",
+          "GET 305 - EEE\nClassroom 5\nDr. Avbenake Onoriode",
+          "",
+          "EEE 321\nClassroom 4\nDr. Jeremiah Bandele",
+          "EEE 311\nEngineering Drawing Studio\noomeje@pau.edu.ng"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "ENT 312 - EEE\nClassroom 2\nMiss Halima Rabiu",
+          "PAU-EEE 311\nElectrical Power and Machines Lab\nProf. Norbert Edomah",
+          "PAU-EEE 313\nPhysics and Applied Electricity lab\nProf. Norbert Edomah"
+        ],
+        [
+          "15:00",
+          "GST 312 -EEE\nClassroom 1\nMr. Obinna Ikejimba",
+          "",
+          "ENT 312 - EEE\nClassroom 2\nMiss Halima Rabiu",
+          "PAU-EEE 311\nElectrical Power and Machines Lab\nProf. Norbert Edomah",
+          "PAU-EEE 313\nPhysics and Applied Electricity lab\nProf. Norbert Edomah"
+        ],
+        [
+          "16:00",
+          "GST 312 -EEE\nClassroom 1\nMr. Obinna Ikejimba",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Electrical Engineering - Year 4",
+        "id": "EEE 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "PAU-EEE 407\nClassroom 1\ntbd",
+          "",
+          "",
+          "",
+          "PAU-EEE 405\nClassroom 2\nDr. Iniobong Afahakan"
+        ],
+        [
+          "11:00",
+          "PAU-EEE 407\nClassroom 1\ntbd",
+          "",
+          "",
+          "",
+          "PAU-EEE 405\nClassroom 2\nDr. Iniobong Afahakan"
+        ],
+        [
+          "12:00",
+          "PAU-EEE 407\nClassroom 1\ntbd",
+          "PAU-EEE 411\nPhysics and Applied Electricity lab\nDr. Daniel Okojie",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU-EEE 411\nPhysics and Applied Electricity lab\nDr. Daniel Okojie",
+          "BREAK",
+          "PAU-EEE 409\nSST New Classroom (Year 4)\nDr. Daniel Okojie",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "PAU-EEE 401\nClassroom 1\nDr. Adaora Onaga",
+          "PAU-EEE 403\nClassroom 1\nDr. Michael Adelabu",
+          "PAU-EEE 409\nSST New Classroom (Year 4)\nDr. Daniel Okojie",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "PAU-EEE 401\nClassroom 1\nDr. Adaora Onaga",
+          "PAU-EEE 403\nClassroom 1\nDr. Michael Adelabu",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Electrical Engineering - Year 5",
+        "id": "EEE 500"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "GET 501 - EEE\nClassroom 1\nDr. Benjamin Anyaegbuna",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "GET 501 - EEE\nClassroom 1\nDr. Benjamin Anyaegbuna",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "GET 501 - EEE\nClassroom 1\nDr. Benjamin Anyaegbuna",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "EEE 593\nStrength of Materials\nProf. Norbert Edomah",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "EEE 593\nStrength of Materials\nProf. Norbert Edomah",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "EEE 593\nStrength of Materials\nProf. Norbert Edomah",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechanical Engineering - Year 1",
+        "id": "MEE 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "GST 111 - ENG\nUmuahia\nDr. Ogechi Ekechi",
+          "",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "GST 111 - ENG\nUmuahia\nDr. Ogechi Ekechi",
+          "",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "PHY 102\nSST New Classroom (Year 4)\nDr. Gabriel Dosumu",
+          "PHY 101\nClassroom 1\nDr. Oludayo Akintunde"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "PHY 102\nSST New Classroom (Year 4)\nDr. Gabriel Dosumu",
+          "PHY 101\nClassroom 1\nDr. Oludayo Akintunde"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "GET 101\nClassroom 4\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "PAU-EEE 191\nSST New Classroom (Year 4)\nFr. Elobuike Asogwa",
+          "CHM 101\nClassroom 5\neofor@pau.edu.ng",
+          ""
+        ],
+        [
+          "15:00",
+          "GET 101\nClassroom 4\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "PAU-EEE 191\nSST New Classroom (Year 4)\nFr. Elobuike Asogwa",
+          "CHM 101\nClassroom 5\neofor@pau.edu.ng",
+          "MTH 101\nSST New Classroom (Year 4)\nDr. Akudo Ijezie"
+        ],
+        [
+          "16:00",
+          "GET 101\nClassroom 4\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "",
+          "",
+          "MTH 101\nSST New Classroom (Year 4)\nDr. Akudo Ijezie"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechanical Engineering - Year 2",
+        "id": "MEE 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "GET 203\nStrength of Materials\nEngr. Patrick Onwordi",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          "",
+          "GET 207\nElectrical Power and Machines Lab\nProf. Roland Loto"
+        ],
+        [
+          "10:00",
+          "GET 205\nStrength of Materials\nDr. Anthony Onokwai",
+          "GET 203\nStrength of Materials\nEngr. Patrick Onwordi",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          "",
+          "GET 207\nElectrical Power and Machines Lab\nProf. Roland Loto"
+        ],
+        [
+          "11:00",
+          "GET 205\nStrength of Materials\nDr. Anthony Onokwai",
+          "",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          "",
+          "GET 207\nElectrical Power and Machines Lab\nProf. Roland Loto"
+        ],
+        [
+          "12:00",
+          "GET 205\nStrength of Materials\nDr. Anthony Onokwai",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "GET 201\nSST New Classroom (Year 4)\nProf. Norbert Edomah",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "GET 201\nSST New Classroom (Year 4)\nProf. Norbert Edomah",
+          "",
+          "GET 211\nClassroom 2\nDr. Jeremiah Bandele",
+          ""
+        ],
+        [
+          "15:00",
+          "PAU-EEE 292\nZaria\nDr. Adaora Onaga",
+          "GET 201\nSST New Classroom (Year 4)\nProf. Norbert Edomah",
+          "",
+          "GET 211\nClassroom 2\nDr. Jeremiah Bandele",
+          "ENT 211 - EEE\nClassroom 1\nMiss Halima Rabiu"
+        ],
+        [
+          "16:00",
+          "PAU-EEE 292\nZaria\nDr. Adaora Onaga",
+          "",
+          "",
+          "GET 211\nClassroom 2\nDr. Jeremiah Bandele",
+          "ENT 211 - EEE\nClassroom 1\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechanical Engineering - Year 3",
+        "id": "MEE 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-MEE 313\nAdo-Ekiti\nCapt. Stan Igwe",
+          "PAU-MCT 302\nClassroom 4\nDr. Peter Onu",
+          "",
+          "GET 306 - MEE\nClassroom 5\nDr. Emmanuel Usen",
+          "PAU-MEE 307\nEngineering Drawing Studio\nDr. Anthony Onokwai"
+        ],
+        [
+          "10:00",
+          "PAU-MEE 313\nAdo-Ekiti\nCapt. Stan Igwe",
+          "PAU-MCT 302\nClassroom 4\nDr. Peter Onu",
+          "GST 312 - MEE\nUyo\nMr. Obinna Ikejimba",
+          "GET 306 - MEE\nClassroom 5\nDr. Emmanuel Usen",
+          "PAU-MEE 307\nEngineering Drawing Studio\nDr. Anthony Onokwai"
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "GST 312 - MEE\nUyo\nMr. Obinna Ikejimba",
+          "GET 306 - MEE\nClassroom 5\nDr. Emmanuel Usen",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "GET 305 - MEE\nElectronics, Control and Telecomms Lab\nDr. Avbenake Onoriode",
+          "GET 301 - MEE\nClassroom 4\nDr. Avbenake Onoriode",
+          "PAU-MEE 315\nElectrical Power and Machines Lab\nDr. Adekunle Oyelami",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "GET 305 - MEE\nElectronics, Control and Telecomms Lab\nDr. Avbenake Onoriode",
+          "GET 301 - MEE\nClassroom 4\nDr. Avbenake Onoriode",
+          "PAU-MEE 315\nElectrical Power and Machines Lab\nDr. Adekunle Oyelami",
+          "ENT 312 - MEE\nClassroom 3\nMiss Halima Rabiu",
+          "PAU-MEE 331\nClassroom 2\nDr. Benjamin Anyaegbuna"
+        ],
+        [
+          "16:00",
+          "GET 305 - MEE\nElectronics, Control and Telecomms Lab\nDr. Avbenake Onoriode",
+          "GET 301 - MEE\nClassroom 4\nDr. Avbenake Onoriode",
+          "PAU-MEE 315\nElectrical Power and Machines Lab\nDr. Adekunle Oyelami",
+          "ENT 312 - MEE\nClassroom 3\nMiss Halima Rabiu",
+          "PAU-MEE 331\nClassroom 2\nDr. Benjamin Anyaegbuna"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechanical Engineering - Year 4",
+        "id": "MEE 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "MEE 405\nElectronics, Control and Telecomms Lab\nDr. Cynthia Abima",
+          "PAU-MEE 409\nAbeokuta\nProf. Roland Loto",
+          "",
+          "PAU-MEE 409\nAsaba\nProf. Roland Loto"
+        ],
+        [
+          "10:00",
+          "",
+          "MEE 405\nElectronics, Control and Telecomms Lab\nDr. Cynthia Abima",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "MEE 405\nElectronics, Control and Telecomms Lab\nDr. Cynthia Abima",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "MEE 401\nArt and Graphics Studio\nDr. George Ihenacho",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "MEE 401\nArt and Graphics Studio\nDr. George Ihenacho",
+          "",
+          "MEE 403\nClassroom 4\nDr. Anthony Onokwai",
+          "MEE 407\nSST New Classroom (Year 4)\njajiboye@pau.edu.ng",
+          "PAU-MEE 401\nElectrical Power and Machines Lab\nDr. Adaora Onaga"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "MEE 403\nClassroom 4\nDr. Anthony Onokwai",
+          "MEE 407\nSST New Classroom (Year 4)\njajiboye@pau.edu.ng",
+          "PAU-MEE 401\nElectrical Power and Machines Lab\nDr. Adaora Onaga"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechanical Engineering - Year 5",
+        "id": "MEE 500"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          "PAU-MEE 521\nElectronics, Control and Telecomms Lab\nDr. Peter Onu"
+        ],
+        [
+          "10:00",
+          "MEE 590\nElectrical Power and Machines Lab\nDr. George Ihenacho",
+          "",
+          "",
+          "",
+          "PAU-MEE 521\nElectronics, Control and Telecomms Lab\nDr. Peter Onu"
+        ],
+        [
+          "11:00",
+          "MEE 590\nElectrical Power and Machines Lab\nDr. George Ihenacho",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "MEE 590\nElectrical Power and Machines Lab\nDr. George Ihenacho",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "GET 501 - MEE\nElectronics, Control and Telecomms Lab\nDr. Benjamin Anyaegbuna",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "GET 501 - MEE\nElectronics, Control and Telecomms Lab\nDr. Benjamin Anyaegbuna",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "GET 501 - MEE\nElectronics, Control and Telecomms Lab\nDr. Benjamin Anyaegbuna",
+          "MEE 501\nEngineering Drawing Studio\nEngr. Patrick Onwordi",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "MEE 501\nEngineering Drawing Studio\nEngr. Patrick Onwordi",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechatronics Engineering - Year 1",
+        "id": "MCT 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "",
+          "MCT 102\nClassroom 4\nDr. Peter Onu",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "PHY 102\nEngineering Drawing Studio\nDr. Gabriel Dosumu",
+          "MCT 102\nClassroom 4\nDr. Peter Onu",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "MTH 101\nClassroom 4\nDr. Akudo Ijezie"
+        ],
+        [
+          "11:00",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "PHY 102\nEngineering Drawing Studio\nDr. Gabriel Dosumu",
+          "MCT 102\nClassroom 4\nDr. Peter Onu",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          "MTH 101\nClassroom 4\nDr. Akudo Ijezie"
+        ],
+        [
+          "12:00",
+          "",
+          "GET 101\nStrength of Materials\naagholor@pau.edu.ng",
+          "",
+          "PHY 107 - ENG\nPhysics and Applied Electricity lab\nDr. Oludayo Akintunde",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "GET 101\nStrength of Materials\naagholor@pau.edu.ng",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-EEE 191\nSST New Classroom (Year 4)\nFr. Elobuike Asogwa",
+          "GET 101\nStrength of Materials\naagholor@pau.edu.ng",
+          "GST 111 - ENG\nStrength of Materials\nDr. Ogechi Ekechi",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "PHY 101\nJalingo\nDr. Oludayo Akintunde",
+          "",
+          "GST 111 - ENG\nStrength of Materials\nDr. Ogechi Ekechi",
+          "",
+          "CHM 101\nElectronics, Control and Telecomms Lab\neofor@pau.edu.ng"
+        ],
+        [
+          "16:00",
+          "PHY 101\nJalingo\nDr. Oludayo Akintunde",
+          "",
+          "PAU-EEE 191\nJos\nFr. Elobuike Asogwa",
+          "",
+          "CHM 101\nElectronics, Control and Telecomms Lab\neofor@pau.edu.ng"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mechatronics Engineering - Year 2",
+        "id": "MCT 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "GET 207\nClassroom 3\nProf. Roland Loto",
+          "",
+          "",
+          "",
+          "PAU-EEE 292\nSST New Classroom (Year 4)\nDr. Adaora Onaga"
+        ],
+        [
+          "10:00",
+          "GET 207\nClassroom 3\nProf. Roland Loto",
+          "GET 201\nClassroom 2\nProf. Norbert Edomah",
+          "",
+          "",
+          "PAU-EEE 292\nSST New Classroom (Year 4)\nDr. Adaora Onaga"
+        ],
+        [
+          "11:00",
+          "GET 207\nClassroom 3\nProf. Roland Loto",
+          "GET 201\nClassroom 2\nProf. Norbert Edomah",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "GET 201\nClassroom 2\nProf. Norbert Edomah",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "GET 205\nClassroom 5\nDr. Anthony Onokwai",
+          "GET 211\nOshogbo\nDr. Jeremiah Bandele",
+          "ENT 211 - EEE\nUyo\nMiss Halima Rabiu",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          "GET 203\nClassroom 4\nEngr. Patrick Onwordi"
+        ],
+        [
+          "15:00",
+          "GET 205\nClassroom 5\nDr. Anthony Onokwai",
+          "ENT 211 - EEE\nAdo-Ekiti\nMiss Halima Rabiu",
+          "GET 211\nClassroom 5\nDr. Jeremiah Bandele",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          "GET 203\nClassroom 4\nEngr. Patrick Onwordi"
+        ],
+        [
+          "16:00",
+          "GET 205\nClassroom 5\nDr. Anthony Onokwai",
+          "",
+          "GET 211\nClassroom 5\nDr. Jeremiah Bandele",
+          "GET 209\nClassroom 1\nDr. Adekunle Oyelami",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Software Engineering - Year 1",
+        "id": "SEN 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-CSC 192\nElectrical Power and Machines Lab\nFr. Ifeanyi Ogboh",
+          "PAU-CSC 111\nElectrical Power and Machines Lab\nJennifer Iloekwe",
+          "STA 111\nClassroom 5\ngokoacha@pau.edu.ng",
+          "PHY101\nClassroom 1\nDr. Rilwan Balogun",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun"
+        ],
+        [
+          "10:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "PAU-CSC 111\nElectrical Power and Machines Lab\nJennifer Iloekwe",
+          "STA 111\nClassroom 5\ngokoacha@pau.edu.ng",
+          "PHY101\nClassroom 1\nDr. Rilwan Balogun",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun"
+        ],
+        [
+          "11:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "PAU-CSC 192\nEnugu\nFr. Ifeanyi Ogboh",
+          "STA 111\nClassroom 5\ngokoacha@pau.edu.ng",
+          "",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun"
+        ],
+        [
+          "12:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "MTH101\nClassroom 3\nDr. Clinton Ifegwu",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "MTH101\nClassroom 3\nDr. Clinton Ifegwu",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Software Engineering - Year 2",
+        "id": "SEN 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "CSC 203\nUmuahia\nDr. Akudo Ijezie",
+          "",
+          "IFT 211\nIbadan\nDr. Michael Adelabu"
+        ],
+        [
+          "10:00",
+          "PAU-CSC 211\nElectronics, Control and Telecomms Lab\nMr. Solomon Alile",
+          "",
+          "CSC 203\nUmuahia\nDr. Akudo Ijezie",
+          "",
+          "IFT 211\nIbadan\nDr. Michael Adelabu"
+        ],
+        [
+          "11:00",
+          "PAU-CSC 211\nElectronics, Control and Telecomms Lab\nMr. Solomon Alile",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "PAU-CSC 211\nElectronics, Control and Telecomms Lab\nMr. Solomon Alile",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "PAU-CSC 292\nClassroom 4\nProf. Juan Elegido",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          "",
+          "PAU-CSC 292\nClassroom 4\nProf. Juan Elegido",
+          "ENT 211 - CSC\nUmuahia\nMiss Halima Rabiu"
+        ],
+        [
+          "15:00",
+          "",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          "MTH 201\nUyo\nDr. Julius Ehigie",
+          "SEN 201\nStrength of Materials\nDr. Akinboro",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          "ENT 211 - CSC\nMaiduguri\nMiss Halima Rabiu",
+          "SEN 201\nStrength of Materials\nDr. Akinboro",
+          "MTH 201\nZaria\nDr. Julius Ehigie"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Software Engineering - Year 3",
+        "id": "SEN 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "PAU-CSC 312\nClassroom 2\nMr. Taiwo Amoo",
+          "CSC 322 - SEN\nClassroom 3\nsnwokoye@pau.edu.ng",
+          ""
+        ],
+        [
+          "10:00",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "",
+          "PAU-CSC 312\nClassroom 2\nMr. Taiwo Amoo",
+          "CSC 322 - SEN\nClassroom 3\nsnwokoye@pau.edu.ng",
+          ""
+        ],
+        [
+          "11:00",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "CSC 308\nClassroom 4\ngeorge.uwagbale@pau.edu.ng",
+          "PAU-CSC 312\nClassroom 2\nMr. Taiwo Amoo",
+          "",
+          "GST 312 - CSC\nSST New Classroom (Year 4)\nProf. Juan Elegido"
+        ],
+        [
+          "12:00",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "CSC 308\nClassroom 4\ngeorge.uwagbale@pau.edu.ng",
+          "",
+          "",
+          "GST 312 - CSC\nSST New Classroom (Year 4)\nProf. Juan Elegido"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "CSC 308\nClassroom 4\ngeorge.uwagbale@pau.edu.ng",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "",
+          "PAU-CSC 317\nClassroom 3\nProf. Kingesely Muka"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "CYB 201\nClassroom 4\nMr. Samuel Egunjobi",
+          "PAU-CSC 317\nClassroom 3\nProf. Kingesely Muka"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "CYB 201\nClassroom 4\nMr. Samuel Egunjobi",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  1",
+        "id": "CSC 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-CSC 111\nJalingo\nJennifer Iloekwe",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun",
+          "PHY101\nJalingo\nDr. Rilwan Balogun",
+          "",
+          "PAU-CSC 192\nJos\nFr. Ifeanyi Ogboh"
+        ],
+        [
+          "10:00",
+          "",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun",
+          "PAU-CSC 111\nSST New Classroom (Year 4)\nJennifer Iloekwe",
+          "PHY101\nClassroom 2\nDr. Rilwan Balogun",
+          "MTH101\nClassroom 3\nDr. Clinton Ifegwu"
+        ],
+        [
+          "11:00",
+          "",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun",
+          "PAU-CSC 111\nSST New Classroom (Year 4)\nJennifer Iloekwe",
+          "",
+          "MTH101\nClassroom 3\nDr. Clinton Ifegwu"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "",
+          "STA 111\nElectronics, Control and Telecomms Lab\ngokoacha@pau.edu.ng",
+          ""
+        ],
+        [
+          "15:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "",
+          "STA 111\nElectronics, Control and Telecomms Lab\ngokoacha@pau.edu.ng",
+          ""
+        ],
+        [
+          "16:00",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "",
+          "STA 111\nElectronics, Control and Telecomms Lab\ngokoacha@pau.edu.ng",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  2/Stream 1",
+        "id": "CSC 200 - 1"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "CSC 203\nStrength of Materials\nDr. Akudo Ijezie",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "",
+          "CSC 203\nStrength of Materials\nDr. Akudo Ijezie",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "",
+          "PAU-CSC 292\nEngineering Drawing Studio\nProf. Juan Elegido",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "IFT 211\nElectrical Power and Machines Lab\nDr. Michael Adelabu",
+          "",
+          "PAU-CSC 292\nEngineering Drawing Studio\nProf. Juan Elegido",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "IFT 211\nElectrical Power and Machines Lab\nDr. Michael Adelabu",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-CSC 211\nClassroom 2\nMr. Solomon Alile",
+          "MTH 201\nElectrical Power and Machines Lab\nDr. Julius Ehigie",
+          "COS 201\nComputer Lab 02\nDr. Dada Ibidapo",
+          "",
+          "SEN 201\nAbakaliki\nDr. Akinboro"
+        ],
+        [
+          "15:00",
+          "PAU-CSC 211\nClassroom 2\nMr. Solomon Alile",
+          "ENT 211 - CSC\nAbeokuta\nMiss Halima Rabiu",
+          "COS 201\nComputer Lab 02\nDr. Dada Ibidapo",
+          "",
+          "SEN 201\nAbakaliki\nDr. Akinboro"
+        ],
+        [
+          "16:00",
+          "PAU-CSC 211\nClassroom 2\nMr. Solomon Alile",
+          "MTH 201\nClassroom 2\nDr. Julius Ehigie",
+          "COS 201\nComputer Lab 02\nDr. Dada Ibidapo",
+          "ENT 211 - CSC\nMaiduguri\nMiss Halima Rabiu",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  2/Stream 2",
+        "id": "CSC 200 - 2"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "PAU-CSC 292\nIbadan\nProf. Juan Elegido",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "CSC 203\nAdo-Ekiti\nDr. Akudo Ijezie",
+          "",
+          "PAU-CSC 292\nIbadan\nProf. Juan Elegido",
+          "",
+          "IFT 211\nStrength of Materials\nDr. Michael Adelabu"
+        ],
+        [
+          "12:00",
+          "CSC 203\nAdo-Ekiti\nDr. Akudo Ijezie",
+          "",
+          "",
+          "",
+          "IFT 211\nStrength of Materials\nDr. Michael Adelabu"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU-CSC 211\nEngineering Drawing Studio\nMr. Solomon Alile",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "PAU-CSC 211\nEngineering Drawing Studio\nMr. Solomon Alile",
+          "",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          ""
+        ],
+        [
+          "15:00",
+          "MTH 201\nLokoja\nDr. Julius Ehigie",
+          "PAU-CSC 211\nEngineering Drawing Studio\nMr. Solomon Alile",
+          "SEN 201\nAbeokuta\nDr. Akinboro",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          ""
+        ],
+        [
+          "16:00",
+          "MTH 201\nLokoja\nDr. Julius Ehigie",
+          "ENT 211 - CSC\nLokoja\nMiss Halima Rabiu",
+          "SEN 201\nAbeokuta\nDr. Akinboro",
+          "COS 201\nComputer lab 01\nDr. Dada Ibidapo",
+          "ENT 211 - CSC\nAdo-Ekiti\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  3",
+        "id": "CSC 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "CSC 301\nComputer lab 01\nDr. Stephen Adubi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "CSC 322 - CSC\nStrength of Materials\nsnwokoye@pau.edu.ng",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "CSC 308\nClassroom 5\ngeorge.uwagbale@pau.edu.ng",
+          "PAU-CSC 312\nElectronics, Control and Telecomms Lab\nMr. Taiwo Amoo",
+          "CSC 322 - CSC\nStrength of Materials\nsnwokoye@pau.edu.ng",
+          "CYB 201\nAsaba\nMr. Samuel Egunjobi"
+        ],
+        [
+          "15:00",
+          "",
+          "CSC 308\nClassroom 5\ngeorge.uwagbale@pau.edu.ng",
+          "PAU-CSC 312\nElectronics, Control and Telecomms Lab\nMr. Taiwo Amoo",
+          "GST 312 - CSC\nEngineering Drawing Studio\nProf. Juan Elegido",
+          "CYB 201\nAsaba\nMr. Samuel Egunjobi"
+        ],
+        [
+          "16:00",
+          "PAU-CSC 317\nMaiduguri\nProf. Kingesely Muka",
+          "CSC 308\nClassroom 5\ngeorge.uwagbale@pau.edu.ng",
+          "PAU-CSC 312\nElectronics, Control and Telecomms Lab\nMr. Taiwo Amoo",
+          "GST 312 - CSC\nEngineering Drawing Studio\nProf. Juan Elegido",
+          "PAU-CSC 317\nArt and Graphics Studio\nProf. Kingesely Muka"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  4/Stream 1",
+        "id": "CSC 400 - 1"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "CSC 413\nSST New Classroom (Year 4)\nDr. Festus Oliha",
+          "CSC 419\nClassroom 3\nMr. Somachukwu Nwokoye",
+          "CSC 402\nElectronics, Control and Telecomms Lab\nDr. Omowunmi Ogunyemi",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe"
+        ],
+        [
+          "10:00",
+          "CSC 409 -COM\nClassroom 4\nDr. Olamma Iheanetu",
+          "CSC 413\nSST New Classroom (Year 4)\nDr. Festus Oliha",
+          "CSC 419\nClassroom 3\nMr. Somachukwu Nwokoye",
+          "CSC 402\nElectronics, Control and Telecomms Lab\nDr. Omowunmi Ogunyemi",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe"
+        ],
+        [
+          "11:00",
+          "CSC 409 -COM\nClassroom 4\nDr. Olamma Iheanetu",
+          "CSC 413\nSST New Classroom (Year 4)\nDr. Festus Oliha",
+          "CSC 419\nClassroom 3\nMr. Somachukwu Nwokoye",
+          "",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe"
+        ],
+        [
+          "12:00",
+          "CSC 409 -COM\nClassroom 4\nDr. Olamma Iheanetu",
+          "CSC 421\nClassroom 1\nDr. Stephen Adubi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "CSC 421\nClassroom 1\nDr. Stephen Adubi",
+          "BREAK",
+          "INS 401\nEngineering Drawing Studio\ntbd",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "INS 401\nEngineering Drawing Studio\ntbd",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "",
+          "CSC 409 - ELE\nUmuahia\nDr. Dada Ibidapo"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "",
+          "CSC 409 - ELE\nUmuahia\nDr. Dada Ibidapo"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Computer Science - Year  4/Stream 2",
+        "id": "CSC 400 - 2"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe",
+          "",
+          "CSC 413\nElectronics, Control and Telecomms Lab\nDr. Festus Oliha",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe",
+          "",
+          "CSC 413\nElectronics, Control and Telecomms Lab\nDr. Festus Oliha",
+          "CSC 421\nElectrical Power and Machines Lab\nDr. Stephen Adubi",
+          ""
+        ],
+        [
+          "11:00",
+          "CSC 497\nClassroom 5\nJennifer Iloekwe",
+          "",
+          "CSC 413\nElectronics, Control and Telecomms Lab\nDr. Festus Oliha",
+          "CSC 421\nElectrical Power and Machines Lab\nDr. Stephen Adubi",
+          "INS 401\nElectronics, Control and Telecomms Lab\ntbd"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "CSC 402\nClassroom 2\nDr. Omowunmi Ogunyemi",
+          "INS 401\nElectronics, Control and Telecomms Lab\ntbd"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "CSC 419\nClassroom 2\nMr. Somachukwu Nwokoye",
+          "BREAK",
+          "CSC 402\nClassroom 2\nDr. Omowunmi Ogunyemi",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "CSC 409 -COM\nEngineering Drawing Studio\nDr. Olamma Iheanetu",
+          "CSC 419\nClassroom 2\nMr. Somachukwu Nwokoye",
+          "",
+          "",
+          "CSC 409 - ELE\nSST New Classroom (Year 4)\nDr. Dada Ibidapo"
+        ],
+        [
+          "15:00",
+          "CSC 409 -COM\nEngineering Drawing Studio\nDr. Olamma Iheanetu",
+          "CSC 419\nClassroom 2\nMr. Somachukwu Nwokoye",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "CSC 409 -COM\nEngineering Drawing Studio\nDr. Olamma Iheanetu",
+          "",
+          "CSC 409 - ELE\nClassroom 3\nDr. Dada Ibidapo",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Economics - Year 1",
+        "id": "ECO 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-ECO 105\nJos\nProf. Oloyombo",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "PAU-ECO 105\nJos\nProf. Oloyombo",
+          "",
+          "ECO 101\nOshogbo\nDr. Agbonrofo Hope",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "PAU-ECO 105\nJos\nProf. Oloyombo",
+          "",
+          "ECO 101\nOshogbo\nDr. Agbonrofo Hope",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "GST 111 - SMSS\nArt and Graphics Studio\nroji@pau.edu.ng",
+          "",
+          "ECO 103\nZaria\nDr. Nwani",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "GST 111 - SMSS\nArt and Graphics Studio\nroji@pau.edu.ng",
+          "BREAK",
+          "ECO 103\nZaria\nDr. Nwani",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "PAU-ECO 109\nBauchi\nDr. Fredrick Ikpesu",
+          "GST 112 -SMSS\nIbadan\nMr. Joseph Eneji",
+          "",
+          "PAU-ECO 107\nUyo\nrokolo@pau.edu.ng"
+        ],
+        [
+          "16:00",
+          "",
+          "PAU-ECO 109\nBauchi\nDr. Fredrick Ikpesu",
+          "GST 112 -SMSS\nIbadan\nMr. Joseph Eneji",
+          "",
+          "PAU-ECO 107\nUyo\nrokolo@pau.edu.ng"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Economics - Year 2",
+        "id": "ECO 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "ECO 205\nJos\nDr. Ozegbe",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "ECO 205\nJos\nDr. Ozegbe",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "PAU-ECO 292\nTYD New classroom\nUnknown",
+          "",
+          "ECO 207\nTYD New classroom\nDr. Anetor",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU-ECO 292\nTYD New classroom\nUnknown",
+          "BREAK",
+          "ECO 207\nTYD New classroom\nDr. Anetor",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-ECO 209\nJos\nDr. Nwani",
+          "ENT 211 - ECO\nTYD New classroom\nMiss Halima Rabiu",
+          "ECO 201\nAdo-Ekiti\nDr. Agbonrofo Hope",
+          "ENT 211 - ECO\nZaria\nMiss Halima Rabiu",
+          ""
+        ],
+        [
+          "15:00",
+          "PAU-ECO 209\nJos\nDr. Nwani",
+          "GST 212 - ECO\nUmuahia\nMr. Amaobi Osuala",
+          "ECO 201\nAdo-Ekiti\nDr. Agbonrofo Hope",
+          "ECO 203\nBauchi\nDr. Solomon Nathaniel",
+          ""
+        ],
+        [
+          "16:00",
+          "PAU-ECO 209\nJos\nDr. Nwani",
+          "GST 212 - ECO\nUmuahia\nMr. Amaobi Osuala",
+          "",
+          "ECO 203\nBauchi\nDr. Solomon Nathaniel",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Economics - Year 3",
+        "id": "ECO 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-ECO 315\nTYD New classroom\nMr. Philip Okposo",
+          "ECO 306\nPort-Harcourt\nDr. David Oke",
+          "PAU-ECO 312\nLokoja\nMr. Philip Okposo",
+          "",
+          "PAU-ECO 315\nJalingo\nMr. Philip Okposo"
+        ],
+        [
+          "10:00",
+          "",
+          "ECO 306\nPort-Harcourt\nDr. David Oke",
+          "PAU-ECO 312\nLokoja\nMr. Philip Okposo",
+          "ECO 301\nJos\nDr. Nwani",
+          "ECO 303\nZaria\nDr. Evans"
+        ],
+        [
+          "11:00",
+          "",
+          "ECO 306\nPort-Harcourt\nDr. David Oke",
+          "PAU-ECO 311\nMaiduguri\nDr. Anetor",
+          "ECO 301\nJos\nDr. Nwani",
+          "ECO 303\nZaria\nDr. Evans"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "PAU-ECO 311\nMaiduguri\nDr. Anetor",
+          "SSC 301\nAbeokuta\nDr. Ozegbe",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "SSC 301\nAbeokuta\nDr. Ozegbe",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "ECO 307\nAbeokuta\nDr. Ozegbe",
+          "",
+          "GST 312 - ECO\nUmuahia\nckezie@pau.edu.ng",
+          "ENT 312 - ECO\nUmuahia\nMiss Halima Rabiu",
+          "PAU-ECO 313\nPort-Harcourt\nProf. Osuji"
+        ],
+        [
+          "15:00",
+          "ECO 307\nAbeokuta\nDr. Ozegbe",
+          "",
+          "GST 312 - ECO\nUmuahia\nckezie@pau.edu.ng",
+          "",
+          "PAU-ECO 313\nPort-Harcourt\nProf. Osuji"
+        ],
+        [
+          "16:00",
+          "ECO 307\nAbeokuta\nDr. Ozegbe",
+          "",
+          "",
+          "",
+          "ENT 312 - ECO\nClassroom 5\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Economics - Year 4",
+        "id": "ECO 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "",
+          "",
+          "ECO 416\nUyo\nDr. Agbonrofo Hope"
+        ],
+        [
+          "11:00",
+          "",
+          "ECO 412\nUmuahia\nDr. Evans",
+          "",
+          "",
+          "ECO 416\nUyo\nDr. Agbonrofo Hope"
+        ],
+        [
+          "12:00",
+          "",
+          "ECO 412\nUmuahia\nDr. Evans",
+          "",
+          "BUS 304\nIbadan\nProf. Osuji",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "ECO 412\nUmuahia\nDr. Evans",
+          "BREAK",
+          "BUS 304\nIbadan\nProf. Osuji",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "ECO 411\nAbakaliki\nDr. Mesagan",
+          "",
+          "ECO 413\nLokoja\nProf. Tella",
+          "BUS 304\nIbadan\nProf. Osuji",
+          ""
+        ],
+        [
+          "15:00",
+          "ECO 411\nAbakaliki\nDr. Mesagan",
+          "FIN 401 - ECO\nJos\nMrs. Olaniyi Ibironke",
+          "ECO 413\nLokoja\nProf. Tella",
+          "",
+          "ECO 415\nLokoja\nDr. Evans"
+        ],
+        [
+          "16:00",
+          "ECO 411\nAbakaliki\nDr. Mesagan",
+          "FIN 401 - ECO\nJos\nMrs. Olaniyi Ibironke",
+          "ECO 413\nLokoja\nProf. Tella",
+          "",
+          "ECO 415\nLokoja\nDr. Evans"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Business Administration - Year 1",
+        "id": "BUA 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "BUA 101\nEnugu\nrokolo@pau.edu.ng",
+          "PAU-BUA 103\nMaiduguri\nMr. Julius Ujah",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "BUA 101\nEnugu\nrokolo@pau.edu.ng",
+          "PAU-BUA 103\nMaiduguri\nMr. Julius Ujah",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "PAU-BUA 105\nEnugu\nProf. Oni",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "GST 111 - SMSS\nMaiduguri\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nPort-Harcourt\nMr. Joseph Eneji",
+          "AMS 101\nJos\nDr. Dakare",
+          "PAU-BUA 105\nEnugu\nProf. Oni",
+          "AMS 104 - BUA\nTYD New classroom\nDr. Ebegbetale"
+        ],
+        [
+          "15:00",
+          "GST 111 - SMSS\nMaiduguri\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nPort-Harcourt\nMr. Joseph Eneji",
+          "AMS 101\nJos\nDr. Dakare",
+          "AMS 102 - BUA\nZaria\nDr. Nwani",
+          "AMS 104 - BUA\nTYD New classroom\nDr. Ebegbetale"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "AMS 102 - BUA\nZaria\nDr. Nwani",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Business Administration - Year 2",
+        "id": "BUA 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "BUA 201\nZaria\nDr. Bankole",
+          "BUA 204\nIbadan\nDr. Lawal",
+          "PAU-BUA 207\nArt and Graphics Studio\nDr. Bankole",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "BUA 201\nZaria\nDr. Bankole",
+          "BUA 204\nIbadan\nDr. Lawal",
+          "PAU-BUA 207\nArt and Graphics Studio\nDr. Bankole",
+          "GST 212 - BUA\nUyo\nialamezie@pau.edu.ng",
+          ""
+        ],
+        [
+          "11:00",
+          "BUA 201\nZaria\nDr. Bankole",
+          "BUA 204\nIbadan\nDr. Lawal",
+          "PAU-BUA 207\nArt and Graphics Studio\nDr. Bankole",
+          "GST 212 - BUA\nUyo\nialamezie@pau.edu.ng",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "ENT 211 - BUA\nJalingo\nMiss Halima Rabiu",
+          "PAU-BUA 215\nBauchi\nDr. Enyinnaya"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "PAU-BUA 292\nUyo\nUnknown",
+          "PAU-BUA 215\nBauchi\nDr. Enyinnaya"
+        ],
+        [
+          "16:00",
+          "",
+          "ENT 211 - BUA\nAdo-Ekiti\nMiss Halima Rabiu",
+          "",
+          "PAU-BUA 292\nUyo\nUnknown",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Business Administration - Year 3",
+        "id": "BUA 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "BUA 302\nAdo-Ekiti\nProf. Epie",
+          "BUA 310\nAbakaliki\nDr. Okon",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "BUA 302\nAdo-Ekiti\nProf. Epie",
+          "BUA 310\nAbakaliki\nDr. Okon",
+          "GST 312 - BUA\nJalingo\naonwudinjo@pau.edu.ng",
+          "BUA 319\nAdo-Ekiti\nDr. Enyinnaya"
+        ],
+        [
+          "11:00",
+          "",
+          "BUA 302\nAdo-Ekiti\nProf. Epie",
+          "BUA 310\nAbakaliki\nDr. Okon",
+          "GST 312 - BUA\nJalingo\naonwudinjo@pau.edu.ng",
+          "BUA 319\nAdo-Ekiti\nDr. Enyinnaya"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "BUA 305\nPort-Harcourt\nProf. Oni",
+          "BUA 313\nArt and Graphics Studio\nDr. Enyinnaya",
+          "",
+          "BUA 312\nArt and Graphics Studio\nDr. Dakare",
+          ""
+        ],
+        [
+          "15:00",
+          "BUA 305\nPort-Harcourt\nProf. Oni",
+          "BUA 313\nArt and Graphics Studio\nDr. Enyinnaya",
+          "",
+          "BUA 312\nArt and Graphics Studio\nDr. Dakare",
+          ""
+        ],
+        [
+          "16:00",
+          "BUA 305\nPort-Harcourt\nProf. Oni",
+          "ENT 312 - BUA\nZaria\nMiss Halima Rabiu",
+          "",
+          "",
+          "ENT 312 - BUA\nClassroom 3\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Business Administration - Year 4",
+        "id": "BUA 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "BUS 403 - BUA\nAdo-Ekiti\nDr. Lawal",
+          "ECO 401\nAbakaliki\nProf. Osuji",
+          ""
+        ],
+        [
+          "10:00",
+          "BUS 401 - BUA\nLokoja\nDr. Okon",
+          "BUS 402 - BUA\nMaiduguri\nDr. Dakare",
+          "BUS 403 - BUA\nAdo-Ekiti\nDr. Lawal",
+          "ECO 401\nAbakaliki\nProf. Osuji",
+          ""
+        ],
+        [
+          "11:00",
+          "BUS 401 - BUA\nLokoja\nDr. Okon",
+          "BUS 402 - BUA\nMaiduguri\nDr. Dakare",
+          "BUS 403 - BUA\nAdo-Ekiti\nDr. Lawal",
+          "ECO 401\nAbakaliki\nProf. Osuji",
+          ""
+        ],
+        [
+          "12:00",
+          "BUS 401 - BUA\nLokoja\nDr. Okon",
+          "BUS 402 - BUA\nMaiduguri\nDr. Dakare",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "BUS 405\nPort-Harcourt\nDr. Okon",
+          "",
+          "MIS 401 - BUA\nAbeokuta\nProf. Oni"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "BUS 405\nPort-Harcourt\nDr. Okon",
+          "",
+          "MIS 401 - BUA\nAbeokuta\nProf. Oni"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "BUS 405\nPort-Harcourt\nDr. Okon",
+          "",
+          "MIS 401 - BUA\nAbeokuta\nProf. Oni"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Accounting - Year 1",
+        "id": "ACC 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "PAU-ACC-103\nAbakaliki\nDr. Agbonrofo Hope",
+          "",
+          "PAU-ACC 106\nZaria\nDr. Fredrick Ikpesu",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "PAU-ACC-103\nAbakaliki\nDr. Agbonrofo Hope",
+          "",
+          "PAU-ACC 106\nZaria\nDr. Fredrick Ikpesu",
+          "GST 111 - SMSS\nPort-Harcourt\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nAbeokuta\nMr. Joseph Eneji"
+        ],
+        [
+          "12:00",
+          "PAU-ACC-103\nAbakaliki\nDr. Agbonrofo Hope",
+          "ACC 101\nEnugu\nDr. Japhet Imhanzenobe",
+          "PAU-ACC 106\nZaria\nDr. Fredrick Ikpesu",
+          "GST 111 - SMSS\nPort-Harcourt\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nAbeokuta\nMr. Joseph Eneji"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "ACC 101\nEnugu\nDr. Japhet Imhanzenobe",
+          "BREAK",
+          "AMS 102 -ACC\nUyo\nDr. Evans",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "ACC 101\nEnugu\nDr. Japhet Imhanzenobe",
+          "",
+          "AMS 102 -ACC\nUyo\nDr. Evans",
+          ""
+        ],
+        [
+          "15:00",
+          "AMS 104 - ACC\nAdo-Ekiti\nDr. Ebegbetale",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "AMS 104 - ACC\nAdo-Ekiti\nDr. Ebegbetale",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Accounting - Year 2",
+        "id": "ACC 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "ACC 201\nOshogbo\nDr. Ini Udofia",
+          "",
+          "PAU-ACC-209\nBauchi\nDr. Ajibo Kenneth",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "ACC 201\nOshogbo\nDr. Ini Udofia",
+          "",
+          "PAU-ACC-209\nBauchi\nDr. Ajibo Kenneth",
+          "",
+          "PAU-ACC-292\nJalingo\nUnknown"
+        ],
+        [
+          "11:00",
+          "ACC 201\nOshogbo\nDr. Ini Udofia",
+          "",
+          "PAU-ACC-209\nBauchi\nDr. Ajibo Kenneth",
+          "",
+          "PAU-ACC-292\nJalingo\nUnknown"
+        ],
+        [
+          "12:00",
+          "",
+          "ACC 204\nIbadan\nMr. Raheed Lateef",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "ACC 204\nIbadan\nMr. Raheed Lateef",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "ACC 204\nIbadan\nMr. Raheed Lateef",
+          "",
+          "",
+          "ENT 211 - ACC\nJos\nMiss Halima Rabiu"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "GST 212 - ACC\nIbadan\nialamezie@pau.edu.ng",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "ENT 211 - ACC\nElectrical Power and Machines Lab\nMiss Halima Rabiu",
+          "",
+          "GST 212 - ACC\nIbadan\nialamezie@pau.edu.ng",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Accounting - Year 3",
+        "id": "ACC 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "ACC 301\nUyo\nDr. Japhet Imhanzenobe",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "ACC 301\nUyo\nDr. Japhet Imhanzenobe",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "ACC 301\nUyo\nDr. Japhet Imhanzenobe",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "ACC 307\nAsaba\nProf. Vincent",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "ACC 307\nAsaba\nProf. Vincent",
+          "ACC 308\nTYD New classroom\nokwy@pau.edu.ng",
+          "ACC 305\nLokoja\nMr. Raheed Lateef",
+          "GST 312 - ACC\nZaria\naonwudinjo@pau.edu.ng"
+        ],
+        [
+          "15:00",
+          "",
+          "ACC 307\nAsaba\nProf. Vincent",
+          "ACC 308\nTYD New classroom\nokwy@pau.edu.ng",
+          "ACC 305\nLokoja\nMr. Raheed Lateef",
+          "GST 312 - ACC\nZaria\naonwudinjo@pau.edu.ng"
+        ],
+        [
+          "16:00",
+          "",
+          "ENT 312 - ACC\nEnugu\nMiss Halima Rabiu",
+          "ACC 308\nTYD New classroom\nokwy@pau.edu.ng",
+          "ACC 305\nLokoja\nMr. Raheed Lateef",
+          "ENT 312 - ACC\nMaiduguri\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Accounting - Year 4",
+        "id": "ACC 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "ACC 402\nAbeokuta\nDr. Okpala",
+          "ACC 401\nArt and Graphics Studio\nDr. Okwuosa",
+          "ACC 402\nPort-Harcourt\nDr. Okpala",
+          "BUS 403 - ACC\nLokoja\nDr. Lawal",
+          "ACC 402\nClassroom 2\nDr. Okpala"
+        ],
+        [
+          "10:00",
+          "BUS 402 - ACC\nPort-Harcourt\nDr. Dakare",
+          "ACC 401\nArt and Graphics Studio\nDr. Okwuosa",
+          "ACC 404\nJalingo\nMr. Raheed Lateef",
+          "BUS 403 - ACC\nLokoja\nDr. Lawal",
+          "MIS 401  - ACC\nUmuahia\nProf. Oni"
+        ],
+        [
+          "11:00",
+          "BUS 402 - ACC\nPort-Harcourt\nDr. Dakare",
+          "ACC 401\nArt and Graphics Studio\nDr. Okwuosa",
+          "ACC 404\nJalingo\nMr. Raheed Lateef",
+          "BUS 403 - ACC\nLokoja\nDr. Lawal",
+          "MIS 401  - ACC\nUmuahia\nProf. Oni"
+        ],
+        [
+          "12:00",
+          "BUS 402 - ACC\nPort-Harcourt\nDr. Dakare",
+          "",
+          "ACC 404\nJalingo\nMr. Raheed Lateef",
+          "",
+          "MIS 401  - ACC\nUmuahia\nProf. Oni"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "FIN 401 - ACC\nBauchi\nDr. Unah",
+          "",
+          "ACC 407\nAbakaliki\nProf. Vincent",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "FIN 401 - ACC\nBauchi\nDr. Unah",
+          "",
+          "ACC 407\nAbakaliki\nProf. Vincent",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "FIN 401 - ACC\nBauchi\nDr. Unah",
+          "",
+          "ACC 407\nAbakaliki\nProf. Vincent",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "ISMS - Year 1",
+        "id": "ISM 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "GST 112 - SMC\nJalingo\nDr. Albert Onobhayedo",
+          "",
+          "CMS 101 - ISM\nIbadan\nDr. Aifuwa Edosomwan",
+          ""
+        ],
+        [
+          "10:00",
+          "ISM 112\nAbeokuta\nMr. Afam Okonkwo",
+          "GST 112 - SMC\nJalingo\nDr. Albert Onobhayedo",
+          "",
+          "CMS 101 - ISM\nIbadan\nDr. Aifuwa Edosomwan",
+          "GST-111\nJos\nProf. Akinola Odebunmi"
+        ],
+        [
+          "11:00",
+          "ISM 112\nAbeokuta\nMr. Afam Okonkwo",
+          "PAU-ISM 109\nUyo\nMr. Julius Ujah",
+          "",
+          "",
+          "GST-111\nJos\nProf. Akinola Odebunmi"
+        ],
+        [
+          "12:00",
+          "ISM 112\nAbeokuta\nMr. Afam Okonkwo",
+          "PAU-ISM 109\nUyo\nMr. Julius Ujah",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU-ISM 109\nUyo\nMr. Julius Ujah",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "PAU-ISM 110\nJalingo\nMr. Lawrence Akande",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "PAU-ISM 110\nJalingo\nMr. Lawrence Akande",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "PAU-ISM 110\nJalingo\nMr. Lawrence Akande",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "ISMS - Year 2",
+        "id": "ISM 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "ISM 221\nOshogbo\nMr. Ehis Ojesebholo",
+          "",
+          "",
+          "GST 212 - ISM\nAbakaliki\nMr. Obinna Ikejimba"
+        ],
+        [
+          "10:00",
+          "",
+          "ISM 221\nOshogbo\nMr. Ehis Ojesebholo",
+          "",
+          "ISM 214\nBauchi\nMr. Uchenna Ogbonna",
+          "GST 212 - ISM\nAbakaliki\nMr. Obinna Ikejimba"
+        ],
+        [
+          "11:00",
+          "",
+          "PAU-ISM 292\nZaria\nDr. Omowunmi Ogunyemi",
+          "",
+          "ISM 214\nBauchi\nMr. Uchenna Ogbonna",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "PAU-ISM 292\nZaria\nDr. Omowunmi Ogunyemi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-ISM 211\nUmuahia\nDr. Joshua Osah",
+          "ENT 211 -ISM\nAdo-Ekiti\nMiss Halima Rabiu",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "PAU-ISM 211\nUmuahia\nDr. Joshua Osah",
+          "",
+          "CMS 211\nOshogbo\nDr. Aifuwa Edosomwan",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "PAU-ISM 211\nUmuahia\nDr. Joshua Osah",
+          "",
+          "CMS 211\nOshogbo\nDr. Aifuwa Edosomwan",
+          "ENT 211 -ISM\nPort-Harcourt\nMiss Halima Rabiu",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "ISMS - Year 3",
+        "id": "ISM 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "ISM 311\nAbakaliki\nMr. Kayode Makinde",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "ISM 311\nAbakaliki\nMr. Kayode Makinde",
+          "PAU-ISM 311\nPort-Harcourt\nDr. Joshua Osah",
+          "ISM 322\nTYD New classroom\nDr. Nwachukwu Egbunike",
+          "ISM 302\nBauchi\nMr. Philip Okposo"
+        ],
+        [
+          "11:00",
+          "",
+          "ISM 311\nAbakaliki\nMr. Kayode Makinde",
+          "PAU-ISM 311\nPort-Harcourt\nDr. Joshua Osah",
+          "ISM 322\nTYD New classroom\nDr. Nwachukwu Egbunike",
+          "ISM 302\nBauchi\nMr. Philip Okposo"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "PAU-ISM 311\nPort-Harcourt\nDr. Joshua Osah",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "ISM 312\nEnugu\nMr. Adebayo Ajibade",
+          "",
+          "",
+          "ENT 312 - ISM\nAdo-Ekiti\nMiss Halima Rabiu",
+          "ISM 313\nMaiduguri\nDr. Anne Odoh"
+        ],
+        [
+          "15:00",
+          "ISM 312\nEnugu\nMr. Adebayo Ajibade",
+          "PAU-ISM 392\nOshogbo\nMs. Flora Gabtony",
+          "",
+          "PAU-ISM 303\nUmuahia\nMs. Nkem Agam",
+          "ISM 313\nMaiduguri\nDr. Anne Odoh"
+        ],
+        [
+          "16:00",
+          "ISM 312\nEnugu\nMr. Adebayo Ajibade",
+          "PAU-ISM 392\nOshogbo\nMs. Flora Gabtony",
+          "",
+          "PAU-ISM 303\nUmuahia\nMs. Nkem Agam",
+          "ENT 312 - ISM\nAsaba\nMiss Halima Rabiu"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "ISMS - Year 4",
+        "id": "ISM 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "ISM 415\nJos\nMr. Christian Sada",
+          "ISM 407\nEnugu\nDr. Anne Odoh",
+          "",
+          "ISM 410\nOshogbo\nMs. Dooshima Anger"
+        ],
+        [
+          "11:00",
+          "",
+          "ISM 415\nJos\nMr. Christian Sada",
+          "ISM 407\nEnugu\nDr. Anne Odoh",
+          "ISM 403\nAdo-Ekiti\nDr. Margaret Agada-Mba",
+          "ISM 410\nOshogbo\nMs. Dooshima Anger"
+        ],
+        [
+          "12:00",
+          "",
+          "ISM 405\nAbeokuta\nBarr. Tomi Vincent",
+          "ISM 407\nEnugu\nDr. Anne Odoh",
+          "ISM 403\nAdo-Ekiti\nDr. Margaret Agada-Mba",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "ISM 405\nAbeokuta\nBarr. Tomi Vincent",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "ISM 401\nAsaba\nMr Peter Ogidi",
+          "ISM 405\nAbeokuta\nBarr. Tomi Vincent",
+          "",
+          "ISM 412\nAsaba\nMr. Afam Okonkwo",
+          ""
+        ],
+        [
+          "15:00",
+          "ISM 401\nAsaba\nMr Peter Ogidi",
+          "",
+          "",
+          "ISM 412\nAsaba\nMr. Afam Okonkwo",
+          ""
+        ],
+        [
+          "16:00",
+          "ISM 401\nAsaba\nMr Peter Ogidi",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mass Communication - Year 1",
+        "id": "MCM 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-MCM 191 -MCM\nPort-Harcourt\nFr. Ifeanyi Ogboh",
+          "CMS 101 - ISM\nZaria\nDr. Aifuwa Edosomwan",
+          "GST-111\nIbadan\nProf. Akinola Odebunmi",
+          "",
+          "GST-111\nPort-Harcourt\nProf. Akinola Odebunmi"
+        ],
+        [
+          "10:00",
+          "",
+          "CMS 101 - ISM\nZaria\nDr. Aifuwa Edosomwan",
+          "",
+          "MCM 107\nAsaba\nMr. Valentine Ohu",
+          "MCM 103\nAsaba\nMrs. Sarah Unekwu"
+        ],
+        [
+          "11:00",
+          "",
+          "PAU-MCM 191 -MCM\nOshogbo\nFr. Ifeanyi Ogboh",
+          "",
+          "MCM 107\nAsaba\nMr. Valentine Ohu",
+          "MCM 103\nAsaba\nMrs. Sarah Unekwu"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "MCM 101\nUyo\nDr. Margaret Agada-Mba",
+          "",
+          "MCM 105\nBauchi\ntbd",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "MCM 101\nUyo\nDr. Margaret Agada-Mba",
+          "",
+          "MCM 105\nBauchi\ntbd",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "MCM 101\nUyo\nDr. Margaret Agada-Mba",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mass Communication - Year 2",
+        "id": "MCM 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-MCM 219\nBauchi\nDr. Chioma Njoku",
+          "MCM 209\nTYD New classroom\nMr. Timi Crown",
+          "",
+          "MCM 211\nMaiduguri\nMr. Ehis Ojesebholo",
+          "MCM 207\nLokoja\nFunmi Unuajefe"
+        ],
+        [
+          "10:00",
+          "PAU-MCM 219\nBauchi\nDr. Chioma Njoku",
+          "MCM 209\nTYD New classroom\nMr. Timi Crown",
+          "MCM 203\nAsaba\nDr. Sunday John",
+          "MCM 211\nMaiduguri\nMr. Ehis Ojesebholo",
+          "MCM 207\nLokoja\nFunmi Unuajefe"
+        ],
+        [
+          "11:00",
+          "PAU-MCM 219\nBauchi\nDr. Chioma Njoku",
+          "PAU-MCM 217\nTYD New classroom\nDr. Nwachukwu Egbunike",
+          "MCM 203\nAsaba\nDr. Sunday John",
+          "CMS 201 - MCM\nOshogbo\nDr. Aifuwa Edosomwan",
+          "PAU-MCM 291\nIbadan\nDr. Emmanuel Nzeaka"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "MCM 203\nAsaba\nDr. Sunday John",
+          "CMS 201 - MCM\nOshogbo\nDr. Aifuwa Edosomwan",
+          "PAU-MCM 291\nIbadan\nDr. Emmanuel Nzeaka"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU-MCM 217\nZaria\nDr. Nwachukwu Egbunike",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "ENT 211 -MCM\nMaiduguri\nMiss Halima Rabiu",
+          "",
+          "MCM 205\nPort-Harcourt\nDr. Nwachukwu Egbunike",
+          "MCM 215\nAdo-Ekiti\nDr. Anthony Okoeguale"
+        ],
+        [
+          "15:00",
+          "",
+          "PAU-MCM 217\nZaria\nDr. Nwachukwu Egbunike",
+          "MCM 213\nZaria\nMr. Jerry Sawyer",
+          "MCM 205\nPort-Harcourt\nDr. Nwachukwu Egbunike",
+          "MCM 215\nAdo-Ekiti\nDr. Anthony Okoeguale"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "MCM 213\nZaria\nMr. Jerry Sawyer",
+          "ENT 211 -MCM\nClassroom 5\nMiss Halima Rabiu",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mass Communication - Year 3",
+        "id": "MCM 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "PAU-MCM 317\nMaiduguri\nDr. Mgbeadichie",
+          "PAU-MCM 305\nBauchi\nMr. Akeem Lasisi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "PAU-MCM 317\nMaiduguri\nDr. Mgbeadichie",
+          "PAU-MCM 305\nBauchi\nMr. Akeem Lasisi",
+          "",
+          "",
+          ""
+        ],
+        [
+          "11:00",
+          "PAU-MCM 317\nMaiduguri\nDr. Mgbeadichie",
+          "PAU-MCM 305\nBauchi\nMr. Akeem Lasisi",
+          "MCM 303\nUmuahia\nDr. Anuli Agina",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "MCM 303\nUmuahia\nDr. Anuli Agina",
+          "PAU-MCM 391\nJalingo\nDr. Emmanuel Nzeaka",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "PAU-MCM 391\nJalingo\nDr. Emmanuel Nzeaka",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "CMS 301 - MCM\nMaiduguri\nDr. Kizito Alakwe",
+          "",
+          "MCM 301\nArt and Graphics Studio\nDr. Akin Olaniyan"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "CMS 301 - MCM\nMaiduguri\nDr. Kizito Alakwe",
+          "CMS 302\nAdo-Ekiti\nProf. Okorie",
+          "MCM 301\nArt and Graphics Studio\nDr. Akin Olaniyan"
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "CMS 302\nAdo-Ekiti\nProf. Okorie",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Mass Communication - Year 4",
+        "id": "MCM 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "COM 413\nUmuahia\nDr. Sunday John",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "COM 409\nTYD New classroom\ntbd",
+          "COM 413\nUmuahia\nDr. Sunday John",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "COM 409\nTYD New classroom\ntbd",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "COM 409\nTYD New classroom\ntbd",
+          "COM 403\nUmuahia\nDr. Akin Olaniyan",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "COM 403\nUmuahia\nDr. Akin Olaniyan",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "COM 415\nOshogbo\nDr. Anthony Okoeguale",
+          "COM 405\nJalingo\nDr. Lakinbofa Goodluck",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "COM 415\nOshogbo\nDr. Anthony Okoeguale",
+          "COM 405\nJalingo\nDr. Lakinbofa Goodluck",
+          "",
+          "",
+          "COM 401\nJalingo\nBarr. Shola Soyele"
+        ],
+        [
+          "16:00",
+          "COM 415\nOshogbo\nDr. Anthony Okoeguale",
+          "COM 405\nJalingo\nDr. Lakinbofa Goodluck",
+          "",
+          "",
+          "COM 401\nJalingo\nBarr. Shola Soyele"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Film & Media Studies - Year 1",
+        "id": "FMM 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "PAU-FMM 108\nAbeokuta\nMr. Agbo Kelly",
+          "",
+          "GST-111\nAdo-Ekiti\nProf. Akinola Odebunmi",
+          ""
+        ],
+        [
+          "10:00",
+          "PAU-FMM-103\nArt and Graphics Studio\nMs. Nkem Agam",
+          "PAU-FMM 108\nAbeokuta\nMr. Agbo Kelly",
+          "",
+          "GST-111\nAdo-Ekiti\nProf. Akinola Odebunmi",
+          "PAU-FMM 104\nPort-Harcourt\nMs. Nkem Agam"
+        ],
+        [
+          "11:00",
+          "PAU-FMM-103\nArt and Graphics Studio\nMs. Nkem Agam",
+          "",
+          "FMM 101\nLokoja\nDr. Chiemela Ogbonna",
+          "",
+          "PAU-FMM 104\nPort-Harcourt\nMs. Nkem Agam"
+        ],
+        [
+          "12:00",
+          "PAU-FMM-103\nArt and Graphics Studio\nMs. Nkem Agam",
+          "",
+          "FMM 101\nLokoja\nDr. Chiemela Ogbonna",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "CMS 101 - ISM\nBauchi\nDr. Aifuwa Edosomwan",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "CMS 101 - ISM\nBauchi\nDr. Aifuwa Edosomwan",
+          "",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Film & Media Studies - Year 2",
+        "id": "FMM 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "FMM 203\nIbadan\nDr. Chiemela Ogbonna",
+          "PAU-FMM 292\nUyo\nialamezie@pau.edu.ng",
+          "",
+          "",
+          "PAU-FMM 291\nTYD New classroom\nDr. Emmanuel Nzeaka"
+        ],
+        [
+          "10:00",
+          "FMM 203\nIbadan\nDr. Chiemela Ogbonna",
+          "PAU-FMM 292\nUyo\nialamezie@pau.edu.ng",
+          "",
+          "",
+          "PAU-FMM 291\nTYD New classroom\nDr. Emmanuel Nzeaka"
+        ],
+        [
+          "11:00",
+          "FMM 203\nIbadan\nDr. Chiemela Ogbonna",
+          "",
+          "",
+          "",
+          "CMS 201 - FMM\nLokoja\nDr. Aifuwa Edosomwan"
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "FMM 201\nLokoja\nMr. Lawrence Akande",
+          "CMS 201 - FMM\nLokoja\nDr. Aifuwa Edosomwan"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "FMM 201\nLokoja\nMr. Lawrence Akande",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "",
+          "ENT 211 - FMM\nUyo\nMiss Halima Rabiu"
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "FMM 205\nArt and Graphics Studio\nDr. Wammanda Usaku",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "ENT 211 - FMM\nClassroom 1\nMiss Halima Rabiu",
+          "FMM 205\nArt and Graphics Studio\nDr. Wammanda Usaku",
+          "",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Film & Media Studies - Year 3",
+        "id": "FMM 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "FMM 307\nJalingo\nDr. Wammanda Usaku",
+          "",
+          "",
+          "CMS 301 - FMM\nEnugu\nDr. Kizito Alakwe",
+          ""
+        ],
+        [
+          "11:00",
+          "FMM 307\nJalingo\nDr. Wammanda Usaku",
+          "PAU‐FMM 309\nJalingo\nDr. Chiemela Ogbonna",
+          "",
+          "CMS 301 - FMM\nEnugu\nDr. Kizito Alakwe",
+          "FMM 303\nAbakaliki\nDr. Wammanda Usaku"
+        ],
+        [
+          "12:00",
+          "FMM 307\nJalingo\nDr. Wammanda Usaku",
+          "PAU‐FMM 309\nJalingo\nDr. Chiemela Ogbonna",
+          "",
+          "",
+          "FMM 303\nAbakaliki\nDr. Wammanda Usaku"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "PAU‐FMM 309\nJalingo\nDr. Chiemela Ogbonna",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "PAU‐FMM 392\nUmuahia\nMs. Flora Gabtony",
+          "",
+          "FMM 301\nMaiduguri\nDr. Wammanda Usaku",
+          "CMS 303\nIbadan\nDr. Kizito Alakwe"
+        ],
+        [
+          "15:00",
+          "",
+          "FMM 305\nMaiduguri\nMs. Nkem Agam",
+          "",
+          "FMM 301\nMaiduguri\nDr. Wammanda Usaku",
+          "CMS 303\nIbadan\nDr. Kizito Alakwe"
+        ],
+        [
+          "16:00",
+          "",
+          "FMM 305\nMaiduguri\nMs. Nkem Agam",
+          "ENT 312 - FMM\nAdo-Ekiti\nMiss Halima Rabiu",
+          "ENT 312 - FMM\nEnugu\nMiss Halima Rabiu",
+          "PAU‐FMM 392\nAbakaliki\nMs. Flora Gabtony"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Finance - Year 1",
+        "id": "FIN 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "GST 111 - SMSS\nPort-Harcourt\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nEnugu\nMr. Joseph Eneji"
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "",
+          "GST 111 - SMSS\nPort-Harcourt\nroji@pau.edu.ng",
+          "GST 112 -SMSS\nEnugu\nMr. Joseph Eneji"
+        ],
+        [
+          "11:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "AMS 102 -FIN\nBauchi\nDr. Mesagan",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-FIN 102\nTYD New classroom\nDr. Agbonrofo Hope",
+          "FIN 101\nUyo\noikpesu@pau.edu.ng",
+          "PAU-FIN 103\nEnugu\nProf. Oloyombo",
+          "AMS 102 -FIN\nBauchi\nDr. Mesagan",
+          "AMS 104 - FIN\nLokoja\nDr. Ebegbetale"
+        ],
+        [
+          "15:00",
+          "PAU-FIN 102\nTYD New classroom\nDr. Agbonrofo Hope",
+          "FIN 101\nUyo\noikpesu@pau.edu.ng",
+          "PAU-FIN 103\nEnugu\nProf. Oloyombo",
+          "",
+          ""
+        ],
+        [
+          "16:00",
+          "PAU-FIN 102\nTYD New classroom\nDr. Agbonrofo Hope",
+          "FIN 101\nUyo\noikpesu@pau.edu.ng",
+          "PAU-FIN 103\nEnugu\nProf. Oloyombo",
+          "",
+          "AMS 104 - FIN\nBauchi\nDr. Ebegbetale"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Finance - Year 2",
+        "id": "FIN 200"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "",
+          "",
+          "",
+          ""
+        ],
+        [
+          "10:00",
+          "",
+          "FIN 209\nLokoja\noikpesu@pau.edu.ng",
+          "",
+          "FIN 204\nArt and Graphics Studio\nDr. Anetor",
+          ""
+        ],
+        [
+          "11:00",
+          "",
+          "FIN 209\nLokoja\noikpesu@pau.edu.ng",
+          "",
+          "FIN 204\nArt and Graphics Studio\nDr. Anetor",
+          ""
+        ],
+        [
+          "12:00",
+          "",
+          "FIN 209\nLokoja\noikpesu@pau.edu.ng",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "PAU-FIN 201\nIbadan\nDr. Ini Udofia",
+          "FIN 202\nLokoja\nMrs. Olaniyi Ibironke",
+          "GST 212 - FIN\nEngineering Drawing Studio\nMr. Amaobi Osuala",
+          "GST 212 - FIN\nAbeokuta\nMr. Amaobi Osuala",
+          "ENT 211 - FIN\nJalingo\nMiss Halima Rabiu"
+        ],
+        [
+          "15:00",
+          "PAU-FIN 201\nIbadan\nDr. Ini Udofia",
+          "",
+          "",
+          "ENT 211 - FIN\nJalingo\nMiss Halima Rabiu",
+          "PAU-FIN-209\nJos\nialamezie@pau.edu.ng"
+        ],
+        [
+          "16:00",
+          "PAU-FIN 201\nIbadan\nDr. Ini Udofia",
+          "",
+          "",
+          "FIN 202\nAbeokuta\nMrs. Olaniyi Ibironke",
+          "PAU-FIN-209\nJos\nialamezie@pau.edu.ng"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Finance - Year 3",
+        "id": "FIN 300"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "FIN 303\nAsaba\noikpesu@pau.edu.ng",
+          "",
+          "",
+          "FIN 305\nOshogbo\ntbd",
+          ""
+        ],
+        [
+          "10:00",
+          "FIN 303\nAsaba\noikpesu@pau.edu.ng",
+          "",
+          "FIN 315\nAbeokuta\nProf. Oloyombo",
+          "FIN 305\nOshogbo\ntbd",
+          ""
+        ],
+        [
+          "11:00",
+          "FIN 303\nAsaba\noikpesu@pau.edu.ng",
+          "",
+          "FIN 315\nAbeokuta\nProf. Oloyombo",
+          "",
+          "FIN 313\nArt and Graphics Studio\nDr. Unah"
+        ],
+        [
+          "12:00",
+          "",
+          "GST 312 - FIN\nAdo-Ekiti\naonwudinjo@pau.edu.ng",
+          "FIN 315\nAbeokuta\nProf. Oloyombo",
+          "",
+          "FIN 313\nArt and Graphics Studio\nDr. Unah"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "GST 312 - FIN\nAdo-Ekiti\naonwudinjo@pau.edu.ng",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "FIN 308\nAbakaliki\ntbd",
+          "ENT 312 - FIN\nClassroom 4\nMiss Halima Rabiu",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "FIN 308\nAbakaliki\ntbd",
+          "",
+          "",
+          "FIN 304\nEnugu\nMrs. Olaniyi Ibironke"
+        ],
+        [
+          "16:00",
+          "",
+          "FIN 308\nAbakaliki\ntbd",
+          "",
+          "ENT 312 - FIN\nJalingo\nMiss Halima Rabiu",
+          "FIN 304\nEnugu\nMrs. Olaniyi Ibironke"
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Finance - Year 4",
+        "id": "FIN 400"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "FIN 402\nAsaba\nProf. Vincent",
+          "BUS 403 - FIN\nZaria\nDr. Lawal",
+          "BUS 403 - FIN\nZaria\nDr. Lawal",
+          "BUS 401 - FIN\nMaiduguri\nDr. Dakare"
+        ],
+        [
+          "10:00",
+          "FIN 401 - FIN\nEnugu\nDr. Unah",
+          "FIN 402\nAsaba\nProf. Vincent",
+          "",
+          "",
+          "BUS 401 - FIN\nMaiduguri\nDr. Dakare"
+        ],
+        [
+          "11:00",
+          "FIN 401 - FIN\nEnugu\nDr. Unah",
+          "FIN 402\nAsaba\nProf. Vincent",
+          "",
+          "BUS 403 - FIN\nMaiduguri\nDr. Lawal",
+          "BUS 401 - FIN\nMaiduguri\nDr. Dakare"
+        ],
+        [
+          "12:00",
+          "FIN 401 - FIN\nEnugu\nDr. Unah",
+          "FIN 411\nJos\nDr. Unah",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "FIN 411\nJos\nDr. Unah",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "FIN 411\nJos\nDr. Unah",
+          "FIN 404\nAsaba\nDr. Fredrick Ikpesu",
+          "FIN 403\nTYD New classroom\nProf. Oloyombo",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "FIN 404\nAsaba\nDr. Fredrick Ikpesu",
+          "FIN 403\nTYD New classroom\nProf. Oloyombo",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "FIN 404\nAsaba\nDr. Fredrick Ikpesu",
+          "FIN 403\nTYD New classroom\nProf. Oloyombo",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Strategic Communication - Year 1",
+        "id": "STC 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "GST-111\nUmuahia\nProf. Akinola Odebunmi",
+          "",
+          "",
+          "PAU-MCM 191 - STC\nAbeokuta\nFr. Basil Isiekwe"
+        ],
+        [
+          "10:00",
+          "PAU-STC 118\nTYD New classroom\nroji@pau.edu.ng",
+          "GST-111\nUmuahia\nProf. Akinola Odebunmi",
+          "",
+          "",
+          "PAU-MCM 191 - STC\nAbeokuta\nFr. Basil Isiekwe"
+        ],
+        [
+          "11:00",
+          "PAU-STC 118\nTYD New classroom\nroji@pau.edu.ng",
+          "",
+          "",
+          "",
+          "STC 101\nEnugu\nDr. Kizito Alakwe"
+        ],
+        [
+          "12:00",
+          "PAU-STC 118\nTYD New classroom\nroji@pau.edu.ng",
+          "STC 109\nAbakaliki\nnokpara@pau.edu.ng",
+          "",
+          "",
+          "STC 101\nEnugu\nDr. Kizito Alakwe"
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "STC 109\nAbakaliki\nnokpara@pau.edu.ng",
+          "BREAK",
+          "CMS 101 - STC\nJos\nDr. Chioma Njoku",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "",
+          "",
+          "",
+          "CMS 101 - STC\nJos\nDr. Chioma Njoku",
+          ""
+        ],
+        [
+          "15:00",
+          "",
+          "",
+          "",
+          "CMS 109\nAbakaliki\nDr. Aifuwa Edosomwan",
+          ""
+        ],
+        [
+          "16:00",
+          "",
+          "",
+          "",
+          "CMS 109\nAbakaliki\nDr. Aifuwa Edosomwan",
+          ""
+        ]
+      ]
+    },
+    {
+      "student_group": {
+        "name": "Data Science - Year 1",
+        "id": "DTS 100"
+      },
+      "timetable": [
+        [
+          "9:00",
+          "",
+          "PAU-CSC 111\nMaiduguri\nJennifer Iloekwe",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun",
+          "PHY 107 - CSC\nPhysics and Applied Electricity lab\nDr. Rilwan Balogun",
+          "PAU-CSC 111\nZaria\nJennifer Iloekwe"
+        ],
+        [
+          "10:00",
+          "",
+          "",
+          "",
+          "",
+          "PAU-CSC 192\nStrength of Materials\nFr. Ifeanyi Ogboh"
+        ],
+        [
+          "11:00",
+          "",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "PHY101\nAbeokuta\nDr. Rilwan Balogun",
+          "PAU-CSC 192\nTYD New classroom\nFr. Ifeanyi Ogboh"
+        ],
+        [
+          "12:00",
+          "",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "",
+          "",
+          ""
+        ],
+        [
+          "13:00",
+          "BREAK",
+          "COS 101\nComputer Lab 02\ndmoru@pau.edu.ng",
+          "BREAK",
+          "",
+          "BREAK"
+        ],
+        [
+          "14:00",
+          "STA 111\nClassroom 3\ngokoacha@pau.edu.ng",
+          "",
+          "PHY101\nZaria\nUnknown Faculty",
+          "",
+          ""
+        ],
+        [
+          "15:00",
+          "STA 111\nClassroom 3\ngokoacha@pau.edu.ng",
+          "",
+          "PHY 107 - CSC\nOshogbo\nUnknown Faculty",
+          "",
+          "MTH101\nOshogbo\nDr. Clinton Ifegwu"
+        ],
+        [
+          "16:00",
+          "STA 111\nClassroom 3\ngokoacha@pau.edu.ng",
+          "",
+          "",
+          "",
+          "MTH101\nOshogbo\nDr. Clinton Ifegwu"
+        ]
+      ]
+    }
+  ],
+  "manual_cells": [
+    "49_5_2",
+    "49_6_2"
+  ]
+}

@@ -1340,7 +1340,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(1)
+best_solution, fitness_history, generation, diversity_history = de.run(100)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -1556,31 +1556,28 @@ def load_saved_timetable():
     save_path = os.path.join(os.path.dirname(__file__), 'data', 'timetable_data.json')
     
     print(f"🔍 Checking for saved timetable at: {save_path}")
-    print(f"🔍 File exists: {os.path.exists(save_path)}")
     
     if os.path.exists(save_path):
         try:
             with open(save_path, 'r', encoding='utf-8') as f:
                 saved_data = json.load(f)
             
-            file_size = os.path.getsize(save_path)
-            print(f"📁 Loaded saved timetable: {len(saved_data)} groups, {file_size} bytes")
-            
-            # Verify data structure
-            if saved_data and len(saved_data) > 0:
-                first_group = saved_data[0]
-                print(f"🔍 First group structure: {type(first_group)}")
-                if 'student_group' in first_group:
-                    print(f"🔍 Student group info: {first_group['student_group']}")
-                if 'timetable' in first_group:
-                    print(f"🔍 Timetable rows: {len(first_group['timetable'])}")
-            
-            return saved_data
+            # MODIFIED: Check for new format {timetables: [...], manual_cells: [...]}
+            if isinstance(saved_data, dict) and 'timetables' in saved_data:
+                timetables = saved_data.get('timetables', [])
+                manual_cells = saved_data.get('manual_cells', [])
+                print(f"📁 Loaded new format: {len(timetables)} groups, {len(manual_cells)} manual cells")
+                return timetables, manual_cells
+            else:
+                # Handle old format (just a list of timetables) for backward compatibility
+                print(f"📁 Loaded old format: {len(saved_data)} groups")
+                return saved_data, []
+
         except Exception as e:
             print(f"❌ Error loading saved timetable: {e}")
             traceback.print_exc()
     
-    return None
+    return None, None
 
 def clear_saved_timetable():
     """Clear the saved timetable file to start fresh on next run"""
@@ -1821,6 +1818,32 @@ app.index_string = '''
             .cell.both-conflict:hover {
                 background-color: #ffcce6 !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
+            }
+            .cell.manual-schedule {
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+                background-color: #e3f2fd !important;
+                position: relative;
+            }
+            .cell.manual-schedule:hover {
+                box-shadow: 0 2px 12px rgba(33, 150, 243, 0.7) !important;
+                border-color: #1976d2 !important;
+                transform: translateY(-1px);
+            }
+            .cell.manual-schedule.room-conflict {
+                background-color: #ffebee !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+            }
+            .cell.manual-schedule.lecturer-conflict {
+                background-color: #fff0cc !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+            }
+            .cell.manual-schedule.both-conflict {
+                background-color: #ffebee !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
             }
             .room-selection-modal {
                 position: fixed;
@@ -2095,6 +2118,7 @@ app.index_string = '''
                 border-radius: 4px;
                 border: 1px solid #ccc;
             }
+            .color-box.manual { background-color: #72b7f4; }
             .color-box.normal { background-color: white; }
             .color-box.break { background-color: #ff5722; }
             .color-box.room-conflict { background-color: #ffebee; border-color: #f44336; }
@@ -2331,6 +2355,12 @@ app.layout = html.Div([
     # Store for room changes
     dcc.Store(id="room-change-data", data=None),
     
+    # Store for missing class scheduling
+    dcc.Store(id="missing-class-data", data=None),
+    
+    # Store for manually scheduled cells
+    dcc.Store(id="manual-cells-store", data=[]),
+    
     # Hidden div to trigger the setup
     html.Div(id="trigger", style={"display": "none"}),
     
@@ -2359,6 +2389,10 @@ app.layout = html.Div([
                            style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", 
                                  "border": "1px solid #ddd", "borderRadius": "5px", "marginRight": "10px",
                                  "cursor": "pointer", "fontFamily": "Poppins, sans-serif"}),
+                html.Button("DELETE SCHEDULE", id="room-delete-btn", 
+                           style={"backgroundColor": "#dc3545", "color": "white", "padding": "8px 16px", 
+                                 "border": "none", "borderRadius": "5px", "cursor": "pointer", "marginRight": "10px",
+                                 "fontFamily": "Poppins, sans-serif", "fontWeight": "600", "display": "none"}),
                 html.Button("Confirm", id="room-confirm-btn", 
                            style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", 
                                  "border": "none", "borderRadius": "5px", "cursor": "pointer",
@@ -2366,6 +2400,27 @@ app.layout = html.Div([
             ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
                      "borderTop": "1px solid #f0f0f0"})
         ], className="room-selection-modal", id="room-selection-modal", style={"display": "none"})
+    ]),
+    
+    # Missing classes modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="missing-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Missing Classes", className="modal-title"),
+                html.Button("×", className="modal-close", id="missing-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div(id="missing-classes-container", className="room-options"),
+            
+            html.Div([
+                html.Button("Cancel", id="missing-cancel-btn", 
+                           style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", 
+                                 "border": "1px solid #ddd", "borderRadius": "5px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif"})
+            ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", 
+                     "borderTop": "1px solid #f0f0f0"})
+        ], className="room-selection-modal", id="missing-classes-modal", style={"display": "none"})
     ]),
     
     # Errors modal (initially hidden)
@@ -2508,6 +2563,10 @@ app.layout = html.Div([
                             html.Span("Normal class - No conflicts")
                         ], className="color-item"),
                         html.Div([
+                            html.Div(className="color-box manual"),
+                            html.Span("Manually Scheduled - Class scheduled manually from the 'Missing Classes' list.")
+                        ], className="color-item"),
+                        html.Div([
                             html.Div(className="color-box break"),
                             html.Span("Break time - Classes cannot be scheduled")
                         ], className="color-item"),
@@ -2542,9 +2601,10 @@ app.layout = html.Div([
     [Output("timetable-container", "children"),
      Output("trigger", "children")],
     [Input("student-group-dropdown", "value")],
-    [State("all-timetables-store", "data")]
+    [State("all-timetables-store", "data"),
+     State("manual-cells-store", "data")]
 )
-def create_timetable(selected_group_idx, all_timetables_data):
+def create_timetable(selected_group_idx, all_timetables_data, manual_cells):
     # Only load saved data if we're in an active session and there have been changes
     # Don't load on fresh startup - use the fresh DE results
     global all_timetables
@@ -2612,10 +2672,25 @@ def create_timetable(selected_group_idx, all_timetables_data):
             has_conflict = timeslot_key in conflicts
             conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
-            # Determine cell class based on conflict type
+            # Check if this is a manually scheduled cell
+            manual_cell_key = f"{selected_group_idx}_{row_idx}_{col_idx-1}"
+            is_manual = manual_cells and manual_cell_key in manual_cells
+            
+            # Determine cell class based on conflict type and manual scheduling
             if is_break:
                 cell_class = "cell break-time"
                 draggable = "false"
+            elif is_manual:
+                # Manual cells get blue outline regardless of conflicts
+                if conflict_type == 'room':
+                    cell_class = "cell room-conflict manual-schedule"
+                elif conflict_type == 'lecturer':
+                    cell_class = "cell lecturer-conflict manual-schedule"
+                elif conflict_type == 'both':
+                    cell_class = "cell both-conflict manual-schedule"
+                else:
+                    cell_class = "cell manual-schedule"
+                draggable = "true"
             elif conflict_type == 'room':
                 cell_class = "cell room-conflict"
                 draggable = "true"
@@ -2695,10 +2770,11 @@ def create_timetable(selected_group_idx, all_timetables_data):
 @app.callback(
     Output("timetable-container", "children", allow_duplicate=True),
     Input("all-timetables-store", "data"),
-    [State("student-group-dropdown", "value")],
+    [State("student-group-dropdown", "value"),
+     State("manual-cells-store", "data")],
     prevent_initial_call=True
 )
-def update_timetable_content(all_timetables_data, selected_group_idx):
+def update_timetable_content(all_timetables_data, selected_group_idx, manual_cells):
     """Update timetable content when data changes (e.g., from swaps) without affecting navigation"""
     print(f"📊 Update timetable content triggered - group: {selected_group_idx}")
     
@@ -2773,9 +2849,24 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
             has_conflict = timeslot_key in conflicts
             conflict_type = conflicts.get(timeslot_key, {}).get('type', 'none') if has_conflict else 'none'
             
+            # Check if this is a manually scheduled cell
+            manual_cell_key = f"{selected_group_idx}_{row_idx}_{col_idx-1}"
+            is_manual = manual_cells and manual_cell_key in manual_cells
+            
             if is_break:
                 cell_class = "cell break-time"
                 draggable = False
+            elif is_manual:
+                # Manual cells get blue outline regardless of conflicts
+                if conflict_type == 'room':
+                    cell_class = "cell room-conflict manual-schedule"
+                elif conflict_type == 'lecturer':
+                    cell_class = "cell lecturer-conflict manual-schedule"
+                elif conflict_type == 'both':
+                    cell_class = "cell both-conflict manual-schedule"
+                else:
+                    cell_class = "cell manual-schedule"
+                draggable = True
             elif conflict_type == 'room':
                 cell_class = "cell room-conflict"
                 draggable = True
@@ -2927,18 +3018,42 @@ clientside_callback(
                 // Remove any existing drag-related classes
                 cell.classList.remove('dragging', 'drag-over');
                 
-                // Double-click handler for room selection
+                // Double-click handler for room selection and FREE cell scheduling
                 cell.ondblclick = function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
                     console.log('Double-click detected on cell');
                     
-                    // Don't allow room selection for break times or free slots
+                    // Handle FREE cell double-click for manual scheduling
+                    if (this.textContent.trim() === 'FREE') {
+                        console.log('FREE cell double-clicked - showing missing classes');
+                        window.selectedCell = this;
+                        
+                        // Show missing classes modal
+                        const modal = document.getElementById('missing-classes-modal');
+                        const overlay = document.getElementById('missing-modal-overlay');
+                        
+                        if (modal && overlay) {
+                            modal.style.display = 'block';
+                            overlay.style.display = 'block';
+                            
+                            // Trigger missing classes loading
+                            window.dash_clientside.set_props("missing-class-data", {
+                                data: {
+                                    action: 'show_missing',
+                                    cell_id: this.id,
+                                    timestamp: Date.now()
+                                }
+                            });
+                        }
+                        return;
+                    }
+                    
+                    // Don't allow room selection for break times
                     if (this.classList.contains('break-time') || 
-                        this.textContent.trim() === 'BREAK' || 
-                        this.textContent.trim() === 'FREE') {
-                        console.log('Cannot select room for break time or free slot');
+                        this.textContent.trim() === 'BREAK') {
+                        console.log('Cannot select room for break time');
                         return;
                     }
                     
@@ -2948,10 +3063,23 @@ clientside_callback(
                     // Show room selection modal
                     const modal = document.getElementById('room-selection-modal');
                     const overlay = document.getElementById('modal-overlay');
+                    const deleteBtn = document.getElementById('room-delete-btn');
                     
                     if (modal && overlay) {
                         modal.style.display = 'block';
                         overlay.style.display = 'block';
+                        
+                        // Show delete button only for manually scheduled cells
+                        if (deleteBtn) {
+                            if (this.classList.contains('manual-schedule')) {
+                                deleteBtn.style.display = 'inline-block';
+                                deleteBtn.textContent = 'DELETE SCHEDULE';
+                                console.log('Showing DELETE SCHEDULE button for manual cell');
+                            } else {
+                                deleteBtn.style.display = 'none';
+                                console.log('Hiding DELETE SCHEDULE button for non-manual cell');
+                            }
+                        }
                         
                         // Trigger room options loading
                         window.dash_clientside.set_props("room-change-data", {
@@ -2959,6 +3087,7 @@ clientside_callback(
                                 action: 'show_modal',
                                 cell_id: this.id,
                                 cell_content: this.textContent.trim(),
+                                is_manual: this.classList.contains('manual-schedule'),
                                 timestamp: Date.now()
                             }
                         });
@@ -3089,16 +3218,32 @@ clientside_callback(
                         
                         console.log('Swapping:', window.dragStartData, 'with:', targetData);
                         
+                        // Check if either cell is manually scheduled to preserve manual status
+                        const sourceIsManual = window.draggedElement.classList.contains('manual-schedule');
+                        const targetIsManual = this.classList.contains('manual-schedule');
+                        
                         // Perform the swap
                         const tempContent = window.draggedElement.textContent;
                         window.draggedElement.textContent = this.textContent;
                         this.textContent = tempContent;
+                        
+                        // Preserve manual-schedule classes after swap
+                        if (sourceIsManual) {
+                            this.classList.add('manual-schedule');
+                            window.draggedElement.classList.remove('manual-schedule');
+                        }
+                        if (targetIsManual) {
+                            window.draggedElement.classList.add('manual-schedule');
+                            this.classList.remove('manual-schedule');
+                        }
                         
                         // Trigger callback to update backend data
                         window.dash_clientside.set_props("swap-data", {
                             data: {
                                 source: window.dragStartData,
                                 target: targetData,
+                                sourceIsManual: sourceIsManual,
+                                targetIsManual: targetIsManual,
                                 timestamp: Date.now()
                             }
                         });
@@ -3336,26 +3481,86 @@ clientside_callback(
     prevent_initial_call=True
 )
 
+# Client-side callback to handle missing class modal closing
+clientside_callback(
+    """
+    function(n_clicks) {
+        if (n_clicks) {
+            // Close the missing classes modal
+            const modal = document.getElementById('missing-classes-modal');
+            const overlay = document.getElementById('missing-modal-overlay');
+            
+            if (modal && overlay) {
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("missing-cancel-btn", "style"),
+    Input("missing-cancel-btn", "n_clicks"),
+    prevent_initial_call=True
+)
+
+# Client-side callback to handle missing class option clicks
+clientside_callback(
+    """
+    function(children) {
+        if (!children) return window.dash_clientside.no_update;
+        
+        // Add click handlers for missing class options
+        setTimeout(function() {
+            const missingOptions = document.querySelectorAll('[id*="missing-class-option"]');
+            
+            missingOptions.forEach(function(option) {
+                option.onclick = function() {
+                    // DO NOT close the modal here.
+                    // The server-side callback will handle closing the modal after processing.
+                    
+                    // Show feedback immediately for a better user experience
+                    const feedback = document.getElementById('feedback');
+                    if (feedback) {
+                        feedback.innerHTML = '✅ Class scheduled successfully';
+                        feedback.style.color = 'green';
+                        feedback.style.backgroundColor = '#e8f5e8';
+                        feedback.style.padding = '10px';
+                        feedback.style.borderRadius = '5px';
+                        feedback.style.border = '2px solid #4caf50';
+                    }
+                };
+            });
+        }, 100);
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("missing-classes-container", "style"),
+    Input("missing-classes-container", "children"),
+    prevent_initial_call=True
+)
+
 
 
 # Callback to handle room selection modal and search
 @app.callback(
     [Output("room-options-container", "children"),
      Output("room-selection-modal", "style"),
-     Output("modal-overlay", "style")],
+     Output("modal-overlay", "style"),
+     Output("room-delete-btn", "style")],
     [Input("room-change-data", "data"),
      Input("room-search-input", "value")],
     [State("all-timetables-store", "data"),
      State("rooms-data-store", "data"),
-     State("student-group-dropdown", "value")],
+     State("student-group-dropdown", "value"),
+     State("manual-cells-store", "data")],
     prevent_initial_call=True
 )
-def handle_room_modal(room_change_data, search_value, all_timetables_data, rooms_data, selected_group_idx):
+def handle_room_modal(room_change_data, search_value, all_timetables_data, rooms_data, selected_group_idx, manual_cells):
     if not room_change_data or room_change_data.get('action') != 'show_modal':
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
     
     if not rooms_data or not all_timetables_data:
-        return html.Div("No rooms data available"), {"display": "block"}, {"display": "block"}
+        return html.Div("No rooms data available"), {"display": "block"}, {"display": "block"}, {"display": "none"}
     
     # Parse cell information
     try:
@@ -3363,8 +3568,9 @@ def handle_room_modal(room_change_data, search_value, all_timetables_data, rooms
         cell_id = json.loads(cell_id_str)
         row_idx = cell_id['row']
         col_idx = cell_id['col']
+        group_idx = cell_id['group']
     except:
-        return html.Div("Error parsing cell data"), {"display": "block"}, {"display": "block"}
+        return html.Div("Error parsing cell data"), {"display": "block"}, {"display": "block"}, {"display": "none"}
     
     # Get current room usage for this time slot across all groups
     current_room_usage = get_room_usage_at_timeslot(all_timetables_data, row_idx, col_idx)
@@ -3413,7 +3619,127 @@ def handle_room_modal(room_change_data, search_value, all_timetables_data, rooms
             n_clicks=0)
         )
     
-    return room_options, {"display": "block"}, {"display": "block"}
+    # Determine if DELETE SCHEDULE button should be shown
+    manual_cell_key = f"{group_idx}_{row_idx}_{col_idx}"
+    is_manual_cell = manual_cells and manual_cell_key in manual_cells
+    
+    delete_btn_style = {
+        "backgroundColor": "#dc3545", 
+        "color": "white", 
+        "padding": "8px 16px", 
+        "border": "none", 
+        "borderRadius": "5px", 
+        "cursor": "pointer", 
+        "marginRight": "10px",
+        "fontFamily": "Poppins, sans-serif", 
+        "fontWeight": "600", 
+        "display": "inline-block" if is_manual_cell else "none"
+    }
+    
+    return room_options, {"display": "block"}, {"display": "block"}, delete_btn_style
+
+# Callback to handle missing class selection and scheduling
+@app.callback(
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("manual-cells-store", "data", allow_duplicate=True),
+     Output("missing-classes-modal", "style", allow_duplicate=True),
+     Output("missing-modal-overlay", "style", allow_duplicate=True)],
+    [Input({"type": "missing-class-option", "index": ALL, "course": ALL, "faculty": ALL}, "n_clicks")],
+    [State({"type": "missing-class-option", "index": ALL, "course": ALL, "faculty": ALL}, "id"),
+     State("missing-class-data", "data"),
+     State("all-timetables-store", "data"),
+     State("student-group-dropdown", "value"),
+     State("manual-cells-store", "data"),
+     State("rooms-data-store", "data")],
+    prevent_initial_call=True
+)
+def handle_missing_class_selection(n_clicks_list, class_ids, missing_data, all_timetables_data, selected_group_idx, manual_cells, rooms_data):
+    if not any(n_clicks_list) or not missing_data:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+    # Find which class was clicked
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    try:
+        triggered_class = json.loads(triggered_id)
+        selected_course = triggered_class['course']
+        # We get this from the button just for fallback, but will re-verify it
+        selected_faculty_from_id = triggered_class.get('faculty', 'Unknown Faculty')
+    except:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+    # Parse cell information from missing_data
+    try:
+        cell_id_str = missing_data['cell_id']
+        cell_id = json.loads(cell_id_str)
+        row_idx = cell_id['row']
+        col_idx = cell_id['col']
+        group_idx = cell_id['group']
+    except:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+    # Update timetable with manual scheduling
+    updated_timetables = json.loads(json.dumps(all_timetables_data))
+
+    # Find a random available room
+    available_room = "Room-001"  # Default
+    if rooms_data:
+        import random
+        available_room = random.choice(rooms_data)['name']
+
+    # NEW: Re-fetch the lecturer name to ensure correctness
+    current_group_name = all_timetables_data[group_idx]['student_group']['name']
+    faculty_name = find_lecturer_for_course(selected_course, current_group_name)
+
+    # If lookup fails, fallback to the name from the button ID, then to a default
+    if faculty_name == "Unknown":
+        faculty_name = selected_faculty_from_id
+    if faculty_name == "Unknown" or not faculty_name:
+        faculty_name = 'Unknown Faculty'
+
+    # Preserve the actual course name instead of just 'MANUAL-CLASS'
+    course_display_name = selected_course
+    if course_display_name == 'Unknown Course' or not course_display_name:
+        course_display_name = 'MANUAL-CLASS'
+
+    manual_class_content = f"{course_display_name}\n{available_room}\n{faculty_name}"
+    updated_timetables[group_idx]['timetable'][row_idx][col_idx + 1] = manual_class_content
+
+    # Track this as a manually scheduled cell
+    manual_cell_key = f"{group_idx}_{row_idx}_{col_idx}"
+    updated_manual_cells = manual_cells.copy() if manual_cells else []
+    if manual_cell_key not in updated_manual_cells:
+        updated_manual_cells.append(manual_cell_key)
+
+    return updated_timetables, updated_manual_cells, {"display": "none"}, {"display": "none"}
+
+def find_lecturer_for_course(course_identifier, group_name):
+    """Find the lecturer assigned to teach a specific course for a specific group using code, ID, or name."""
+    try:
+        # Look through the input data to find the lecturer for this course and group
+        for student_group in input_data.student_groups:
+            if student_group.name == group_name:
+                for i, course_id_from_group in enumerate(student_group.courseIDs):
+                    course = input_data.getCourse(course_id_from_group)
+                    # MODIFIED: Safely check against course ID, code, or name, ignoring case and whitespace.
+                    if course and (
+                        str(course_id_from_group).strip().lower() == str(course_identifier).strip().lower() or
+                        str(getattr(course, 'code', '')).strip().lower() == str(course_identifier).strip().lower() or
+                        str(getattr(course, 'name', '')).strip().lower() == str(course_identifier).strip().lower()
+                    ):
+                        # Found the course, get the lecturer
+                        faculty_id = student_group.teacherIDS[i]
+                        faculty = input_data.getFaculty(faculty_id)
+                        if faculty:
+                            return faculty.name if faculty.name else faculty.faculty_id
+                        break  # Found the course, no need to check other courses for this group
+        return "Unknown"
+    except Exception as e:
+        print(f"Error finding lecturer for course {course_identifier}: {e}")
+        return "Unknown"
 
 def get_room_usage_at_timeslot(all_timetables_data, row_idx, col_idx):
     """Get which rooms are being used at a specific time slot and by which groups"""
@@ -3432,6 +3758,144 @@ def get_room_usage_at_timeslot(all_timetables_data, row_idx, col_idx):
                 room_usage[room_name].append(group_name)
     
     return room_usage
+
+# Callback to handle missing classes modal
+@app.callback(
+    [Output("missing-classes-container", "children"),
+     Output("missing-classes-modal", "style"),
+     Output("missing-modal-overlay", "style")],
+    [Input("missing-class-data", "data")],
+    [State("constraint-details-store", "data"),
+     State("student-group-dropdown", "value"),
+     State("all-timetables-store", "data")],
+    prevent_initial_call=True
+)
+def handle_missing_classes_modal(missing_data, constraint_details, selected_group_idx, all_timetables_data):
+    if not missing_data or missing_data.get('action') != 'show_missing':
+        return dash.no_update, dash.no_update, dash.no_update
+    
+    if not constraint_details or not all_timetables_data:
+        return html.Div("No constraint data available"), {"display": "block"}, {"display": "block"}
+    
+    # Get current student group
+    current_group = all_timetables_data[selected_group_idx]['student_group']
+    group_name = current_group['name'] if isinstance(current_group, dict) else current_group.name
+    
+    # Filter missing classes for current student group
+    missing_classes = []
+    
+    # Only check the 3 specific constraint types
+    target_constraints = ['Missing or Extra Classes', 'Same Student Group Overlaps', 'Classes During Break Time']
+    
+    for constraint_type in target_constraints:
+        if constraint_type not in constraint_details:
+            continue
+            
+        for violation in constraint_details[constraint_type]:
+            if not isinstance(violation, dict):
+                continue
+                
+            # Check if this violation involves the current group
+            if constraint_type == 'Missing or Extra Classes':
+                if violation.get('group') == group_name:
+                    course_code = violation.get('course', 'Unknown Course')
+                    faculty_name = find_lecturer_for_course(course_code, group_name)
+                    if faculty_name == "Unknown":
+                        faculty_name = violation.get('faculty', 'Unknown Faculty')
+                    
+                    missing_classes.append({
+                        'course': course_code,
+                        'faculty': faculty_name,
+                        'type': 'Missing Class',
+                        'reason': violation.get('reason', 'Missing from schedule')
+                    })
+            
+            elif constraint_type == 'Same Student Group Overlaps':
+                # Based on constraints.py, the violation structure has 'group', 'courses' array, and 'location'
+                if violation.get('group') == group_name and 'courses' in violation:
+                    courses = violation.get('courses', [])
+                    # Take the first course from the clashing courses for this group
+                    course_code = courses[0] if courses else 'Unknown Course'
+                    faculty_name = find_lecturer_for_course(course_code, group_name)
+                    if faculty_name == "Unknown":
+                        faculty_name = violation.get('lecturer', 'Unknown Faculty')
+                    
+                    missing_classes.append({
+                        'course': course_code,
+                        'faculty': faculty_name,
+                        'type': 'Student Group Clash',
+                        'reason': violation.get('location', 'Clash detected')
+                    })
+                # Handle case where violation has 'groups' and 'courses' arrays (multiple groups)
+                elif 'groups' in violation and 'courses' in violation:
+                    groups = violation.get('groups', [])
+                    courses = violation.get('courses', [])
+                    if group_name in groups:
+                        try:
+                            idx = groups.index(group_name)
+                            course_code = courses[idx] if idx < len(courses) else courses[0] if courses else 'Unknown Course'
+                            faculty_name = find_lecturer_for_course(course_code, group_name)
+                            if faculty_name == "Unknown":
+                                faculty_name = violation.get('lecturer', 'Unknown Faculty')
+                        except (ValueError, IndexError):
+                            course_code = courses[0] if courses else 'Unknown Course'
+                            faculty_name = find_lecturer_for_course(course_code, group_name)
+                        
+                        missing_classes.append({
+                            'course': course_code,
+                            'faculty': faculty_name,
+                            'type': 'Student Group Clash',
+                            'reason': violation.get('location', 'Clash detected')
+                        })
+            
+            elif constraint_type == 'Classes During Break Time':
+                if violation.get('group') == group_name:
+                    course_code = violation.get('course', 'Unknown Course')
+                    # Find the correct lecturer for this course and group
+                    faculty_name = find_lecturer_for_course(course_code, group_name)
+                    if faculty_name == "Unknown":
+                        faculty_name = violation.get('faculty', 'Unknown Faculty')
+                    
+                    missing_classes.append({
+                        'course': course_code,
+                        'faculty': faculty_name,
+                        'type': 'Break Time Violation',
+                        'reason': 'Scheduled during break time'
+                    })
+    
+
+    
+
+    
+    if not missing_classes:
+        return html.Div("No missing classes found for this student group", 
+                       style={"padding": "20px", "textAlign": "center"}), {"display": "block"}, {"display": "block"}
+    
+    # Create missing class options
+    class_options = []
+    for idx, missing_class in enumerate(missing_classes):
+        # Use actual course and faculty names, don't convert to MANUAL-CLASS
+        display_course = missing_class['course']
+        display_faculty = missing_class.get('faculty', 'Unknown Faculty')
+        
+        class_options.append(
+            html.Button([
+                html.Div([
+                    html.Span(display_course, style={"fontWeight": "600"}),
+                    html.Span(f" ({missing_class['type']})", style={"fontSize": "11px", "color": "#666", "marginLeft": "8px"})
+                ]),
+                html.Div(
+                    display_faculty,
+                    style={"fontSize": "12px", "color": "#666", "marginTop": "4px"}
+                )
+            ], 
+            className="room-option available",
+            id={"type": "missing-class-option", "index": idx, "course": display_course, "faculty": display_faculty},
+            n_clicks=0,
+            style={"width": "100%", "textAlign": "left", "background": "none", "border": "none", "padding": "12px 16px", "cursor": "pointer"})
+        )
+    
+    return class_options, {"display": "block"}, {"display": "block"}
 
 # Callback to handle room option selection
 @app.callback(
@@ -3466,78 +3930,153 @@ def handle_room_selection(n_clicks_list, room_ids, current_room_data, all_timeta
         'timestamp': current_room_data.get('timestamp', 0) + 1
     }
 
+def find_lecturer_for_course(course_identifier, group_name):
+    """Find the lecturer assigned to teach a specific course for a specific group using code, ID, or name."""
+    try:
+        # Look through the input data to find the lecturer for this course and group
+        for student_group in input_data.student_groups:
+            if student_group.name == group_name:
+                for i, course_id_from_group in enumerate(student_group.courseIDs):
+                    course = input_data.getCourse(course_id_from_group)
+                    # MODIFIED: Check if the identifier matches the course code, ID, or name (case-insensitive)
+                    if course and (
+                        str(course.code).strip().lower() == str(course_identifier).strip().lower() or
+                        str(course.id).strip().lower() == str(course_identifier).strip().lower() or
+                        str(course.name).strip().lower() == str(course_identifier).strip().lower()
+                    ):
+                        # Found the course, get the lecturer
+                        faculty_id = student_group.teacherIDS[i]
+                        faculty = input_data.getFaculty(faculty_id)
+                        if faculty:
+                            return faculty.name if faculty.name else faculty.faculty_id
+                        break  # Found the course, no need to check other courses for this group
+        return "Unknown"
+    except Exception as e:
+        print(f"Error finding lecturer for course {course_identifier}: {e}")
+        return "Unknown"
+
 # Callback to handle room confirmation and update timetable
 @app.callback(
     [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("manual-cells-store", "data", allow_duplicate=True),
      Output("conflict-warning", "style"),
      Output("conflict-warning-text", "children")],
-    [Input("room-confirm-btn", "n_clicks")],
+    [Input("room-confirm-btn", "n_clicks"),
+     Input("room-delete-btn", "n_clicks")],
     [State("room-change-data", "data"),
      State("all-timetables-store", "data"),
      State("student-group-dropdown", "value"),
-     State("rooms-data-store", "data")],
+     State("rooms-data-store", "data"),
+     State("manual-cells-store", "data")],
     prevent_initial_call=True
 )
-def confirm_room_change(n_clicks, room_change_data, all_timetables_data, selected_group_idx, rooms_data):
-    if not n_clicks or not room_change_data or room_change_data.get('action') != 'room_selected':
-        return dash.no_update, dash.no_update, dash.no_update
+
+def confirm_room_change(confirm_clicks, delete_clicks, room_change_data, all_timetables_data, selected_group_idx, rooms_data, manual_cells):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
     
-    global session_has_swaps
-    session_has_swaps = True
+    # FIX: Initialize updated_manual_cells at the start of the function
+    # This ensures it exists regardless of which button is clicked.
+    updated_manual_cells = manual_cells.copy() if manual_cells else []
     
-    try:
-        # Parse cell information
-        cell_id_str = room_change_data['cell_id']
-        cell_id = json.loads(cell_id_str)
-        row_idx = cell_id['row']
-        col_idx = cell_id['col']
-        selected_room = room_change_data['selected_room']
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # Handle delete button for manually scheduled cells
+    if trigger_id == "room-delete-btn" and delete_clicks:
+        if not room_change_data:
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
         
-        # Update the current group's timetable
-        updated_timetables = json.loads(json.dumps(all_timetables_data))  # Deep copy
-        current_group_timetable = updated_timetables[selected_group_idx]['timetable']
-        
-        # Get the original cell content and extract course info
-        original_content = current_group_timetable[row_idx][col_idx + 1]
-        
-        # Update room in the cell content
-        updated_content = update_room_in_cell_content(original_content, selected_room)
-        current_group_timetable[row_idx][col_idx + 1] = updated_content
-        
-        # Find and update consecutive classes of the same course
-        course_code = extract_course_code_from_cell(original_content)
-        if course_code:
-            update_consecutive_course_rooms(updated_timetables, selected_group_idx, course_code, selected_room, row_idx, col_idx)
-        
-        # Update the global all_timetables variable BEFORE saving to ensure consistency
-        global all_timetables
-        all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
-        
-        # Check for conflicts after the update
-        room_usage = get_room_usage_at_timeslot(updated_timetables, row_idx, col_idx)
-        conflict_warning_style = {"display": "none"}
-        conflict_warning_text = ""
-        
-        if selected_room in room_usage and len(room_usage[selected_room]) > 1:
-            # There's a conflict
-            other_groups = [group for group in room_usage[selected_room] 
-                           if group != updated_timetables[selected_group_idx]['student_group']['name']]
+        try:
+            # Parse cell information
+            cell_id_str = room_change_data['cell_id']
+            cell_id = json.loads(cell_id_str)
+            row_idx = cell_id['row']
+            col_idx = cell_id['col']
+            group_idx = cell_id['group']
             
-            conflict_warning_style = {"display": "block"}
-            conflict_warning_text = f"This classroom is already in use by: {', '.join(other_groups)}"
+            # Update timetable to FREE and remove from manual cells tracking
+            updated_timetables = json.loads(json.dumps(all_timetables_data))
+            updated_timetables[group_idx]['timetable'][row_idx][col_idx + 1] = "FREE"
+            
+            # Also remove from manual cells store
+            manual_cell_key = f"{group_idx}_{row_idx}_{col_idx}"
+            if manual_cell_key in updated_manual_cells:
+                updated_manual_cells.remove(manual_cell_key)
+            
+            # Save changes
+            save_timetable_to_file(updated_timetables, updated_manual_cells)
+            
+            return updated_timetables, updated_manual_cells, {"display": "none"}, ""
+            
+        except Exception as e:
+            return dash.no_update, dash.no_update, {"display": "block"}, f"Error deleting schedule: {str(e)}"
+
+    # Handle room confirmation (existing logic)
+    if trigger_id == "room-confirm-btn" and confirm_clicks:
+        if not room_change_data or room_change_data.get('action') != 'room_selected':
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+    
+        global session_has_swaps
+        session_has_swaps = True
         
-        # Auto-save the changes
-        save_success = save_timetable_to_file(updated_timetables)
-        if save_success:
-            print(f"✅ Room change auto-saved successfully - Global state updated")
-        else:
-            print(f"❌ Failed to auto-save room change")
-        
-        return updated_timetables, conflict_warning_style, conflict_warning_text
-        
-    except Exception as e:
-        print(f"Error in room change: {e}")
-        return dash.no_update, {"display": "block"}, f"Error updating room: {str(e)}"
+        try:
+            # Parse cell information
+            cell_id_str = room_change_data['cell_id']
+            cell_id = json.loads(cell_id_str)
+            row_idx = cell_id['row']
+            col_idx = cell_id['col']
+            selected_room = room_change_data['selected_room']
+            
+            # Update the current group's timetable
+            updated_timetables = json.loads(json.dumps(all_timetables_data))  # Deep copy
+            current_group_timetable = updated_timetables[selected_group_idx]['timetable']
+            
+            # Get the original cell content and extract course info
+            original_content = current_group_timetable[row_idx][col_idx + 1]
+            
+            # Update room in the cell content
+            updated_content = update_room_in_cell_content(original_content, selected_room)
+            current_group_timetable[row_idx][col_idx + 1] = updated_content
+            
+            # Find and update consecutive classes of the same course
+            course_code = extract_course_code_from_cell(original_content)
+            if course_code:
+                update_consecutive_course_rooms(updated_timetables, selected_group_idx, course_code, selected_room, row_idx, col_idx)
+            
+            # Update the global all_timetables variable BEFORE saving to ensure consistency
+            global all_timetables
+            all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
+            
+            # Check for conflicts after the update
+            room_usage = get_room_usage_at_timeslot(updated_timetables, row_idx, col_idx)
+            conflict_warning_style = {"display": "none"}
+            conflict_warning_text = ""
+            
+            if selected_room in room_usage and len(room_usage[selected_room]) > 1:
+                # There's a conflict
+                other_groups = [group for group in room_usage[selected_room] 
+                                if group != updated_timetables[selected_group_idx]['student_group']['name']]
+                
+                conflict_warning_style = {"display": "block"}
+                conflict_warning_text = f"This classroom is already in use by: {', '.join(other_groups)}"
+            
+            # Auto-save the changes
+            # This call will now work because updated_manual_cells was initialized earlier.
+            save_success = save_timetable_to_file(updated_timetables, updated_manual_cells)
+            if save_success:
+                print(f"✅ Room change auto-saved successfully - Global state updated")
+            else:
+                print(f"❌ Failed to auto-save room change")
+            
+            # When just changing a room, the list of manual cells doesn't change, so return the original 'manual_cells' state
+            return updated_timetables, manual_cells, conflict_warning_style, conflict_warning_text
+            
+        except Exception as e:
+            print(f"Error in room change: {e}")
+            return dash.no_update, dash.no_update, {"display": "block"}, f"Error updating room: {str(e)}"
+
+    return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 def extract_course_code_from_cell(cell_content):
     """Extract course code from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
@@ -3582,8 +4121,8 @@ def update_consecutive_course_rooms(timetables_data, group_idx, course_code, new
                 updated_content = update_room_in_cell_content(cell_content, new_room)
                 timetable_rows[row_idx][current_col + 1] = updated_content
 
-def save_timetable_to_file(timetables_data):
-    """Save timetable data to file with enhanced global state synchronization"""
+def save_timetable_to_file(timetables_data, manual_cells_data):
+    """Save timetable data AND manual cell state to file."""
     try:
         global all_timetables
         import os
@@ -3591,36 +4130,34 @@ def save_timetable_to_file(timetables_data):
         
         save_dir = os.path.join(os.path.dirname(__file__), 'data')
         os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, 'timetable_data.json')
+        
+        session_save_path = os.path.join(save_dir, 'timetable_data.json')
+        export_save_path = os.path.join(save_dir, 'fresh_timetable_data.json')
         backup_path = os.path.join(save_dir, 'timetable_data_backup.json')
         
-        # Add timestamp to track saves
+        # MODIFIED: Create a dictionary to hold both timetable and manual cell data
+        save_data = {
+            'timetables': timetables_data,
+            'manual_cells': manual_cells_data
+        }
+
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{timestamp}] Saving timetable data...")
+
+        if os.path.exists(session_save_path):
+            shutil.copy2(session_save_path, backup_path)
         
-        # Create backup
-        if os.path.exists(save_path):
-            shutil.copy2(save_path, backup_path)
-            print(f"[{timestamp}] Backup created")
+        all_timetables = json.loads(json.dumps(timetables_data))
+
+        # MODIFIED: Save the combined dictionary
+        with open(session_save_path, 'w', encoding='utf-8') as f:
+            json.dump(save_data, f, indent=2, ensure_ascii=False)
         
-        # Ensure we're synchronizing the global state with the data being saved
-        all_timetables = json.loads(json.dumps(timetables_data))  # Deep copy to avoid reference issues
-        
-        # Save new data with proper file handling
-        with open(save_path, 'w', encoding='utf-8') as f:
+        # The export file should only contain timetable data for clean exports
+        with open(export_save_path, 'w', encoding='utf-8') as f:
             json.dump(timetables_data, f, indent=2, ensure_ascii=False)
-            f.flush()
-            if hasattr(os, 'fsync'):
-                os.fsync(f.fileno())
         
-        # Verify the file was written correctly
-        file_size = os.path.getsize(save_path)
-        with open(save_path, 'r', encoding='utf-8') as f:
-            verification_data = json.load(f)
-        
-        print(f"[{timestamp}] ✅ Auto-saved timetable changes - File size: {file_size} bytes")
-        print(f"[{timestamp}] ✅ Verification: Loaded {len(verification_data)} groups from saved file")
-        print(f"[{timestamp}] ✅ Global state synchronized with {len(all_timetables)} groups")
+        print(f"[{timestamp}] ✅ Auto-saved changes to session file: {session_save_path}")
         return True
         
     except Exception as e:
@@ -3977,12 +4514,14 @@ def update_constraint_violations_realtime(timetables_data, rooms_data, current_c
         print(f"Error updating constraint violations: {e}")
         return current_constraints
 @app.callback(
-    Output("all-timetables-store", "data", allow_duplicate=True),
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("manual-cells-store", "data", allow_duplicate=True)],
     Input("swap-data", "data"),
-    State("all-timetables-store", "data"),
+    [State("all-timetables-store", "data"),
+     State("manual-cells-store", "data")],
     prevent_initial_call=True
 )
-def handle_swap(swap_data, current_timetables):
+def handle_swap(swap_data, current_timetables, manual_cells):
     global all_timetables, session_has_swaps
     
     print(f"🔄 Handle swap triggered with data: {swap_data}")
@@ -4040,18 +4579,38 @@ def handle_swap(swap_data, current_timetables):
         
         # Mark that we've made swaps in this session
         session_has_swaps = True
+
+        # --- NEW LOGIC TO UPDATE MANUAL CELLS STATE ---
+        source_is_manual = swap_data.get('sourceIsManual', False)
+        target_is_manual = swap_data.get('targetIsManual', False)
+        updated_manual_cells = manual_cells.copy() if manual_cells else []
+
+        source_key = f"{source['group']}_{source['row']}_{source['col']}"
+        target_key = f"{target['group']}_{target['row']}_{target['col']}"
+
+        # Remove existing keys from their original positions
+        if source_is_manual and source_key in updated_manual_cells:
+            updated_manual_cells.remove(source_key)
+        if target_is_manual and target_key in updated_manual_cells:
+            updated_manual_cells.remove(target_key)
+
+        # Add keys to their new positions
+        if source_is_manual and target_key not in updated_manual_cells:
+            updated_manual_cells.append(target_key)
+        if target_is_manual and source_key not in updated_manual_cells:
+            updated_manual_cells.append(source_key)
         
         # Update the global all_timetables variable BEFORE saving to ensure persistence
         all_timetables = json.loads(json.dumps(updated_timetables))  # Deep copy to avoid reference issues
         
         # Auto-save the changes using centralized function
-        save_success = save_timetable_to_file(updated_timetables)
+        save_success = save_timetable_to_file(updated_timetables, updated_manual_cells)
         if save_success:
             print(f"✅ Swap auto-saved successfully - Global state updated")
         else:
             print(f"❌ Failed to auto-save swap")
         
-        return updated_timetables
+        return updated_timetables, updated_manual_cells
         
     except Exception as e:
         print(f"❌ Error in handle_swap: {e}")
@@ -4147,27 +4706,29 @@ def save_timetable(n_clicks, current_timetables):
 
 # Callback to load saved user modifications on initial app startup only
 @app.callback(
-    Output("all-timetables-store", "data", allow_duplicate=True),
+    [Output("all-timetables-store", "data", allow_duplicate=True),
+     Output("manual-cells-store", "data", allow_duplicate=True)],
     Input("trigger", "children"),
     State("all-timetables-store", "data"),
     prevent_initial_call='initial_duplicate'
 )
 def load_user_modifications_on_startup(trigger, current_data):
-    """Load saved user modifications on app startup (but not when algorithm is re-run)"""
+    """Load saved user modifications and manual cell state on app startup."""
     global all_timetables, session_has_swaps
     
-    # Only try to load saved data if we have current data and it's the initial load
     if current_data:
-        saved_data = load_saved_timetable()
-        if saved_data:
+        # MODIFIED: Unpack both timetables and manual_cells from the loading function
+        timetables, manual_cells = load_saved_timetable()
+        if timetables:
             print("🔄 Loading saved user modifications on app startup")
-            all_timetables = saved_data
-            session_has_swaps = True  # Mark that we have user modifications
-            return saved_data
+            all_timetables = timetables
+            session_has_swaps = True
+            # Return both pieces of data to their respective stores
+            return timetables, manual_cells or []
     
-    # Otherwise use the current fresh DE results (no user swaps yet)
+    # Otherwise use fresh results and return empty manual cells list
     session_has_swaps = False
-    return current_data or all_timetables
+    return current_data or all_timetables, []
 
 # Additional safeguard callback to prevent dropdown state issues
 @app.callback(
@@ -4218,6 +4779,23 @@ def handle_errors_modal(errors_btn_clicks, close_btn_clicks, close_btn2_clicks, 
         return {"display": "none"}, {"display": "none"}, []
     
     raise dash.exceptions.PreventUpdate
+
+# Callback to handle missing classes modal close
+@app.callback(
+    [Output("missing-modal-overlay", "style", allow_duplicate=True),
+     Output("missing-classes-modal", "style", allow_duplicate=True)],
+    [Input("missing-modal-close-btn", "n_clicks"),
+     Input("missing-cancel-btn", "n_clicks"),
+     Input("missing-modal-overlay", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_missing_modal_close(close_btn_clicks, cancel_btn_clicks, overlay_clicks):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    # Hide modal
+    return {"display": "none"}, {"display": "none"}
 
 # Callback to handle help button click and show help modal
 @app.callback(
