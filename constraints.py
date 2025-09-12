@@ -422,7 +422,7 @@ class Constraints:
                             consecutive_count = 1
                     
                     if max_consecutive > 3:
-                        penalty += 20 * (max_consecutive - 3)  # HIGH penalty - teaching 4+ hours straight is very bad!
+                        penalty += 30 * (max_consecutive - 3)  # HIGH penalty - teaching 4+ hours straight is very bad!
                         if debug:
                             violation_info = (
                                 f"Lecturer Consecutive Hours Violation: '{lecturer_name}' has {max_consecutive} "

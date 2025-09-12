@@ -1340,7 +1340,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(50)
+best_solution, fitness_history, generation, diversity_history = de.run(100)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -1803,23 +1803,23 @@ app.index_string = '''
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
             .cell.lecturer-conflict {
-                background-color: #ffebee !important;
-                color: #d32f2f !important;
-                border-color: #f44336 !important;
+                background-color: #fff0cc !important;
+                color: #d4942f !important;
+                border-color: #d4942f !important;
                 font-weight: 600 !important;
             }
             .cell.lecturer-conflict:hover {
-                background-color: #ffcdd2 !important;
+                background-color: #fff8e8 !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
             .cell.both-conflict {
                 background-color: #ffebee !important;
-                color: #d32f2f !important;
+                color: #df2f60 !important;
                 border-color: #f44336 !important;
                 font-weight: 600 !important;
             }
             .cell.both-conflict:hover {
-                background-color: #ffcdd2 !important;
+                background-color: #ffcce6 !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
             .room-selection-modal {
@@ -2030,6 +2030,100 @@ app.index_string = '''
                 align-items: center;
                 margin-bottom: 20px;
                 padding: 0 10px;
+            }
+            .help-icon {
+                background: #11214D;
+                color: white;
+                border: none;
+                border-radius: 15%;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.2s ease;
+                font-family: 'Poppins', sans-serif;
+                margin-left: 10px;
+            }
+            .help-icon:hover {
+                background: #0d1a3d;
+                transform: scale(1.1);
+                box-shadow: 0 2px 8px rgba(17, 33, 77, 0.3);
+            }
+            .help-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                padding: 30px;
+                z-index: 1000;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                font-family: 'Poppins', sans-serif;
+            }
+            .help-modal h3 {
+                color: #11214D;
+                font-weight: 600;
+                margin-bottom: 20px;
+                font-size: 20px;
+                text-align: center;
+            }
+            .help-section {
+                margin-bottom: 20px;
+            }
+            .help-section h4 {
+                color: #11214D;
+                font-weight: 600;
+                margin-bottom: 10px;
+                font-size: 16px;
+            }
+            .help-section p {
+                color: #555;
+                line-height: 1.6;
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            .help-note {
+                background-color: #fff3cd;
+                border: 1px solid #ffc107;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 20px;
+                color: #856404;
+                font-weight: 500;
+            }
+            .color-legend {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .color-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .color-box {
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+            }
+            .color-box.normal { background-color: white; }
+            .color-box.break { background-color: #ff5722; }
+            .color-box.room-conflict { background-color: #ffebee; border-color: #f44336; }
+            .color-box.lecturer-conflict { background-color: #ffd982; border-color: #d4942f; }
+            .color-box.both-conflict { background-color: #ffebee; border-color: #f44336; }
+            .timetable-title-container {
+                display: flex;
+                align-items: center;
             }
             .nav-arrows {
                 display: flex;
@@ -2405,7 +2499,67 @@ app.layout = html.Div([
         "minHeight": "30px",
         "maxWidth": "1200px",
         "margin": "20px auto 0 auto"
-    })
+    }),
+    
+    # Help modal (initially hidden)
+    html.Div([
+        html.Div(className="modal-overlay", id="help-modal-overlay", style={"display": "none"}),
+        html.Div([
+            html.Div([
+                html.H3("Timetable Help Guide", className="modal-title"),
+                html.Button("×", className="modal-close", id="help-modal-close-btn")
+            ], className="modal-header"),
+            
+            html.Div([
+                html.Div([
+                    html.Strong("NOTE: "),
+                    "Ensure all Lecturer names, emails and other details are inputted correctly to prevent errors"
+                ], className="help-note"),
+                
+                html.Div([
+                    html.H4("How to Use the Timetable:"),
+                    html.P("• Click and drag any class cell to swap it with another cell"),
+                    html.P("• Double-click any cell to view and change the classroom for that class"),
+                    html.P("• Use the navigation arrows (‹ ›) to switch between different student groups"),
+                    html.P("• Click 'View Errors' to see constraint violations and conflicts")
+                ], className="help-section"),
+                
+                html.Div([
+                    html.H4("Cell Color Meanings:"),
+                    html.Div([
+                        html.Div([
+                            html.Div(className="color-box normal"),
+                            html.Span("Normal class - No conflicts")
+                        ], className="color-item"),
+                        html.Div([
+                            html.Div(className="color-box break"),
+                            html.Span("Break time - Classes cannot be scheduled")
+                        ], className="color-item"),
+                        html.Div([
+                            html.Div(className="color-box room-conflict"),
+                            html.Span("Room conflict - Same classroom used by multiple groups")
+                        ], className="color-item"),
+                        html.Div([
+                            html.Div(className="color-box lecturer-conflict"),
+                            html.Span("Lecturer conflict - Same lecturer teaching multiple groups")
+                        ], className="color-item"),
+                        html.Div([
+                            html.Div(className="color-box both-conflict"),
+                            html.Span("Multiple conflicts - Both room and lecturer issues")
+                        ], className="color-item")
+                    ], className="color-legend")
+                ], className="help-section")
+            ]),
+            
+            html.Div([
+                html.Button("Close", id="help-close-btn", 
+                           style={"backgroundColor": "#11214D", "color": "white", "padding": "10px 20px", 
+                                 "border": "none", "borderRadius": "8px", "cursor": "pointer",
+                                 "fontFamily": "Poppins, sans-serif", "fontSize": "14px", "fontWeight": "600"})
+            ], style={"textAlign": "center", "marginTop": "25px", "paddingTop": "20px", 
+                     "borderTop": "2px solid #f0f0f0"})
+        ], className="help-modal", id="help-modal", style={"display": "none"})
+    ])
 ])
 
 @app.callback(
@@ -2530,10 +2684,13 @@ def create_timetable(selected_group_idx, all_timetables_data):
     
     return html.Div([
         html.Div([
-            html.H2(f"Timetable for {student_group_name}", 
-                   className="timetable-title",
-                   style={"color": "#11214D", "fontWeight": "600", "fontSize": "20px", 
-                         "fontFamily": "Poppins, sans-serif", "margin": "0"}),
+            html.Div([
+                html.H2(f"Timetable for {student_group_name}", 
+                       className="timetable-title",
+                       style={"color": "#11214D", "fontWeight": "600", "fontSize": "20px", 
+                             "fontFamily": "Poppins, sans-serif", "margin": "0"}),
+                html.Button("?", className="help-icon", id="help-icon-btn", title="Help")
+            ], className="timetable-title-container"),
             html.Div([
                 html.Button("‹", className="nav-arrow", id="prev-group-btn",
                            disabled=selected_group_idx == 0),
@@ -2683,7 +2840,10 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
     
     return html.Div([
         html.Div([
-            html.H2(f"Timetable for {student_group_name}", className="timetable-title"),
+            html.Div([
+                html.H2(f"Timetable for {student_group_name}", className="timetable-title"),
+                html.Button("?", className="help-icon", id="help-icon-btn", title="Help")
+            ], className="timetable-title-container"),
             html.Div([
                 html.Button("‹", className="nav-arrow", id="prev-group-btn",
                            disabled=selected_group_idx == 0),
@@ -3520,7 +3680,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
     try:
         global global_violation_tracking, original_algorithm_violations
         
-        violations = {
+        # Current violations from the timetable
+        current_violations = {
             'Same Student Group Overlaps': [],
             'Different Student Group Overlaps': [],
             'Lecturer Clashes': [],
@@ -3538,9 +3699,6 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
         if rooms_data:
             for room in rooms_data:
                 room_lookup[room['name']] = room
-        
-        # Always perform ALL violation checks - don't skip any
-        # This ensures violations persist until actually fixed
         
         # Check for room conflicts and lecturer clashes simultaneously
         for time_slot in range(8):  # 8 time slots per day
@@ -3584,7 +3742,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                                         
                                         if group_size > room_capacity:
                                             days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                                            violations['Room Capacity/Type Conflicts'].append({
+                                            current_violations['Room Capacity/Type Conflicts'].append({
                                                 'type': 'Room Capacity Exceeded',
                                                 'room': room,
                                                 'group': group_name,
@@ -3599,7 +3757,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
                 for room, groups in room_usage.items():
                     if len(groups) > 1:
-                        violations['Different Student Group Overlaps'].append({
+                        current_violations['Different Student Group Overlaps'].append({
                             'room': room,
                             'groups': groups,
                             'day': days_map.get(day, "Unknown"),
@@ -3613,7 +3771,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                         courses = [session['course'] for session in teaching_sessions]
                         groups = [session['group'] for session in teaching_sessions]
                         
-                        violations['Lecturer Clashes'].append({
+                        current_violations['Lecturer Clashes'].append({
                             'lecturer': lecturer,
                             'day': days_map.get(day, "Unknown"),
                             'time': f"{time_slot + 9}:00",
@@ -3622,8 +3780,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                             'location': f"{days_map.get(day)} at {time_slot + 9}:00"
                         })
         
-        # ALWAYS check for consecutive slot violations - no conditional tracking
-        # This ensures ALL violations are always shown until actually fixed
+        # Check for consecutive slot violations
         for timetable in timetables_data:
             group_name = timetable['student_group']['name']
             course_schedules = {}  # course -> [(day, time)]
@@ -3656,7 +3813,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                             times.sort()
                             if times[1] - times[0] != 1:  # Not consecutive
                                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                                violations['Consecutive Slot Violations'].append({
+                                current_violations['Consecutive Slot Violations'].append({
                                     'course': course_code,
                                     'group': group_name,
                                     'day': days_map.get(day, "Unknown"),
@@ -3669,6 +3826,39 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                     # Group by day
                     by_day = {}
                     for day, time in schedule:
+                        if day not in by_day:
+                            by_day[day] = []
+                        by_day[day].append(time)
+                    
+                    # Check if there's at least one 2-hour consecutive block
+                    has_2_hour_block = False
+                    for day, times in by_day.items():
+                        if len(times) >= 2:
+                            times.sort()
+                            for i in range(len(times) - 1):
+                                if times[i+1] - times[i] == 1:  # Found consecutive pair
+                                    has_2_hour_block = True
+                                    break
+                        if has_2_hour_block:
+                            break
+                    
+                    if not has_2_hour_block:
+                        # Get all times across all days
+                        all_times = []
+                        for day, times in by_day.items():
+                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+                            for time in times:
+                                all_times.append(f"{days_map.get(day, 'Unknown')} {time + 9}:00")
+                        
+                        current_violations['Consecutive Slot Violations'].append({
+                            'course': course_code,
+                            'group': group_name,
+                            'times': all_times,
+                            'location': f"{course_code} for {group_name}",
+                            'reason': "3-hour course has no 2-hour consecutive block (required for 1-credit courses)"
+                        })
+        
+        # Check for lecturer workload violations
                         if day not in by_day:
                             by_day[day] = []
                         by_day[day].append(time)
@@ -3753,7 +3943,33 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
                         'courses': course_details_str
                     })
         
-        return violations
+        # PERSISTENT VIOLATION TRACKING: Merge current violations with original violations
+        # Only show violations that still exist OR were in the original algorithm output
+        final_violations = {}
+        
+        for constraint_type in current_violations.keys():
+            final_violations[constraint_type] = []
+            
+            # Add all current violations (these definitely exist now)
+            final_violations[constraint_type].extend(current_violations[constraint_type])
+            
+            # Add original violations that may not be currently detected but should persist
+            # until actually resolved by user actions
+            if constraint_type in original_algorithm_violations:
+                original_violations_of_type = original_algorithm_violations[constraint_type]
+                
+                # For certain violation types, preserve original violations to ensure they're tracked
+                # This prevents violations from "disappearing" when the user makes changes
+                if constraint_type in ['Missing or Extra Classes', 'Same Course in Multiple Rooms on Same Day']:
+                    # These violations should persist until actually fixed
+                    for orig_violation in original_violations_of_type:
+                        # Only add if not already present in current violations
+                        violation_signature = str(orig_violation)  # Simple signature
+                        current_signatures = [str(v) for v in final_violations[constraint_type]]
+                        if violation_signature not in current_signatures:
+                            final_violations[constraint_type].append(orig_violation)
+        
+        return final_violations
         
     except Exception as e:
         print(f"Error in simplified constraint checking: {e}")
@@ -4046,6 +4262,32 @@ def handle_errors_modal(errors_btn_clicks, close_btn_clicks, close_btn2_clicks, 
     elif trigger_id in ["errors-modal-close-btn", "errors-close-btn", "errors-modal-overlay"]:
         # Hide modal
         return {"display": "none"}, {"display": "none"}, []
+    
+    raise dash.exceptions.PreventUpdate
+
+# Callback to handle help button click and show help modal
+@app.callback(
+    [Output("help-modal-overlay", "style"),
+     Output("help-modal", "style")],
+    [Input("help-icon-btn", "n_clicks"),
+     Input("help-modal-close-btn", "n_clicks"), 
+     Input("help-close-btn", "n_clicks"),
+     Input("help-modal-overlay", "n_clicks")],
+    prevent_initial_call=True
+)
+def handle_help_modal(help_btn_clicks, close_btn_clicks, close_btn2_clicks, overlay_clicks):
+    ctx = dash.callback_context
+    if not ctx.triggered:
+        raise dash.exceptions.PreventUpdate
+    
+    trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    if trigger_id == "help-icon-btn" and help_btn_clicks:
+        # Show modal
+        return {"display": "block"}, {"display": "block"}
+    elif trigger_id in ["help-modal-close-btn", "help-close-btn", "help-modal-overlay"]:
+        # Hide modal
+        return {"display": "none"}, {"display": "none"}
     
     raise dash.exceptions.PreventUpdate
 
