@@ -1340,7 +1340,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(100)
+best_solution, fitness_history, generation, diversity_history = de.run(1)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -2031,28 +2031,7 @@ app.index_string = '''
                 margin-bottom: 20px;
                 padding: 0 10px;
             }
-            .help-icon {
-                background: #11214D;
-                color: white;
-                border: none;
-                border-radius: 15%;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: bold;
-                transition: all 0.2s ease;
-                font-family: 'Poppins', sans-serif;
-                margin-left: 10px;
-            }
-            .help-icon:hover {
-                background: #0d1a3d;
-                transform: scale(1.1);
-                box-shadow: 0 2px 8px rgba(17, 33, 77, 0.3);
-            }
+
             .help-modal {
                 position: fixed;
                 top: 50%;
@@ -2121,10 +2100,7 @@ app.index_string = '''
             .color-box.room-conflict { background-color: #ffebee; border-color: #f44336; }
             .color-box.lecturer-conflict { background-color: #ffd982; border-color: #d4942f; }
             .color-box.both-conflict { background-color: #ffebee; border-color: #f44336; }
-            .timetable-title-container {
-                display: flex;
-                align-items: center;
-            }
+
             .nav-arrows {
                 display: flex;
                 align-items: center;
@@ -2688,8 +2664,7 @@ def create_timetable(selected_group_idx, all_timetables_data):
                 html.H2(f"Timetable for {student_group_name}", 
                        className="timetable-title",
                        style={"color": "#11214D", "fontWeight": "600", "fontSize": "20px", 
-                             "fontFamily": "Poppins, sans-serif", "margin": "0"}),
-                html.Button("?", className="help-icon", id="help-icon-btn", title="Help")
+                             "fontFamily": "Poppins, sans-serif", "margin": "0"})
             ], className="timetable-title-container"),
             html.Div([
                 html.Button("‹", className="nav-arrow", id="prev-group-btn",
@@ -2699,7 +2674,7 @@ def create_timetable(selected_group_idx, all_timetables_data):
             ], className="nav-arrows")
         ], className="timetable-header"),
         
-        # New buttons row
+        # New buttons row with help button
         html.Div([
             html.Button([
                 "View Errors",
@@ -2708,8 +2683,10 @@ def create_timetable(selected_group_idx, all_timetables_data):
             html.Button("Undo All Changes", id="undo-all-btn", 
                        style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
                              "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
-                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
-        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"}),
+            html.Button("?", id="help-icon-btn", title="Help", 
+                       className="nav-arrow", style={"marginLeft": "auto"})
+        ], style={"marginBottom": "15px", "marginRight": "10px", "textAlign": "left", "display": "flex", "gap": "10px", "alignItems": "flex-start"}),
         
         table
     ], className="student-group-container"), "trigger"
@@ -2841,8 +2818,7 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
     return html.Div([
         html.Div([
             html.Div([
-                html.H2(f"Timetable for {student_group_name}", className="timetable-title"),
-                html.Button("?", className="help-icon", id="help-icon-btn", title="Help")
+                html.H2(f"Timetable for {student_group_name}", className="timetable-title")
             ], className="timetable-title-container"),
             html.Div([
                 html.Button("‹", className="nav-arrow", id="prev-group-btn",
@@ -2852,7 +2828,7 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
             ], className="nav-arrows")
         ], className="timetable-header"),
         
-        # New buttons row
+        # New buttons row with help button
         html.Div([
             html.Button([
                 "View Errors",
@@ -2861,8 +2837,10 @@ def update_timetable_content(all_timetables_data, selected_group_idx):
             html.Button("Undo All Changes", id="undo-all-btn", 
                        style={"backgroundColor": "#6c757d", "color": "white", "padding": "8px 16px", 
                              "border": "none", "borderRadius": "5px", "fontSize": "14px", "cursor": "pointer",
-                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"})
-        ], style={"marginBottom": "15px", "textAlign": "left", "display": "flex", "gap": "10px"}),
+                             "fontWeight": "500", "fontFamily": "Poppins, sans-serif"}),
+            html.Button("?", id="help-icon-btn", title="Help", 
+                       className="nav-arrow", style={"marginLeft": "auto"})
+        ], style={"marginBottom": "15px", "marginRight": "10px", "textAlign": "left", "display": "flex", "gap": "10px", "alignItems": "flex-start"}),
         
         table
     ], className="student-group-container")
