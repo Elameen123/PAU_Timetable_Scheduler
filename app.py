@@ -20,6 +20,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+from differential_evolution import app as dash_app
 
 # Your project imports (must exist in repo)
 from transformer_api import transform_excel_to_json, validate_excel_structure
@@ -333,6 +334,30 @@ class TimetableProcessor:
                     "optimization_time_seconds": (datetime.now() - self.start_time).total_seconds(),
                 },
             }
+
+            try:
+                # Ensure the 'data' directory exists
+                dash_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+                os.makedirs(dash_data_dir, exist_ok=True)
+                
+                # The Dash app is configured to read this specific file
+                dash_save_path = os.path.join(dash_data_dir, 'timetable_data.json')
+                
+                # The raw timetable data is in the `all_timetables` variable
+                if all_timetables:
+                    # The Dash app expects a dict with a 'timetables' key and 'manual_cells'
+                    data_to_save = {
+                        'timetables': make_json_serializable(all_timetables),
+                        'manual_cells': [] # Start with no manual changes
+                    }
+                    with open(dash_save_path, 'w', encoding='utf-8') as f:
+                        import json
+                        json.dump(data_to_save, f, indent=2)
+                    print(f"[{job_id}] Successfully saved data for Dash UI at: {dash_save_path}")
+
+            except Exception as dash_save_error:
+                print(f"[{job_id}] WARNING: Could not save data for Dash UI. Error: {dash_save_error}")
+            # --- END: New code to add ---
 
             # Save and mark job completed
             self.update_job_result(job_id, result)
@@ -791,6 +816,7 @@ def export_timetable():
 def index():
     return jsonify({'status': 'ok', 'message': 'Timetable Generator API is running.'}), 200
 
+dash_app.init_app(app, url_base_pathname='/interactive/')
 
 if __name__ == '__main__':
     print("Starting Timetable Generator API...")
