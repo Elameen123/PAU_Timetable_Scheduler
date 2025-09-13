@@ -1340,7 +1340,7 @@ class DifferentialEvolution:
 # Create DE instance and run optimization
 print("Starting Differential Evolution")
 de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(100)
+best_solution, fitness_history, generation, diversity_history = de.run(1)
 print("Differential Evolution completed")
 
 # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -1810,18 +1810,18 @@ app.index_string = '''
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
             .cell.both-conflict {
-                background-color: #ffebee !important;
-                color: #df2f60 !important;
-                border-color: #f44336 !important;
+                background-color: #ffdcec !important;
+                color: #d42fa2 !important;
+                border-color: #d42fa2 !important;
                 font-weight: 600 !important;
             }
             .cell.both-conflict:hover {
-                background-color: #ffcce6 !important;
+                background-color: #ffdcec !important;
                 box-shadow: 0 2px 8px rgba(244, 67, 54, 0.4);
             }
             .cell.manual-schedule {
                 border: 3px solid #72B7F4 !important;
-                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.4) !important;
                 background-color: #e3f2fd !important;
                 position: relative;
             }
@@ -2123,7 +2123,7 @@ app.index_string = '''
             .color-box.break { background-color: #ff5722; }
             .color-box.room-conflict { background-color: #ffebee; border-color: #f44336; }
             .color-box.lecturer-conflict { background-color: #ffd982; border-color: #d4942f; }
-            .color-box.both-conflict { background-color: #ffebee; border-color: #f44336; }
+            .color-box.both-conflict { background-color: #ffdcec; border-color: #d42fa2; }
 
             .nav-arrows {
                 display: flex;
@@ -4167,12 +4167,12 @@ def save_timetable_to_file(timetables_data, manual_cells_data):
         return False
 
 def recompute_constraint_violations_simplified(timetables_data, rooms_data=None, include_consecutive=True):
-    """Simplified constraint violation checking based on timetable data with persistent tracking."""
+    """
+    Recomputes constraint violations based ONLY on the current state of the timetable data.
+    """
     try:
-        global global_violation_tracking, original_algorithm_violations
-        
-        # Current violations from the timetable
-        current_violations = {
+        # This dictionary will hold only the violations currently detected.
+        violations = {
             'Same Student Group Overlaps': [],
             'Different Student Group Overlaps': [],
             'Lecturer Clashes': [],
@@ -4184,284 +4184,60 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None,
             'Room Capacity/Type Conflicts': [],
             'Classes During Break Time': []
         }
-        
-        # Create room lookup for capacity checking
-        room_lookup = {}
-        if rooms_data:
-            for room in rooms_data:
-                room_lookup[room['name']] = room
-        
-        # Check for room conflicts and lecturer clashes simultaneously
-        for time_slot in range(8):  # 8 time slots per day
-            for day in range(5):  # 5 days per week
-                room_usage = {}  # room -> [groups using it]
-                lecturer_usage = {}  # lecturer -> [groups they're teaching]
+
+        room_lookup = {room['name']: room for room in rooms_data} if rooms_data else {}
+        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+
+        # Check for room/lecturer conflicts and capacity issues
+        for time_slot in range(8):
+            for day in range(5):
+                room_usage = {}
+                lecturer_usage = {}
                 
                 for timetable in timetables_data:
-                    if time_slot < len(timetable['timetable']):
-                        row = timetable['timetable'][time_slot]
-                        if day + 1 < len(row):  # +1 because first column is time
-                            cell_content = row[day + 1]
-                            if cell_content and cell_content not in ['FREE', 'BREAK']:
-                                # Extract room and lecturer from cell content (Course\nRoom\nLecturer)
-                                lines = cell_content.split('\n')
-                                if len(lines) >= 2:
-                                    course_code = lines[0].strip()
-                                    room = lines[1].strip()
-                                    lecturer = lines[2].strip() if len(lines) >= 3 else "Unknown"
-                                    group_name = timetable['student_group']['name']
-                                    
-                                    # Track room usage
-                                    if room not in room_usage:
-                                        room_usage[room] = []
-                                    room_usage[room].append(group_name)
-                                    
-                                    # Track lecturer usage for clash detection
-                                    if lecturer not in lecturer_usage:
-                                        lecturer_usage[lecturer] = []
-                                    lecturer_usage[lecturer].append({
-                                        'group': group_name,
-                                        'course': course_code,
-                                        'room': room
-                                    })
-                                    
-                                    # Check room capacity if rooms data is available
-                                    if rooms_data and room in room_lookup:
-                                        room_info = room_lookup[room]
-                                        group_size = timetable['student_group'].get('size', 0)
-                                        room_capacity = room_info.get('capacity', 999)
-                                        
-                                        if group_size > room_capacity:
-                                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                                            current_violations['Room Capacity/Type Conflicts'].append({
-                                                'type': 'Room Capacity Exceeded',
-                                                'room': room,
-                                                'group': group_name,
-                                                'day': days_map.get(day, "Unknown"),
-                                                'time': f"{time_slot + 9}:00",
-                                                'students': group_size,
-                                                'capacity': room_capacity,
-                                                'course': course_code
-                                            })
+                    if time_slot < len(timetable['timetable']) and day + 1 < len(timetable['timetable'][time_slot]):
+                        cell_content = timetable['timetable'][time_slot][day + 1]
+                        if cell_content and cell_content not in ['FREE', 'BREAK']:
+                            lines = cell_content.split('\n')
+                            if len(lines) >= 2:
+                                course_code = lines[0].strip()
+                                room = lines[1].strip()
+                                lecturer = lines[2].strip() if len(lines) >= 3 else "Unknown"
+                                group_name = timetable['student_group']['name']
+                                
+                                if room not in room_usage: room_usage[room] = []
+                                room_usage[room].append(group_name)
+                                
+                                if lecturer not in lecturer_usage: lecturer_usage[lecturer] = []
+                                lecturer_usage[lecturer].append({'group': group_name, 'course': course_code})
+
+                                if room in room_lookup:
+                                    group_size = next((g.get('no_students', 0) for g in input_data.student_groups if g.name == group_name), 0)
+                                    if group_size > room_lookup[room].get('capacity', 999):
+                                        violations['Room Capacity/Type Conflicts'].append({
+                                            'type': 'Room Capacity Exceeded', 'room': room, 'group': group_name,
+                                            'day': days_map.get(day), 'time': f"{time_slot + 9}:00",
+                                            'students': group_size, 'capacity': room_lookup[room].get('capacity', 999)
+                                        })
                 
-                # Check for room conflicts
-                days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
                 for room, groups in room_usage.items():
                     if len(groups) > 1:
-                        current_violations['Different Student Group Overlaps'].append({
-                            'room': room,
-                            'groups': groups,
-                            'day': days_map.get(day, "Unknown"),
-                            'time': f"{time_slot + 9}:00",
-                            'location': f"{days_map.get(day)} at {time_slot + 9}:00"
+                        violations['Different Student Group Overlaps'].append({
+                            'room': room, 'groups': groups, 'day': days_map.get(day),
+                            'time': f"{time_slot + 9}:00", 'location': f"{days_map.get(day)} at {time_slot + 9}:00"
                         })
-                
-                # Check for lecturer clashes
-                for lecturer, teaching_sessions in lecturer_usage.items():
-                    if len(teaching_sessions) > 1 and lecturer != "Unknown":
-                        courses = [session['course'] for session in teaching_sessions]
-                        groups = [session['group'] for session in teaching_sessions]
-                        
-                        current_violations['Lecturer Clashes'].append({
-                            'lecturer': lecturer,
-                            'day': days_map.get(day, "Unknown"),
-                            'time': f"{time_slot + 9}:00",
-                            'courses': courses,
-                            'groups': groups,
+
+                for lecturer, sessions in lecturer_usage.items():
+                    if len(sessions) > 1 and lecturer != "Unknown":
+                        violations['Lecturer Clashes'].append({
+                            'lecturer': lecturer, 'day': days_map.get(day), 'time': f"{time_slot + 9}:00",
+                            'courses': [s['course'] for s in sessions], 'groups': [s['group'] for s in sessions],
                             'location': f"{days_map.get(day)} at {time_slot + 9}:00"
                         })
         
-        # Check for consecutive slot violations
-        for timetable in timetables_data:
-            group_name = timetable['student_group']['name']
-            course_schedules = {}  # course -> [(day, time)]
-            
-            for time_slot in range(len(timetable['timetable'])):
-                for day in range(5):
-                    if day + 1 < len(timetable['timetable'][time_slot]):
-                        cell_content = timetable['timetable'][time_slot][day + 1]
-                        if cell_content and cell_content not in ['FREE', 'BREAK']:
-                            lines = cell_content.split('\n')
-                            if lines:
-                                course_code = lines[0].strip()
-                                if course_code not in course_schedules:
-                                    course_schedules[course_code] = []
-                                course_schedules[course_code].append((day, time_slot))
-            
-            # Check for 2-hour and 3-hour courses that violate consecutive rules
-            for course_code, schedule in course_schedules.items():
-                if len(schedule) == 2:  # 2-hour course
-                    # Group by day
-                    by_day = {}
-                    for day, time in schedule:
-                        if day not in by_day:
-                            by_day[day] = []
-                        by_day[day].append(time)
-                    
-                    # Check if any day has 2 hours that are not consecutive
-                    for day, times in by_day.items():
-                        if len(times) == 2:
-                            times.sort()
-                            if times[1] - times[0] != 1:  # Not consecutive
-                                days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                                current_violations['Consecutive Slot Violations'].append({
-                                    'course': course_code,
-                                    'group': group_name,
-                                    'day': days_map.get(day, "Unknown"),
-                                    'times': [f"{t + 9}:00" for t in times],
-                                    'location': f"{course_code} for {group_name}",
-                                    'reason': "2-hour course not scheduled consecutively"
-                                })
-                
-                elif len(schedule) == 3:  # 3-hour course (including 1-credit converted to 3)
-                    # Group by day
-                    by_day = {}
-                    for day, time in schedule:
-                        if day not in by_day:
-                            by_day[day] = []
-                        by_day[day].append(time)
-                    
-                    # Check if there's at least one 2-hour consecutive block
-                    has_2_hour_block = False
-                    for day, times in by_day.items():
-                        if len(times) >= 2:
-                            times.sort()
-                            for i in range(len(times) - 1):
-                                if times[i+1] - times[i] == 1:  # Found consecutive pair
-                                    has_2_hour_block = True
-                                    break
-                        if has_2_hour_block:
-                            break
-                    
-                    if not has_2_hour_block:
-                        # Get all times across all days
-                        all_times = []
-                        for day, times in by_day.items():
-                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                            for time in times:
-                                all_times.append(f"{days_map.get(day, 'Unknown')} {time + 9}:00")
-                        
-                        current_violations['Consecutive Slot Violations'].append({
-                            'course': course_code,
-                            'group': group_name,
-                            'times': all_times,
-                            'location': f"{course_code} for {group_name}",
-                            'reason': "3-hour course has no 2-hour consecutive block (required for 1-credit courses)"
-                        })
-        
-        # Check for lecturer workload violations
-                        if day not in by_day:
-                            by_day[day] = []
-                        by_day[day].append(time)
-                    
-                    # Check if there's at least one 2-hour consecutive block
-                    has_2_hour_block = False
-                    for day, times in by_day.items():
-                        if len(times) >= 2:
-                            times.sort()
-                            for i in range(len(times) - 1):
-                                if times[i+1] - times[i] == 1:  # Found consecutive pair
-                                    has_2_hour_block = True
-                                    break
-                        if has_2_hour_block:
-                            break
-                    
-                    if not has_2_hour_block:
-                        # Get all times across all days
-                        all_times = []
-                        for day, times in by_day.items():
-                            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-                            for time in times:
-                                all_times.append(f"{days_map.get(day, 'Unknown')} {time + 9}:00")
-                        
-                        violations['Consecutive Slot Violations'].append({
-                            'course': course_code,
-                            'group': group_name,
-                            'times': all_times,
-                            'location': f"{course_code} for {group_name}",
-                            'reason': "3-hour course has no 2-hour consecutive block (required for 1-credit courses)"
-                        })
-        
-        # Check for lecturer workload violations
-        lecturer_daily_hours = {}  # lecturer -> {day: {hours: int, course_details: list}}
-        for timetable in timetables_data:
-            group_name = timetable['student_group']['name']
-            for time_slot in range(len(timetable['timetable'])):
-                for day in range(5):
-                    if day + 1 < len(timetable['timetable'][time_slot]):
-                        cell_content = timetable['timetable'][time_slot][day + 1]
-                        if cell_content and cell_content not in ['FREE', 'BREAK']:
-                            lines = cell_content.split('\n')
-                            if len(lines) >= 3:
-                                course_code = lines[0].strip()
-                                lecturer = lines[2].strip()
-                                
-                                if lecturer != "Unknown":
-                                    if lecturer not in lecturer_daily_hours:
-                                        lecturer_daily_hours[lecturer] = {}
-                                    if day not in lecturer_daily_hours[lecturer]:
-                                        lecturer_daily_hours[lecturer][day] = {'hours': 0, 'course_details': []}
-                                    
-                                    lecturer_daily_hours[lecturer][day]['hours'] += 1
-                                    lecturer_daily_hours[lecturer][day]['course_details'].append({
-                                        'course': course_code,
-                                        'group': group_name
-                                    })
-        
-        # Check for excessive daily hours (more than 4 hours per day)
-        days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
-        for lecturer, days_data in lecturer_daily_hours.items():
-            for day, data in days_data.items():
-                if data['hours'] > 4:
-                    # Remove duplicates while preserving order and format course details with group names
-                    unique_course_details = []
-                    seen_combinations = set()
-                    
-                    for detail in data['course_details']:
-                        combination = f"{detail['course']} for {detail['group']}"
-                        if combination not in seen_combinations:
-                            unique_course_details.append(combination)
-                            seen_combinations.add(combination)
-                    
-                    course_details_str = ', '.join(unique_course_details)
-                    
-                    violations['Lecturer Workload Violations'].append({
-                        'lecturer': lecturer,
-                        'type': 'Excessive Daily Hours',
-                        'day': days_map.get(day, "Unknown"),
-                        'hours_scheduled': data['hours'],
-                        'max_allowed': 4,
-                        'courses': course_details_str
-                    })
-        
-        # PERSISTENT VIOLATION TRACKING: Merge current violations with original violations
-        # Only show violations that still exist OR were in the original algorithm output
-        final_violations = {}
-        
-        for constraint_type in current_violations.keys():
-            final_violations[constraint_type] = []
-            
-            # Add all current violations (these definitely exist now)
-            final_violations[constraint_type].extend(current_violations[constraint_type])
-            
-            # Add original violations that may not be currently detected but should persist
-            # until actually resolved by user actions
-            if constraint_type in original_algorithm_violations:
-                original_violations_of_type = original_algorithm_violations[constraint_type]
-                
-                # For certain violation types, preserve original violations to ensure they're tracked
-                # This prevents violations from "disappearing" when the user makes changes
-                if constraint_type in ['Missing or Extra Classes', 'Same Course in Multiple Rooms on Same Day']:
-                    # These violations should persist until actually fixed
-                    for orig_violation in original_violations_of_type:
-                        # Only add if not already present in current violations
-                        violation_signature = str(orig_violation)  # Simple signature
-                        current_signatures = [str(v) for v in final_violations[constraint_type]]
-                        if violation_signature not in current_signatures:
-                            final_violations[constraint_type].append(orig_violation)
-        
-        return final_violations
-        
+        # FIX: Return the newly calculated violations directly, without merging old ones.
+        return violations
+
     except Exception as e:
         print(f"Error in simplified constraint checking: {e}")
         return None
@@ -4958,13 +4734,13 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
     
     # Mapping from user-friendly names to internal names
     constraint_mapping = {
-        'Same Student Group Overlaps (MUST REDO IF OCCURS)': 'Same Student Group Overlaps',
+        'Same Student Group Overlaps': 'Same Student Group Overlaps',
         'Different Student Group Overlaps': 'Different Student Group Overlaps', 
         'Lecturer Clashes': 'Lecturer Clashes',
         'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
         'Lecturer Workload Violations': 'Lecturer Workload Violations',
         'Consecutive Slot Violations': 'Consecutive Slot Violations',
-        'Missing or Extra Classes (MUST REDO IF OCCURS)': 'Missing or Extra Classes',
+        'Missing or Extra Classes': 'Missing or Extra Classes',
         'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
         'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
         'Classes During Break Time': 'Classes During Break Time'

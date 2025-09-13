@@ -33,7 +33,7 @@
         [
           "12:00",
           "GET 101\nElectronics, Control and Telecomms Lab\naagholor@pau.edu.ng",
-          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
+          "GET 101\nElectronics, Control and Telecomms Lab\naagholor@pau.edu.ng",
           "",
           "MTH 101\nSST New Classroom (Year 4)\nDr. Akudo Ijezie",
           ""
@@ -49,7 +49,7 @@
         [
           "14:00",
           "PHY 102\nStrength of Materials\nDr. Gabriel Dosumu",
-          "GET 101\nElectronics, Control and Telecomms Lab\naagholor@pau.edu.ng",
+          "CHM 107\nChemistry lab\nDr. Clinton Ifegwu",
           "PAU-EEE 191\nEngineering Drawing Studio\nFr. Elobuike Asogwa",
           "EEE 102\nClassroom 5\nProf. Norbert Edomah",
           "CHM 101\nSST New Classroom (Year 4)\neofor@pau.edu.ng"
