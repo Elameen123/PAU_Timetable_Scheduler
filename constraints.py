@@ -816,7 +816,7 @@ class Constraints:
                     
                     if actual_hours < expected_hours:
                         # Apply moderate penalty for missing courses
-                        penalty += difference * (2 if actual_hours == 0 else 1)  # Reduced penalties
+                        penalty += difference * (50 if actual_hours == 0 else 20)  # Reduced penalties
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
@@ -828,7 +828,7 @@ class Constraints:
                             allocation_issues.append(info)
                     else: # actual_hours > expected_hours
                         # Apply penalty for extra classes
-                        penalty += difference * 1  # Reduced from 2 to 1
+                        penalty += difference * 10  # Reduced from 2 to 1
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""

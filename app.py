@@ -84,8 +84,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-in-prod')
 def add_frame_headers(resp):
     try:
         # Permit embedding from frontend origins
-        resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
+        resp.headers['Content-Security-Policy'] = (
+            f"frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000 https://elameen123-pau-timetable-scheduler.hf.space"
             + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
+        )
         # Remove X-Frame-Options if set by any middleware/extensions
         try:
             del resp.headers['X-Frame-Options']
@@ -100,8 +102,10 @@ try:
     @dash_app.server.after_request
     def add_dash_frame_headers(resp):
         try:
-            resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
+            resp.headers['Content-Security-Policy'] = (
+                f"frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000 https://elameen123-pau-timetable-scheduler.hf.space"
                 + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
+            )
             try:
                 del resp.headers['X-Frame-Options']
             except Exception:
@@ -897,7 +901,7 @@ def generate_timetable():
 
         # Extract config parameters with defaults
         pop_size = int(config.get('population_size', 50))
-        max_gen = int(config.get('max_generations', 40))
+        max_gen = int(config.get('max_generations', 60))
         F = float(config.get('F', config.get('mutation_factor', 0.4)))
         CR = float(config.get('CR', config.get('crossover_rate', 0.9)))
 
@@ -915,7 +919,7 @@ def generate_timetable():
             'upload_id': upload_id,
             'message': 'Timetable generation started',
             'config': config,
-            'estimated_time_minutes': max_gen * 0.05
+            'estimated_time_minutes': max_gen * 0.05 * (pop_size / 50) + 1
         }), 202
 
     except Exception as exc:
