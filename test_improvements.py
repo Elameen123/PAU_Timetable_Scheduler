@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from differential_evolution_1 import DifferentialEvolution
+from differential_evolution import DifferentialEvolution
 from input_data import input_data
 
 def test_improvements():

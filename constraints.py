@@ -5,30 +5,13 @@ import re
 
 class Constraints:
     def __init__(self, input_data):
-            self.input_data = input_data
-            self.validate_faculty_data() # Validate data on initialization
-            self.rooms = input_data.rooms
-            self.timeslots = input_data.create_time_slots(
-                no_hours_per_day=input_data.hours,
-                no_days_per_week=input_data.days,
-                day_start_time=9
-            )
-            self.student_groups = input_data.student_groups
-            self.courses = input_data.courses
-            self.events_list, self.events_map = self.create_events()
-    
-    def _parse_time_to_hour(self, timeslot):
-        """Convert timeslot.start_time to integer hour, handling both string and int formats"""
-        try:
-            if isinstance(timeslot.start_time, str):
-                return int(timeslot.start_time.split(':')[0])
-            elif isinstance(timeslot.start_time, (int, float)):
-                return int(timeslot.start_time)
-            else:
-                return int(str(timeslot.start_time).split(':')[0])
-        except (ValueError, AttributeError, IndexError):
-            print(f"Warning: Could not parse timeslot.start_time: {timeslot.start_time} (type: {type(timeslot.start_time)})")
-            return 9  # Default fallback
+        self.input_data = input_data
+        self.validate_faculty_data() # Validate data on initialization
+        self.rooms = input_data.rooms
+        self.timeslots = input_data.create_time_slots(no_hours_per_day=input_data.hours, no_days_per_week=input_data.days, day_start_time=9)
+        self.student_groups = input_data.student_groups
+        self.courses = input_data.courses
+        self.events_list, self.events_map = self.create_events()
 
     def validate_faculty_data(self):
         """
@@ -97,7 +80,9 @@ class Constraints:
                     
         return events_list, event_map    
     def check_room_constraints(self, chromosome, debug=False):
-        """rooms must meet the capacity and type of the scheduled event"""
+        """
+        rooms must meet the capacity and type of the scheduled event
+        """
         penalty = 0
         violations = []
         days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
@@ -109,38 +94,53 @@ class Constraints:
                 if class_event is not None:
                     course = input_data.getCourse(class_event.course_id)
                     timeslot = self.timeslots[timeslot_idx]
-                    start_hour = self._parse_time_to_hour(timeslot)
                     day_abbr = days_map.get(timeslot.day)
-
-                    # H1a: Room type
+                    time = timeslot.start_time + 9
+                    
+                    # H1a: Room type constraints
                     if room.room_type != course.required_room_type:
-                        penalty += 0.5
+                        penalty += 0.5  # Reduced from 1 to 0.5
                         if debug:
-                            violations.append(
-                                f"Room Type Mismatch: {course.code} requires {course.required_room_type}, "
-                                f"scheduled in {room.name} ({room.room_type}) on {day_abbr} at {start_hour}:00."
+                            violation_info = (
+                                f"Room Type Mismatch: Course '{course.code}' requires '{course.required_room_type}' "
+                                f"but is scheduled in '{room.name}' (type: '{room.room_type}') "
+                                f"on {day_abbr} at {time}:00 for group '{class_event.student_group.name}'."
                             )
-
-                    # H1b: Capacity
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+                    
+                    # H1b: Room capacity constraints - student group must fit in room
                     if class_event.student_group.no_students > room.capacity:
-                        penalty += 0.5
+                        penalty += 0.5  # Reduced from 1 to 0.5
                         if debug:
-                            violations.append(
-                                f"Room Capacity Exceeded: Group {class_event.student_group.name} "
-                                f"({class_event.student_group.no_students}) > {room.capacity} in {room.name} "
-                                f"on {day_abbr} at {start_hour}:00."
+                            violation_info = (
+                                f"Room Capacity Exceeded: Group '{class_event.student_group.name}' "
+                                f"({class_event.student_group.no_students} students) cannot fit in room '{room.name}' "
+                                f"(capacity: {room.capacity}) on {day_abbr} at {time}:00 for course '{course.code}'."
                             )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+
+        if debug and violations:
+            print("\n--- Room Constraint Violations Detected ---")
+            for violation in sorted(violations):
+                print(violation)
+            print("------------------------------------------\n")
+
         return penalty
        
     
     def check_student_group_constraints(self, chromosome, debug=False):
+        """
+        No student group can have overlapping classes at the same time
+        """
         penalty = 0
         clashes = []
         days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
 
         for i in range(len(self.timeslots)):
             simultaneous_class_events = chromosome[:, i]
-            student_group_watch = {}
+            student_group_watch = {}  # Store the first event for a group in a timeslot
             for class_event_idx in simultaneous_class_events:
                 if class_event_idx is not None:
                     class_event = self.events_map.get(class_event_idx)
@@ -149,48 +149,85 @@ class Constraints:
                         if student_group.id in student_group_watch:
                             penalty += 1
                             if debug:
+                                # A clash is detected. We have the new event and the one from the watch.
                                 first_event = student_group_watch[student_group.id]
+                                second_event = class_event
+                                
                                 first_course = self.input_data.getCourse(first_event.course_id)
-                                second_course = self.input_data.getCourse(class_event.course_id)
+                                second_course = self.input_data.getCourse(second_event.course_id)
+                                
                                 timeslot = self.timeslots[i]
                                 day_abbr = days_map.get(timeslot.day)
-                                start_hour = self._parse_time_to_hour(timeslot)
-                                clashes.append(
-                                    f"Student Group Clash: {student_group.name} on {day_abbr} at {start_hour}:00 "
-                                    f"({first_course.code} vs {second_course.code})"
+                                time = timeslot.start_time + 9
+                                
+                                clash_info = (
+                                    f"Student Group Clash: '{student_group.name}' on {day_abbr} at {time}:00. "
+                                    f"Clashing Courses: '{first_course.code}' and '{second_course.code}'."
                                 )
+                                if clash_info not in clashes:
+                                    clashes.append(clash_info)
                         else:
+                            # First time seeing this group in this timeslot, store the event.
                             student_group_watch[student_group.id] = class_event
+        
+        if debug and clashes:
+            print("\n--- Student Group Clashes Detected ---")
+            for clash in sorted(clashes):
+                print(clash)
+            print("-------------------------------------\n")
+            
         return penalty
-
+    
     def check_lecturer_availability(self, chromosome, debug=False):
+        """
+        No lecturer can have overlapping classes at the same time
+        """
         penalty = 0
         clashes = []
         days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
 
         for i in range(len(self.timeslots)):
             simultaneous_class_events = chromosome[:, i]
-            lecturer_watch = {}
+            lecturer_watch = {}  # Store the first event for a lecturer in a timeslot
             for class_event_idx in simultaneous_class_events:
                 if class_event_idx is not None:
                     class_event = self.events_map.get(class_event_idx)
-                    if class_event is not None and class_event.faculty_id is not None:
+                    if class_event is not None:
                         faculty_id = class_event.faculty_id
-                        if faculty_id in lecturer_watch:
-                            penalty += 1
-                            if debug:
-                                first_event = lecturer_watch[faculty_id]
-                                first_course = self.input_data.getCourse(first_event.course_id)
-                                second_course = self.input_data.getCourse(class_event.course_id)
-                                timeslot = self.timeslots[i]
-                                day_abbr = days_map.get(timeslot.day)
-                                start_hour = self._parse_time_to_hour(timeslot)
-                                clashes.append(
-                                    f"Lecturer Clash: {faculty_id} on {day_abbr} at {start_hour}:00 "
-                                    f"({first_course.name} vs {second_course.name})"
-                                )
-                        else:
-                            lecturer_watch[faculty_id] = class_event
+                        if faculty_id is not None:
+                            if faculty_id in lecturer_watch:
+                                penalty += 1
+                                if debug:
+                                    first_event = lecturer_watch[faculty_id]
+                                    second_event = class_event
+                                    
+                                    faculty = self.input_data.getFaculty(faculty_id)
+                                    first_course = self.input_data.getCourse(first_event.course_id)
+                                    second_course = self.input_data.getCourse(second_event.course_id)
+                                    
+                                    timeslot = self.timeslots[i]
+                                    day_abbr = days_map.get(timeslot.day)
+                                    time = timeslot.start_time + 9
+                                    
+                                    # Use faculty name if available, otherwise use faculty_id (email)
+                                    lecturer_name = faculty.name if faculty and faculty.name else faculty_id
+                                    
+                                    clash_info = (
+                                        f"Lecturer Clash: '{lecturer_name}' on {day_abbr} at {time}:00. "
+                                        f"Clashing Courses: '{first_course.name}' for group '{first_event.student_group.name}' and "
+                                        f"'{second_course.name}' for group '{second_event.student_group.name}'."
+                                    )
+                                    if clash_info not in clashes:
+                                        clashes.append(clash_info)
+                            else:
+                                lecturer_watch[faculty_id] = class_event
+        
+        if debug and clashes:
+            print("\n--- Lecturer Clashes Detected ---")
+            for clash in sorted(clashes):
+                print(clash)
+            print("---------------------------------\n")
+
         return penalty
 
     def check_lecturer_schedule_constraints(self, chromosome, debug=False):
@@ -216,7 +253,7 @@ class Constraints:
                         day_abbr = days_map.get(day_idx)
                         
                         # The actual hour of the day (e.g., 9, 10, 11)
-                        slot_hour = self._parse_time_to_hour(timeslot)
+                        slot_hour = timeslot.start_time + 9
 
                         # 1. Check available days
                         is_available_day = False
@@ -328,9 +365,7 @@ class Constraints:
                         faculty_id = class_event.faculty_id
                         timeslot = self.timeslots[timeslot_idx]
                         day_idx = timeslot.day
-                        
-                        # FIX: Convert hour_in_day to integer to prevent string concatenation error
-                        hour_in_day = self._parse_time_to_hour(timeslot)
+                        hour_in_day = timeslot.start_time  # 0-based hour index within the day
                         
                         # Get course details
                         course = self.input_data.getCourse(class_event.course_id)
@@ -355,8 +390,8 @@ class Constraints:
                 hours = [pair[0] for pair in hour_course_pairs]
                 courses = [pair[1] for pair in hour_course_pairs]
                 
-                # FIX: Ensure all hours are integers before sorting
-                hours_sorted = sorted(set(int(h) if not isinstance(h, int) else h for h in hours))
+                # Remove duplicates and sort hours
+                hours_sorted = sorted(set(hours))
                 
                 # Get unique courses for this day
                 unique_courses = list(set(courses))
@@ -380,7 +415,6 @@ class Constraints:
                     max_consecutive = 1
                     
                     for i in range(1, len(hours_sorted)):
-                        # FIX: Now this comparison will work correctly with integers
                         if hours_sorted[i] == hours_sorted[i-1] + 1:
                             consecutive_count += 1
                             max_consecutive = max(max_consecutive, consecutive_count)
@@ -424,7 +458,7 @@ class Constraints:
                         if debug:
                             timeslot = self.timeslots[timeslot_idx]
                             day_abbr = days_map.get(timeslot.day)
-                            time = self._parse_time_to_hour(timeslot) + 9
+                            time = timeslot.start_time + 9
                             
                             event_details = []
                             for event_id in event:
@@ -564,6 +598,8 @@ class Constraints:
         
         return penalty
                         
+        return penalty
+
     def check_same_course_same_room_per_day(self, chromosome, debug=False):
         """
         Same course appearing multiple times on same day must be in same room.
@@ -946,7 +982,7 @@ class Constraints:
                             
                             timeslot = self.timeslots[i]
                             day_abbr = days_map.get(timeslot.day)
-                            time = self._parse_time_to_hour(timeslot) + 9
+                            time = timeslot.start_time + 9
                             
                             student_group_clashes.append({
                                 'group': student_group.name,
@@ -969,7 +1005,7 @@ class Constraints:
                 if event is not None and isinstance(event, list) and len(event) > 1:
                     timeslot = self.timeslots[timeslot_idx]
                     day_abbr = days_map.get(timeslot.day)
-                    time = self._parse_time_to_hour(timeslot) + 9
+                    time = timeslot.start_time + 9
                     
                     event_details = []
                     for event_id in event:
@@ -1006,7 +1042,7 @@ class Constraints:
                             
                             timeslot = self.timeslots[i]
                             day_abbr = days_map.get(timeslot.day)
-                            time = self._parse_time_to_hour(timeslot) + 9
+                            time = timeslot.start_time + 9
                             
                             # Use faculty name if available, otherwise use faculty_id (email)
                             lecturer_name = faculty.name if faculty and faculty.name else faculty_id
@@ -1036,7 +1072,7 @@ class Constraints:
                         if faculty:
                             timeslot = self.timeslots[timeslot_idx]
                             day_abbr = days_map.get(timeslot.day, "Unknown")
-                            slot_hour = self._parse_time_to_hour(timeslot) + 9
+                            slot_hour = timeslot.start_time + 9
                             
                             # Check day availability
                             is_available_day = self._is_faculty_available_day(faculty, day_abbr)
@@ -1079,7 +1115,7 @@ class Constraints:
                         faculty_id = class_event.faculty_id
                         timeslot = self.timeslots[timeslot_idx]
                         day_idx = timeslot.day
-                        hour_in_day = self._parse_time_to_hour(timeslot)
+                        hour_in_day = timeslot.start_time
                         
                         # Get course details
                         course = self.input_data.getCourse(class_event.course_id)
@@ -1104,8 +1140,8 @@ class Constraints:
                 hours = [pair[0] for pair in hour_course_pairs]
                 courses = [pair[1] for pair in hour_course_pairs]
                 
-                # FIX: Ensure all hours are integers before sorting
-                hours_sorted = sorted(set(int(h) if not isinstance(h, int) else h for h in hours))
+                # Remove duplicates and sort hours
+                hours_sorted = sorted(set(hours))
                 total_hours = len(hours_sorted)
                 
                 # Get unique courses for this day
@@ -1131,7 +1167,6 @@ class Constraints:
                     max_consecutive = 1
                     
                     for i in range(1, len(hours_sorted)):
-                        # FIX: Now this comparison will work correctly with integers
                         if hours_sorted[i] == hours_sorted[i-1] + 1:
                             consecutive_count += 1
                             max_consecutive = max(max_consecutive, consecutive_count)
@@ -1183,7 +1218,7 @@ class Constraints:
             if course.credits == 2:
                 # 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
-                    times = [f"{self._parse_time_to_hour(self.timeslots[t]) + 9}:00" for t in timeslots]
+                    times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
                     consecutive_violations.append({
                         'course': course.code,
                         'course_name': course.name,
@@ -1200,7 +1235,7 @@ class Constraints:
                     is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
-                        times = [f"{self._parse_time_to_hour(self.timeslots[t]) + 9}:00" for t in timeslots]
+                        times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
                         consecutive_violations.append({
                             'course': course.code,
                             'course_name': course.name,
@@ -1296,7 +1331,7 @@ class Constraints:
                         course = self.input_data.getCourse(class_event.course_id)
                         timeslot = self.timeslots[timeslot_idx]
                         day_abbr = days_map.get(timeslot.day)
-                        time = self._parse_time_to_hour(timeslot) + 9
+                        time = timeslot.start_time + 9
                         
                         # Check room type
                         if room.room_type != course.required_room_type:
@@ -1334,14 +1369,14 @@ class Constraints:
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
                 timeslot = self.timeslots[timeslot_idx]
-                if self._parse_time_to_hour(timeslot) == break_hour and timeslot.day in [0, 2, 4]:  # Mon, Wed, Fri
+                if timeslot.start_time == break_hour and timeslot.day in [0, 2, 4]:  # Mon, Wed, Fri
                     class_event_idx = chromosome[room_idx][timeslot_idx]
                     if class_event_idx is not None:
                         class_event = self.events_map.get(class_event_idx)
                         if class_event is not None:
                             course = self.input_data.getCourse(class_event.course_id)
                             day_abbr = days_map.get(timeslot.day)
-                            time = self._parse_time_to_hour(timeslot) + 9
+                            time = timeslot.start_time + 9
                             room = self.rooms[room_idx]
                             break_time_violations.append({
                                 'course': course.code,

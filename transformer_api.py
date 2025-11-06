@@ -23,12 +23,52 @@ from collections import OrderedDict
 from typing import Tuple, Union, Any, Optional, IO
 import io
 
+# Opt-in to explicit behavior to avoid silent downcasting warnings
+try:
+    pd.set_option('future.no_silent_downcasting', True)
+except Exception:
+    pass
+
 # Types accepted for file_or_path
 FileInput = Union[str, Path, bytes, bytearray, IO]
 
 # Required sheet names expected in the template
 REQUIRED_SHEETS = ["Classrooms", "Lecturers", "Student Groups", "Courses"]
 
+# Accept common aliases (case-insensitive) for sheet names
+SHEET_ALIASES = {
+    "Classrooms": ["classrooms", "rooms", "room", "venues", "classroom"],
+    "Lecturers": ["lecturers", "faculty", "faculties", "teachers", "instructors"],
+    "Student Groups": ["student groups", "studentgroups", "groups", "students", "cohorts"],
+    "Courses": ["courses", "course list", "modules", "subjects"],
+}
+
+def _normalize(s: str) -> str:
+    return str(s or '').strip().lower()
+
+def _resolve_required_sheets(sheet_names):
+    """Return a mapping of logical required sheet name -> actual sheet name in workbook.
+    Uses case-insensitive matching and common aliases.
+    """
+    normalized_map = {_normalize(name): name for name in sheet_names}
+    resolved = {}
+    for logical in REQUIRED_SHEETS:
+        # direct match
+        if _normalize(logical) in normalized_map:
+            resolved[logical] = normalized_map[_normalize(logical)]
+            continue
+        # alias match
+        for alias in SHEET_ALIASES.get(logical, []):
+            if alias in normalized_map:
+                resolved[logical] = normalized_map[alias]
+                break
+        # fuzzy: allow replacing hyphens/extra spaces
+        if logical not in resolved:
+            for cand_norm, real in normalized_map.items():
+                if cand_norm.replace('-', ' ').replace('_', ' ') == _normalize(logical).replace('-', ' ').replace('_', ' '):
+                    resolved[logical] = real
+                    break
+    return resolved
 
 def _open_excel(file_or_path: FileInput) -> pd.ExcelFile:
     """
@@ -65,14 +105,20 @@ def validate_excel_structure(file_or_path: FileInput) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"Could not open Excel: {e}"
 
-    # Check required sheets
-    missing = [s for s in REQUIRED_SHEETS if s not in xls.sheet_names]
+    # Resolve required sheets with aliases
+    sheet_map = _resolve_required_sheets(xls.sheet_names)
+    missing = [s for s in REQUIRED_SHEETS if s not in sheet_map]
     if missing:
-        return False, f"Workbook is missing required sheet(s): {', '.join(missing)}"
+        return False, (
+            "Workbook is missing required sheet(s): "
+            + ", ".join(missing)
+            + ". Found sheets: "
+            + ", ".join(map(str, xls.sheet_names))
+        )
 
     # Basic checks for Courses sheet: must have at least Course Code and a lecturer column
     try:
-        courses_df = pd.read_excel(xls, sheet_name="Courses", dtype=object)
+        courses_df = pd.read_excel(xls, sheet_name=sheet_map["Courses"], dtype=object)
     except Exception as e:
         return False, f"Failed to read 'Courses' sheet: {e}"
 
@@ -182,13 +228,25 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
     """
     xls = _open_excel(file_or_path)
 
+    # Resolve names using aliases
+    sheet_map = _resolve_required_sheets(xls.sheet_names)
+    for required in REQUIRED_SHEETS:
+        if required not in sheet_map:
+            raise RuntimeError(
+                f"Required sheet '{required}' not found in workbook. Found: {xls.sheet_names}"
+            )
+
     # Read required sheets into dataframes (as object dtype)
     sheets = {}
-    for name in REQUIRED_SHEETS:
-        if name not in xls.sheet_names:
-            raise RuntimeError(f"Required sheet '{name}' not found in workbook. Found: {xls.sheet_names}")
-        df = pd.read_excel(xls, sheet_name=name, dtype=object).fillna("")
-        sheets[name] = df
+    for logical in REQUIRED_SHEETS:
+        real_name = sheet_map[logical]
+        df = pd.read_excel(xls, sheet_name=real_name, dtype=object).fillna("")
+        # Infer object dtypes explicitly to avoid future warning (no silent downcasting)
+        try:
+            df = df.infer_objects(copy=False)
+        except Exception:
+            pass
+        sheets[logical] = df
 
     # Build faculty map from Lecturers sheet
     lect_df = sheets["Lecturers"]

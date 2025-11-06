@@ -1,0 +1,12 @@
+{
+  "Same Student Group Overlaps": [],
+  "Different Student Group Overlaps": [],
+  "Lecturer Clashes": [],
+  "Lecturer Schedule Conflicts (Day/Time)": [],
+  "Lecturer Workload Violations": [],
+  "Consecutive Slot Violations": [],
+  "Missing or Extra Classes": [],
+  "Same Course in Multiple Rooms on Same Day": [],
+  "Room Capacity/Type Conflicts": [],
+  "Classes During Break Time": []
+}

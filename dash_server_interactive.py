@@ -4,16 +4,13 @@ import io
 # Force UTF-8 encoding for Windows console - MUST BE FIRST
 if sys.platform == 'win32':
     try:
-        # Reconfigure stdout/stderr to use UTF-8
         if sys.stdout.encoding != 'utf-8':
             sys.stdout.reconfigure(encoding='utf-8', errors='replace')
         if sys.stderr.encoding != 'utf-8':
             sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     except AttributeError:
-        # Fallback for older Python versions
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
-
 
 import dash
 from dash import dcc, html, Input, Output, State, ALL, clientside_callback, callback
@@ -89,17 +86,25 @@ def create_dash_app(session_file_path):
             constraint_details = {}
         else:
             print(f"✅ Loaded constraint details: {len(constraint_details)} constraint types")
-            # Debug: print constraint types
             for key in constraint_details.keys():
                 violation_count = len(constraint_details[key]) if isinstance(constraint_details[key], list) else constraint_details[key]
                 print(f"   - {key}: {violation_count} violations")
+        
+        # Load rooms data
+        try:
+            rooms_data_path = os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json')
+            with open(rooms_data_path, 'r', encoding='utf-8') as f:
+                rooms_data = json.load(f)
+            print(f"✅ Loaded {len(rooms_data)} rooms for classroom selection")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not load rooms data: {e}")
+            rooms_data = []
         
     except json.JSONDecodeError as e:
         print(f"❌ JSON decode error: {e}")
         return None
     except Exception as e:
         print(f"❌ Error loading session data: {e}")
-        import traceback
         print(f"📋 Full traceback:\n{traceback.format_exc()}")
         return None
     
@@ -108,11 +113,11 @@ def create_dash_app(session_file_path):
         __name__, 
         external_stylesheets=[dbc.themes.BOOTSTRAP],
         suppress_callback_exceptions=True,
-        update_title=None,  # Prevent "Updating..." in title
+        update_title=None,
         title="Interactive Timetable Editor"
     )
     
-    # ADD THE COMPLETE CSS STYLING - This is the fix for Bug #1
+    # ADD THE COMPLETE CSS STYLING
     app.index_string = '''
 <!DOCTYPE html>
 <html>
@@ -186,10 +191,40 @@ def create_dash_app(session_file_path):
                 background-color: #fff3e0 !important;
                 border: 2px dashed #ff9800 !important;
             }
+            .cell.both-conflict {
+                background-color: #ffdcec !important;
+                border: 2px solid #d42fa2 !important;
+            }
             .cell.selected {
                 background-color: #e3f2fd !important;
                 border: 2px solid #2196F3 !important;
                 box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+            }
+            .cell.manual-schedule {
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.4) !important;
+                background-color: #e3f2fd !important;
+                position: relative;
+            }
+            .cell.manual-schedule:hover {
+                box-shadow: 0 2px 12px rgba(33, 150, 243, 0.7) !important;
+                border-color: #1976d2 !important;
+                transform: translateY(-1px);
+            }
+            .cell.manual-schedule.room-conflict {
+                background-color: #ffebee !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+            }
+            .cell.manual-schedule.lecturer-conflict {
+                background-color: #fff0cc !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
+            }
+            .cell.manual-schedule.both-conflict {
+                background-color: #ffdcec !important;
+                border: 3px solid #72B7F4 !important;
+                box-shadow: 0 0 8px rgba(33, 150, 243, 0.5) !important;
             }
             .header-cell {
                 background-color: #11214D;
@@ -201,13 +236,13 @@ def create_dash_app(session_file_path):
                 border: 1px solid #0d1a3d;
             }
             .time-cell {
-                background-color: #f5f5f5;
-                font-weight: 500;
+                background-color: #11214D;
+                color: white;
+                font-weight: 600;
                 text-align: center;
                 padding: 12px 8px;
                 font-size: 12px;
-                color: #555;
-                border: 1px solid #e0e0e0;
+                border: 1px solid #0d1a3d;
                 white-space: nowrap;
             }
             .modal-overlay {
@@ -286,6 +321,10 @@ def create_dash_app(session_file_path):
                 background-color: #f5f5f5;
                 border-color: #11214D;
                 transform: translateX(5px);
+            }
+            .room-option.selected {
+                background-color: #e3f2fd;
+                border-left: 4px solid #11214D;
             }
             .room-name {
                 font-weight: 500;
@@ -530,6 +569,167 @@ def create_dash_app(session_file_path):
                 font-weight: 700;
                 font-family: 'Poppins', sans-serif;
             }
+            .color-legend {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .color-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .color-box {
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                border: 1px solid #ccc;
+            }
+            .color-box.manual { 
+                background-color: #e3f2fd; 
+                border: 3px solid #72B7F4;
+            }
+            .color-box.normal { background-color: white; }
+            .color-box.break { background-color: #ff5722; }
+            .color-box.room-conflict { 
+                background-color: #ffebee; 
+                border: 2px solid #ef5350;
+            }
+            .color-box.lecturer-conflict { 
+                background-color: #fff3e0; 
+                border: 2px dashed #ff9800;
+            }
+            .color-box.both-conflict { 
+                background-color: #ffdcec; 
+                border: 2px solid #d42fa2;
+            }
+            .nav-arrows {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            .nav-arrow {
+                background: #11214D;
+                color: white;
+                border: none;
+                border-radius: 15%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.2s ease;
+                font-family: 'Poppins', sans-serif;
+            }
+            .nav-arrow:hover {
+                background: #0d1a3d;
+                transform: scale(1.05);
+                box-shadow: 0 2px 8px rgba(17, 33, 77, 0.3);
+            }
+            .nav-arrow:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+            .student-group-container {
+                margin-bottom: 30px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                padding: 15px;
+                background-color: #fafafa;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                max-width: 1200px;
+                margin: 0 auto 30px auto;
+            }
+            .timetable-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+            .timetable-title {
+                color: #11214D;
+                font-weight: 600;
+                margin-bottom: 20px;
+                font-size: 20px;
+                font-family: 'Poppins', sans-serif;
+            }
+            .help-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                padding: 30px;
+                z-index: 1000;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                font-family: 'Poppins', sans-serif;
+            }
+            .help-modal h3 {
+                color: #11214D;
+                font-weight: 600;
+                margin-bottom: 20px;
+                font-size: 20px;
+                text-align: center;
+            }
+            table {
+                font-family: 'Poppins', sans-serif;
+                font-size: 12px;
+                border-collapse: separate;
+                border-spacing: 0;
+                width: 100%;
+                background-color: white;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            }
+            th {
+                background-color: #11214D !important;
+                color: white !important;
+                padding: 12px 10px !important;
+                font-size: 13px !important;
+                font-weight: 600 !important;
+                text-align: center !important;
+                border: 1px solid #0d1a3d !important;
+                font-family: 'Poppins', sans-serif !important;
+            }
+            td {
+                padding: 0 !important;
+                border: 1px solid #e0e0e0 !important;
+                background-color: white;
+            }
+            .room-search {
+                width: calc(100% - 32px);
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 14px;
+                font-family: 'Poppins', sans-serif;
+                margin-bottom: 15px;
+                transition: border-color 0.2s ease;
+                box-sizing: border-box;
+            }
+            .room-search:focus {
+                outline: none;
+                border-color: #11214D;
+            }
+            .room-options {
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+            }
         </style>
     </head>
     <body>
@@ -555,7 +755,7 @@ def create_dash_app(session_file_path):
         response.headers.add('Expires', '0')
         return response
     
-    # Set the layout with proper data validation
+    # Set the layout
     try:
         app.layout = create_layout()
         print("✅ Layout created successfully")
@@ -563,7 +763,7 @@ def create_dash_app(session_file_path):
         print(f"❌ Error creating layout: {e}")
         return None
     
-    # Register callbacks with error handling
+    # Register callbacks
     try:
         register_callbacks(app)
         print("✅ Callbacks registered successfully")
@@ -1222,21 +1422,15 @@ def register_callbacks(app):
         trigger_id = ctx.triggered[0]['prop_id'].split('.')[0]
         
         try:
-            # Import the TimetableExporter class
             from output_data import TimetableExporter
             
-            # Initialize exporter with current session data
             exporter = TimetableExporter()
             
-            # Convert the stored timetable data to the format expected by exporter
             if all_timetables_data:
-                # Save the current timetables to the exporter's data source
-                # The exporter will read from this data
                 exporter.timetable_data = all_timetables_data
                 exporter.input_data = input_data
             
             if trigger_id == "download-sst-btn" and sst_clicks:
-                # Call the export function directly
                 if all_timetables_data:
                     success, message = exporter.export_sst_timetables(all_timetables_data)
                 else:
@@ -1254,7 +1448,6 @@ def register_callbacks(app):
                     ], style={"color": "#dc3545", "fontWeight": "600"})
                     
             elif trigger_id == "download-tyd-btn" and tyd_clicks:
-                # Call the export function directly
                 if all_timetables_data:
                     success, message = exporter.export_tyd_timetables(all_timetables_data)
                 else:
@@ -1272,7 +1465,6 @@ def register_callbacks(app):
                     ], style={"color": "#dc3545", "fontWeight": "600"})
                     
             elif trigger_id == "download-lecturer-btn" and lecturer_clicks:
-                # Call the export function directly
                 if all_timetables_data:
                     success, message = exporter.export_lecturer_timetables(all_timetables_data)
                 else:
@@ -1301,6 +1493,7 @@ def register_callbacks(app):
             ], style={"color": "#dc3545", "fontWeight": "600", "wordWrap": "break-word"})
         
         raise dash.exceptions.PreventUpdate
+    
     # Client-side callback for drag and drop functionality
     app.clientside_callback(
         """
@@ -1557,7 +1750,7 @@ def register_callbacks(app):
 
 # Helper functions
 def extract_course_and_faculty_from_cell(cell_content):
-    """Extract course code and faculty from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
+    """Extract course code and faculty from cell content"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None, None
     
@@ -1568,7 +1761,7 @@ def extract_course_and_faculty_from_cell(cell_content):
     return course_code, faculty_name
 
 def extract_room_from_cell(cell_content):
-    """Extract room name from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
+    """Extract room name from cell content"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
@@ -1578,7 +1771,7 @@ def extract_room_from_cell(cell_content):
     return None
 
 def extract_course_code_from_cell(cell_content):
-    """Extract course code from cell content with new format: Course Code\\nRoom Name\\nFaculty"""
+    """Extract course code from cell content"""
     if not cell_content or cell_content in ["FREE", "BREAK"]:
         return None
     
@@ -1588,7 +1781,7 @@ def extract_course_code_from_cell(cell_content):
     return None
 
 def detect_conflicts(all_timetables_data, current_group_idx):
-    """Detect both room conflicts and lecturer conflicts across all student groups at each time slot"""
+    """Detect both room conflicts and lecturer conflicts"""
     conflicts = {}
     
     if not all_timetables_data:
@@ -1623,7 +1816,6 @@ def detect_conflicts(all_timetables_data, current_group_idx):
                                 lecturer_usage[faculty_name] = []
                             lecturer_usage[faculty_name].append((group_idx, group_name, cell_content))
             
-            # Check for room conflicts
             for room_name, usage_list in room_usage.items():
                 if len(usage_list) > 1:
                     for group_idx, group_name, cell_content in usage_list:
@@ -1634,7 +1826,6 @@ def detect_conflicts(all_timetables_data, current_group_idx):
                                 'conflicting_groups': [u for u in usage_list if u[0] != current_group_idx]
                             }
             
-            # Check for lecturer conflicts
             for faculty_name, usage_list in lecturer_usage.items():
                 if len(usage_list) > 1:
                     for group_idx, group_name, cell_content in usage_list:
@@ -1724,7 +1915,6 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
 
 # Test function for standalone execution
 if __name__ == "__main__":
-    # Create test session data
     test_session_data = {
         "version": "2.0",
         "timetables": [

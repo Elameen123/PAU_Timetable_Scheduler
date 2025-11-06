@@ -1,106 +1,201 @@
 #!/usr/bin/env python3
+"""
+Corrected app.py - Timetable Generator API
+Fixed issues:
+1. DifferentialEvolution constructor signature and method calls
+2. Thread-safe job status updates
+3. Proper error handling and defensive programming
+4. Consistent method signatures across API calls
+5. Fixed evolve() method calls without parameters
+6. Proper initialization flow
+"""
+
 import os
-import sys
 import uuid
 import tempfile
 import threading
-import subprocess
-import time
-import socket
-import json
-from datetime import datetime
-from pathlib import Path
-
 import numpy as np
-from flask import Flask, request, jsonify, send_file, make_response
-from flask_cors import CORS, cross_origin
+import random
+from pathlib import Path
+from datetime import datetime
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
-import traceback
+from Dash_UI import create_app  # Use the new lightweight Dash UI factory
 
-# Project imports
+# Your project imports (must exist in repo)
 from transformer_api import transform_excel_to_json, validate_excel_structure
 from input_data_api import initialize_input_data_from_json
-from differential_evolution import DifferentialEvolution
-from export_service import create_export_service
-from data_converter import TimetableDataConverter
+from differential_evolution_api import DifferentialEvolution
+from export_service import create_export_service, TimetableExportService
+
+# Prefer the OG DifferentialEvolution implementation if available to match OG behavior
+DifferentialEvolutionClass = DifferentialEvolution
+try:
+    import importlib.util
+    base_dir = os.path.dirname(__file__)
+    # Only consider safe algorithm modules that don't launch Dash or execute top-level runs
+    og_candidates = [
+        os.path.join(base_dir, 'differential_evolution.py'),
+        os.path.join(base_dir, 'differential-evolution.py'),
+    ]
+    for path in og_candidates:
+        if os.path.exists(path):
+            spec = importlib.util.spec_from_file_location('de_og_module', path)
+            if spec and spec.loader:
+                de_og_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(de_og_module)
+                if hasattr(de_og_module, 'DifferentialEvolution'):
+                    DifferentialEvolutionClass = getattr(de_og_module, 'DifferentialEvolution')
+                    print(f"Using DifferentialEvolution from: {os.path.basename(path)}")
+                    break
+except Exception as e:
+    print(f"Warning: Could not load alternative DifferentialEvolution. Using API version. Error: {e}")
+
+# --- Config & app setup ---
+FRONTEND_HTML_PATH = Path(__file__).parent / "timetable_generator.html"
 
 app = Flask(__name__)
-
-# Simple, single CORS configuration
-CORS(app, 
-     origins=["http://localhost:3000", "http://127.0.0.1:3000", "*"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization", "Accept"],
-     supports_credentials=False
+# Create the Dash app instance from the new UI module
+# This Dash instance is later mounted under /interactive/
+dash_app = create_app()
+# Configure CORS explicitly for local dev and typical headers
+CORS(
+    app,
+    resources={r"/*": {"origins": [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost",
+        "http://127.0.0.1",
+        "*"
+    ]}},
+    supports_credentials=False,
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Origin", "Accept"],
+    expose_headers=["Content-Type", "Content-Disposition"]
 )
 
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = tempfile.mkdtemp()
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-in-prod')
+
+# Allow embedding Dash UI in iframe from the React dev server
+@app.after_request
+def add_frame_headers(resp):
+    try:
+        # Permit embedding from frontend origins
+        resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
+            + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
+        # Remove X-Frame-Options if set by any middleware/extensions
+        try:
+            del resp.headers['X-Frame-Options']
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return resp
+
+# Also add the same headers to the Dash server so responses under /interactive come with proper CSP
+try:
+    @dash_app.server.after_request
+    def add_dash_frame_headers(resp):
+        try:
+            resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
+                + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
+            try:
+                del resp.headers['X-Frame-Options']
+            except Exception:
+                pass
+        except Exception:
+            pass
+        return resp
+except Exception as e:
+    print(f"Warning: Could not attach after_request to Dash server: {e}")
+
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
-# Thread-safe job storage
-processing_jobs = {}
-generated_timetables = {}
-job_locks = {}
-dash_sessions = {}
+# Thread-safe job storage with locks
+processing_jobs = {}       # upload_id -> { status, progress, result, error, ... }
+generated_timetables = {}  # upload_id -> stored input/metadata
+job_locks = {}             # upload_id -> threading.Lock()
 
+# Exporter instance
 export_service = create_export_service()
 
-# Continue with your functions...
 
-
+# --- Helpers ---
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def get_job_lock(upload_id):
+    """Get or create a lock for a specific job"""
     if upload_id not in job_locks:
         job_locks[upload_id] = threading.Lock()
     return job_locks[upload_id]
 
 
 def make_json_serializable(obj):
+    """
+    Convert custom objects to JSON-serializable format
+    Recursively handles complex nested structures
+    """
     if obj is None:
         return None
-    if isinstance(obj, (str, int, float, bool)):
+    elif isinstance(obj, (str, int, float, bool)):
         return obj
-    if isinstance(obj, (list, tuple)):
-        return [make_json_serializable(i) for i in obj]
-    if isinstance(obj, dict):
+    elif isinstance(obj, (list, tuple)):
+        return [make_json_serializable(item) for item in obj]
+    elif isinstance(obj, dict):
         return {str(k): make_json_serializable(v) for k, v in obj.items()}
-    if isinstance(obj, np.ndarray):
+    elif isinstance(obj, np.ndarray):
         return obj.tolist()
-    try:
-        if hasattr(obj, '__dict__'):
-            result = {}
-            for attr in dir(obj):
-                if attr.startswith('_'):
-                    continue
-                val = getattr(obj, attr, None)
-                if callable(val):
-                    continue
-                try:
-                    result[attr] = make_json_serializable(val)
-                except Exception:
-                    continue
-            # Try a few common attributes
-            for common in ('id', 'name', 'code', 'title', 'value'):
-                if common not in result and hasattr(obj, common):
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif hasattr(obj, '__dict__'):
+        # Convert custom objects to dictionaries using their attributes
+        result = {}
+        try:
+            # Get all non-private, non-method attributes
+            for attr_name in dir(obj):
+                if (not attr_name.startswith('_') and 
+                    not callable(getattr(obj, attr_name, None))):
                     try:
-                        result[common] = make_json_serializable(getattr(obj, common))
-                    except Exception:
+                        attr_value = getattr(obj, attr_name)
+                        # Skip methods, properties, and complex objects that might cause recursion
+                        if not callable(attr_value):
+                            result[attr_name] = make_json_serializable(attr_value)
+                    except (AttributeError, TypeError, ValueError):
+                        # Skip attributes that can't be accessed or serialized
                         continue
+                        
+            # Also try common attributes that might not show up in dir()
+            for common_attr in ['id', 'name', 'code', 'title', 'value']:
+                if (hasattr(obj, common_attr) and 
+                    common_attr not in result):
+                    try:
+                        attr_val = getattr(obj, common_attr)
+                        if attr_val is not None and not callable(attr_val):
+                            result[common_attr] = str(attr_val)
+                    except (AttributeError, TypeError):
+                        continue
+                        
             return result if result else str(obj)
-    except Exception:
-        pass
-    try:
-        return str(obj)
-    except Exception:
-        return "unserializable_object"
+        except Exception:
+            # If all else fails, convert to string
+            return str(obj)
+    else:
+        # Fallback: convert to string
+        try:
+            return str(obj)
+        except Exception:
+            return "unserializable_object"
 
 
 def update_job_status(upload_id, status=None, progress=None, error=None, result=None):
+    """Thread-safe update to the processing_jobs dict with JSON serialization."""
     lock = get_job_lock(upload_id)
     with lock:
         if upload_id not in processing_jobs:
@@ -113,115 +208,23 @@ def update_job_status(upload_id, status=None, progress=None, error=None, result=
         if error is not None:
             job['error'] = str(error)
         if result is not None:
+            # Ensure result is JSON serializable before storing
             job['result'] = make_json_serializable(result)
+        
+        # simple stdout log for debugging
         print(f"[{upload_id}] status={job.get('status')} progress={job.get('progress')} error={job.get('error')}")
 
 
-def debug_result_data(upload_id, result_data):
-    print(f"\n[{upload_id}] === RESULT DATA DEBUG ===")
-    if not result_data:
-        print(f"[{upload_id}] Result is empty")
-        return
-    try:
-        print(f"[{upload_id}] keys: {list(result_data.keys()) if isinstance(result_data, dict) else type(result_data)}")
-        tt = result_data.get('timetables', result_data.get('timetables_raw', []))
-        print(f"[{upload_id}] timetables count: {len(tt) if tt else 0}")
-        input_data = result_data.get('input_data')
-        print(f"[{upload_id}] input_data present: {input_data is not None}")
-    except Exception as e:
-        print(f"[{upload_id}] Debug error: {e}")
-
-
-# Consolidated serialization that matches expected frontend keys
-def serialize_input_data(input_data):
-    """
-    Convert input_data object into a dictionary using robust attribute lookups.
-    The output keys align with the frontend/validation expectations:
-      - courses: list of dicts, each containing student_groupsID and facultyId
-      - rooms, studentgroups, faculties, days, hours
-    """
-    try:
-        courses = []
-        for idx, course in enumerate(getattr(input_data, 'courses', []) or []):
-            # student_groups IDs
-            sg_ids = []
-            if hasattr(course, 'student_groups'):
-                for sg in getattr(course, 'student_groups') or []:
-                    sg_id = getattr(sg, 'id', None) or getattr(sg, 'Id', None) or getattr(sg, 'group_id', None)
-                    sg_ids.append(sg_id)
-            elif hasattr(course, 'studentGroupIds'):
-                sg_ids = getattr(course, 'studentGroupIds') or []
-            elif hasattr(course, 'student_groupsID'):
-                sg_ids = getattr(course, 'student_groupsID') or []
-                
-            # faculty id
-            faculty_id = None
-            if hasattr(course, 'faculty'):
-                faculty = getattr(course, 'faculty')
-                faculty_id = getattr(faculty, 'id', None) or getattr(faculty, 'faculty_id', None)
-            elif hasattr(course, 'facultyId'):
-                faculty_id = getattr(course, 'facultyId')
-
-            courses.append({
-                "id": getattr(course, 'id', idx),
-                "name": getattr(course, 'name', getattr(course, 'code', f"Course {idx}")),
-                "student_groupsID": sg_ids,
-                "facultyId": faculty_id,
-                "hours_per_week": getattr(course, 'hours_per_week', getattr(course, 'credits', 3)),
-                "requires_lab": getattr(course, 'requires_lab', False),
-                "department": getattr(course, 'department', '')
-            })
-
-        rooms = []
-        for idx, room in enumerate(getattr(input_data, 'rooms', []) or []):
-            rooms.append({
-                "id": getattr(room, 'id', getattr(room, 'Id', idx)),
-                "name": getattr(room, 'name', getattr(room, 'Name', f"Room {idx}")),
-                "capacity": getattr(room, 'capacity', getattr(room, 'Capacity', 50)),
-                "type": getattr(room, 'room_type', getattr(room, 'type', 'classroom'))
-            })
-
-        studentgroups = []
-        for idx, sg in enumerate(getattr(input_data, 'student_groups', []) or []):
-            studentgroups.append({
-                "id": getattr(sg, 'id', idx),
-                "name": getattr(sg, 'name', f"Group {idx}"),
-                "size": getattr(sg, 'no_students', getattr(sg, 'size', 30)),
-                "department": getattr(sg, 'department', getattr(sg, 'dept', '')),
-                "level": getattr(sg, 'level', ''),
-                "courseIDs": getattr(sg, 'courseIDs', []),
-                "hours_required": getattr(sg, 'hours_required', [])
-            })
-
-        faculties = []
-        for idx, f in enumerate(getattr(input_data, 'faculties', []) or []):
-            faculties.append({
-                "id": getattr(f, 'id', idx),
-                "name": getattr(f, 'name', f"Faculty {idx}"),
-                "department": getattr(f, 'department', ''),
-                "unavailable_times": getattr(f, 'unavailable_times', [])
-            })
-
-        return {
-            "courses": courses,
-            "rooms": rooms,
-            "studentgroups": studentgroups,
-            "faculties": faculties,
-            "days": getattr(input_data, 'days', 5),
-            "hours": getattr(input_data, 'hours', 8)
-        }
-    except Exception as e:
-        print(f"serialize_input_data error: {e}")
-        return None
-
-
+# --- Timetable Processor ---
 class TimetableProcessor:
     def __init__(self, upload_id, input_data, config):
         self.upload_id = upload_id
         self.input_data = input_data
         self.config = config or {}
+        self.start_time = datetime.now()
 
     def update_job_progress(self, job_id, pct=None, message=None):
+        """Update job progress with thread safety"""
         if pct is None:
             lock = get_job_lock(job_id)
             with lock:
@@ -234,98 +237,533 @@ class TimetableProcessor:
     def update_job_error(self, job_id, error_msg):
         update_job_status(job_id, status="error", error=error_msg)
 
-    def run_optimization(self):
-        job_id = self.upload_id
-        try:
-            update_job_status(job_id, status='processing', progress=10)
-            
-            pop_size = int(self.config.get('population_size', 50))
-            max_gen = int(self.config.get('max_generations', 5))
-            mutation_factor = float(self.config.get('mutation_factor', 0.4))
-            crossover_rate = float(self.config.get('crossover_rate', 0.9))
+    def make_timetables_json_safe(self, all_timetables):
+        """Convert timetables into a JSON-friendly structure to avoid deep recursion."""
+        safe_list = []
+        for item in all_timetables or []:
+            try:
+                sg = item.get('student_group')
+                # Extract basic identifiers only
+                sg_name = None
+                sg_id = None
+                if sg is not None:
+                    try:
+                        if hasattr(sg, 'name') and getattr(sg, 'name') is not None:
+                            sg_name = str(getattr(sg, 'name'))
+                    except Exception:
+                        pass
+                    for attr in ['id', 'student_group_id', 'group_id']:
+                        try:
+                            if hasattr(sg, attr) and getattr(sg, attr) is not None:
+                                sg_id = str(getattr(sg, attr))
+                                break
+                        except Exception:
+                            continue
+                if not sg_name:
+                    # Fallback to string repr (kept minimal)
+                    try:
+                        sg_name = str(sg) if sg is not None else 'Unknown Group'
+                    except Exception:
+                        sg_name = 'Unknown Group'
 
-            # 1. Instantiate the engine from differential_evolution.py
-            print(f"[{job_id}] Initializing DifferentialEvolution engine...")
-            de_engine = DifferentialEvolution(self.input_data, pop_size, mutation_factor, crossover_rate)
-            
-            # (Optional) Progress update can be integrated here if run() is a loop
-            update_job_status(job_id, progress=25)
+                # Timetable grid rows
+                rows = item.get('timetable', [])
+                rows = make_json_serializable(rows)
 
-            # 2. Run the optimization
-            print(f"[{job_id}] Running optimization for {max_gen} generations...")
-            best_solution, fitness_history, generations_completed, diversity_history = de_engine.run(max_gen)
-
-            update_job_status(job_id, progress=90)
-            
-            # 3. Get the final fitness and detailed violations
-            final_fitness = de_engine.evaluate_fitness(best_solution)
-            constraint_details = de_engine.constraints.get_detailed_constraint_violations(best_solution)
-
-            # 4. Format the output for the frontend
-            print(f"[{job_id}] Formatting timetable data for frontend...")
-            all_timetables_raw = de_engine.print_all_timetables(best_solution, self.input_data.days, self.input_data.hours)
-            
-            # Convert StudentGroup objects to dictionaries for JSON
-            all_timetables_json = []
-            for tt_data in all_timetables_raw:
-                group = tt_data['student_group']
-                all_timetables_json.append({
+                safe_list.append({
                     'student_group': {
-                        'id': group.id,
-                        'name': group.name,
-                        'department': getattr(group, 'department', ''),
-                        'level': getattr(group, 'level', '')
+                        'name': sg_name,
+                        'id': sg_id
                     },
-                    'timetable': tt_data['timetable']
+                    'timetable': rows
                 })
-            
-            # 5. Package the final result
-            final_result = {
-                'success': True,
-                'timetables': all_timetables_json,
-                'best_fitness': final_fitness,
-                'constraint_details': constraint_details,
-                'generations_completed': generations_completed,
-                'fitness_history': fitness_history,
-                'diversity_history': diversity_history
-            }
-            
-            update_job_status(job_id, status='completed', progress=100, result=final_result)
-            print(f"[{job_id}] Optimization completed successfully.")
+            except Exception:
+                # Skip any problematic entry instead of blocking the whole job
+                continue
+        return safe_list
 
-        except Exception as e:
-            print(f"[{job_id}] An error occurred during optimization.")
-            traceback.print_exc()
-            update_job_status(job_id, status='error', error=str(e))
-
-    def create_basic_timetables(self, de, solution, job_id):
-        """Basic timetable creation fallback (keeps structure expected by frontend)."""
-        timetables = []
+    def build_empty_timetables(self, de):
+        """Build empty grids per student group so UI can render even if optimization failed."""
         try:
-            student_groups = getattr(de, 'student_groups', [])
-            days = getattr(self.input_data, 'days', 5)
-            hours = getattr(self.input_data, 'hours', 8)
-            for sg in student_groups:
-                grid = []
+            days = int(getattr(de.input_data, 'days', 5) or 5)
+            hours = int(getattr(de.input_data, 'hours', 6) or 6)
+            day_start_time = 9
+            data = []
+            for sg in getattr(de.input_data, 'student_groups', []) or []:
+                rows = []
                 for h in range(hours):
-                    row = [f"{9+h}:00"]
-                    for d in range(days):
-                        row.append("FREE")
-                    grid.append(row)
-                timetables.append({'student_group': sg, 'timetable': grid})
+                    time_label = f"{day_start_time + h}:00"
+                    row = [time_label] + ["FREE" for _ in range(days)]
+                    rows.append(row)
+                data.append({"student_group": sg, "timetable": rows})
+            return data
         except Exception as e:
-            print(f"[{job_id}] create_basic_timetables error: {e}")
+            print(f"Warning: build_empty_timetables failed: {e}")
+            return []
+
+    def run_optimization(self, job_id, input_data, pop_size, max_gen, F, CR):
+        """
+        Runs the differential evolution optimization in the background.
+        This version is modified to be closer to the Sept 13 `differential_evolution.py` script's flow.
+        """
+        self.start_time = datetime.now()
+        de = None
+        try:
+            # Ensure randomized runs
+            try:
+                import secrets
+                seed = secrets.randbits(64)
+                random.seed(seed)
+                np.random.seed(None) # Use system entropy for numpy
+                print(f"[{job_id}] RNG seeded for this run (seed bits set) with pop={pop_size}, gens={max_gen}")
+            except Exception as seed_err:
+                print(f"[{job_id}] Warning: RNG seeding failed: {seed_err}")
+
+            # Initialize DE with correct parameters
+            try:
+                de = DifferentialEvolutionClass(input_data, pop_size, F, CR)
+            except TypeError:
+                try:
+                    de = DifferentialEvolutionClass(input_data=input_data, pop_size=pop_size, F=F, CR=CR)
+                except TypeError:
+                    de = DifferentialEvolutionClass(input_data, pop_size)
+        except Exception as e:
+            print(f"FATAL: DifferentialEvolution initialization failed: {e}")
+            self.update_job_error(job_id, f"DE Initialization failed: {e}")
+            return
+
+        best_solution = None
+        fitness_history = []
+        final_generation = 0
+        best_fitness = float("inf")
+
+        try:
+            self.update_job_progress(job_id, pct=5)
+
+            # This block mirrors the Sept 13 differential_evolution.py execution flow
+            # The run method returns: best_solution, fitness_history, final_generation, diversity_history
+            if hasattr(de, 'run'):
+                try:
+                    print(f"[{job_id}] Starting DE algorithm run for {max_gen} generations...")
+                    run_result = de.run(max_gen)
+                    
+                    # Sept 13 version returns exactly 4 values
+                    if isinstance(run_result, tuple) and len(run_result) >= 2:
+                        best_solution = run_result[0]
+                        fitness_history = run_result[1]
+                        
+                        # Optional: capture generation and diversity if available
+                        if len(run_result) > 2:
+                            final_generation = run_result[2]
+                        else:
+                            final_generation = len(fitness_history) if fitness_history else max_gen
+                            
+                        if len(run_result) > 3:
+                            diversity_history = run_result[3]
+                    else:
+                        # Fallback if return format is unexpected
+                        best_solution = run_result if not isinstance(run_result, tuple) else run_result[0]
+                        fitness_history = []
+                        final_generation = max_gen
+                    
+                    # Get the best fitness score
+                    if fitness_history and len(fitness_history) > 0:
+                        best_fitness = float(fitness_history[-1])
+                        print(f"[{job_id}] DE completed - Final fitness: {best_fitness:.4f}")
+                    else:
+                        best_fitness = float("inf")
+                        print(f"[{job_id}] DE completed - No fitness history available")
+
+                    # CRITICAL: The Sept 13 version re-evaluates the best solution with verbose=True
+                    # to get final violations printed to console
+                    if best_solution is not None and hasattr(de, 'evaluate_fitness'):
+                        print(f"[{job_id}] Re-evaluating final best solution for constraint violations...")
+                        try:
+                            # Try with verbose flag if supported, otherwise call without it
+                            de.evaluate_fitness(best_solution, verbose=True)
+                        except TypeError:
+                            # API version doesn't support verbose parameter
+                            de.evaluate_fitness(best_solution)
+                    
+                    self.update_job_progress(job_id, pct=85)
+
+                except Exception as e:
+                    print(f"[{job_id}] ERROR: de.run() failed. Error: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    best_solution = None
+                    fitness_history = []
+                    final_generation = 0
+            else:
+                # Fallback if `run` method is not present
+                print(f"[{job_id}] ERROR: DE instance lacks a `run` method.")
+                self.update_job_error(job_id, "DE instance is missing the 'run' method.")
+                return
+
+        except Exception as main_error:
+            print(f"[{job_id}] FATAL ERROR in run_optimization: {main_error}")
+            import traceback
+            traceback.print_exc()
+            self.update_job_error(job_id, f"Optimization failed: {str(main_error)}")
+            return
+        finally:
+            # Progress update after optimization finishes
+            self.update_job_progress(job_id, pct=90)
+
+
+        # Post-processing
+        self.update_job_progress(job_id, pct=95)
+
+        # Final repairs if method exists
+        if best_solution is not None:
+            try:
+                if hasattr(de, 'verify_and_repair_course_allocations'):
+                    best_solution = de.verify_and_repair_course_allocations(best_solution)
+            except Exception as e:
+                print(f"Warning: Course allocation repair failed: {e}")
+
+        # Generate timetables
+        all_timetables = []
+        if best_solution is not None:
+            try:
+                # The original script uses `print_all_timetables` to get the final grid data.
+                # CRITICAL: print_all_timetables requires 4 parameters matching Sept 13 signature
+                if hasattr(de, 'print_all_timetables'):
+                    days = getattr(de.input_data, 'days', 5)
+                    hours = getattr(de.input_data, 'hours', 8)
+                    day_start_time = 9
+                    print(f"[{job_id}] Generating timetables with days={days}, hours={hours}, start_time={day_start_time}")
+                    all_timetables = de.print_all_timetables(best_solution, days, hours, day_start_time)
+                    print(f"[{job_id}] Generated {len(all_timetables) if all_timetables else 0} timetables")
+                else:
+                    print(f"[{job_id}] Warning: DE instance lacks `print_all_timetables` method.")
+            except Exception as e:
+                print(f"[{job_id}] ERROR: Timetable generation failed: {e}")
+                import traceback
+                traceback.print_exc()
+                all_timetables = []
+
+        # Fallback: if empty, build blank timetables so UI still works
+        if not all_timetables and de is not None:
+            print(f"[{job_id}] No timetables produced; building empty grids as fallback")
+            all_timetables = self.build_empty_timetables(de)
+
+        # Build UI card summaries
+        timetable_cards = self.format_timetable_results_from_raw(all_timetables)
+
+        # Get constraint violations - BOTH summary and detailed for UI
+        violations = {}
+        detailed_violations = {}
+        if best_solution is not None and hasattr(de, 'constraints'):
+            try:
+                # Get summary violations (numerical counts)
+                if hasattr(de.constraints, 'get_constraint_violations'):
+                    violations = de.constraints.get_constraint_violations(best_solution, debug=True)
+                    print(f"[{job_id}] Got constraint violations summary: {violations.get('total', 0)} total violations")
+                
+                # Get detailed violations (with locations and descriptions) for UI
+                if hasattr(de.constraints, 'get_detailed_constraint_violations'):
+                    detailed_violations = de.constraints.get_detailed_constraint_violations(best_solution)
+                    print(f"[{job_id}] Got detailed constraint violations with {len(detailed_violations)} constraint types")
+                    # Print summary of detailed violations
+                    for constraint_type, violation_list in detailed_violations.items():
+                        if violation_list:
+                            print(f"  - {constraint_type}: {len(violation_list)} violations")
+            except Exception as e:
+                print(f"Warning: Constraint violation check failed: {e}")
+                import traceback
+                traceback.print_exc()
+
+        # Build parsed timetables for frontend
+        parsed = []
+        if all_timetables:
+            exporter = TimetableExportService()
+            for item in all_timetables:
+                try:
+                    student_group = item.get("student_group")
+                    if hasattr(student_group, "name"):
+                        group_name = str(student_group.name)
+                    else:
+                        group_name = str(student_group)
+                    rows = exporter._grid_to_rows(item.get("timetable", []))
+                    serializable_rows = make_json_serializable(rows)
+                    parsed.append({"group": group_name, "rows": serializable_rows})
+                except Exception as e:
+                    print(f"Warning: Parsing timetable failed: {e}")
+
+        # Convert raw timetables into a safe, lightweight structure
+        self.update_job_progress(job_id, pct=99)
+        safe_all_timetables = self.make_timetables_json_safe(all_timetables)
+
+        # Make all result data JSON serializable
+        result = {
+            "timetables": timetable_cards,
+            "timetables_raw": safe_all_timetables,
+            "parsed_timetables": parsed,
+            "fitness_score": best_fitness if best_fitness != float("inf") else None,
+            "generations_completed": int(final_generation) + 1 if isinstance(final_generation, (int, np.integer)) else 1,
+            "fitness_history": fitness_history[-20:] if isinstance(fitness_history, list) else [],
+            "summary": make_json_serializable(self.generate_summary_safe(de, best_solution, violations)) if best_solution is not None else {},
+            "constraint_violations": make_json_serializable(violations),
+            "performance_metrics": {
+                "population_size": pop_size,
+                "total_events": len(getattr(de, "events_list", [])),
+                "scheduled_events": self.count_scheduled_events(best_solution),
+                "optimization_time_seconds": (datetime.now() - self.start_time).total_seconds(),
+            },
+        }
+
+        # Persist violations separately for Dash UI and print a concise summary to console
+        try:
+            dash_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+            os.makedirs(dash_data_dir, exist_ok=True)
+            
+            # Save DETAILED violations for Dash UI (with locations and descriptions)
+            violations_path = os.path.join(dash_data_dir, 'constraint_violations.json')
+            with open(violations_path, 'w', encoding='utf-8') as vf:
+                import json as _json
+                # Save the detailed violations, not the summary
+                detailed_to_save = make_json_serializable(detailed_violations) if detailed_violations else {}
+                _json.dump(detailed_to_save, vf, indent=2, ensure_ascii=False)
+                print(f"[{job_id}] Saved {len(detailed_to_save)} detailed constraint types to {violations_path}")
+            
+            # Print a compact summary
+            try:
+                if isinstance(detailed_violations, dict):
+                    print("[DETAILED VIOLATIONS] Summary:")
+                    for k, val in detailed_violations.items():
+                        try:
+                            count = len(val) if isinstance(val, list) else (int(val) if isinstance(val, (int, float)) else 1)
+                        except Exception:
+                            count = 0
+                        if count > 0:
+                            print(f"  - {k}: {count}")
+                else:
+                    print("[DETAILED VIOLATIONS] No detailed violations dict available")
+            except Exception as _log_err:
+                print(f"[DETAILED VIOLATIONS] Warning: could not print summary: {_log_err}")
+        except Exception as dash_save_error:
+            print(f"[{job_id}] WARNING: Could not save constraint violations for Dash UI. Error: {dash_save_error}")
+            import traceback
+            traceback.print_exc()
+
+        try:
+            dash_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+            os.makedirs(dash_data_dir, exist_ok=True)
+            dash_save_path = os.path.join(dash_data_dir, 'timetable_data.json')
+            fresh_save_path = os.path.join(dash_data_dir, 'fresh_timetable_data.json')
+
+            if safe_all_timetables:
+                import json
+                data_to_save = {
+                    'timetables': safe_all_timetables,
+                    'manual_cells': []
+                }
+                # Write session file used by Dash for persistence + manual edits
+                with open(dash_save_path, 'w', encoding='utf-8') as f:
+                    json.dump(data_to_save, f, indent=2)
+                # Write fresh results file preferred by Dash on startup
+                try:
+                    with open(fresh_save_path, 'w', encoding='utf-8') as f2:
+                        json.dump(safe_all_timetables, f2, indent=2)
+                    print(f"[{job_id}] Successfully saved data for Dash UI at: {dash_save_path} and fresh: {fresh_save_path}")
+                except Exception as fresh_err:
+                    print(f"[{job_id}] WARNING: Could not save fresh timetable JSON. Error: {fresh_err}")
+
+        except Exception as dash_save_error:
+            print(f"[{job_id}] WARNING: Could not save data for Dash UI. Error: {dash_save_error}")
+
+        # Save and mark job completed
+        self.update_job_result(job_id, result)
+        return result
+
+    def count_scheduled_events(self, solution):
+        """Count scheduled events in solution"""
+        if solution is None:
+            return 0
+        
+        count = 0
+        try:
+            if isinstance(solution, np.ndarray):
+                # Count non-None values
+                count = np.count_nonzero(solution != None)
+            else:
+                # Handle other solution formats
+                for room_schedule in solution:
+                    if not room_schedule:
+                        continue
+                    for event in room_schedule:
+                        if event is not None:
+                            count += 1
+        except Exception as e:
+            print(f"Warning: Could not count scheduled events: {e}")
+        
+        return count
+
+    def format_timetable_results_from_raw(self, all_timetables):
+        """Create compact UI cards from raw timetables - JSON serializable"""
+        timetables = []
+        if not all_timetables:
+            return timetables
+            
+        for timetable_data in all_timetables:
+            try:
+                student_group = timetable_data.get('student_group', {})
+                timetable_rows = timetable_data.get('timetable', [])
+
+                courses = set()
+                total_hours = 0
+                
+                for row in timetable_rows:
+                    if not row or len(row) < 2:
+                        continue
+                    # Skip time label (first column)
+                    for i, cell in enumerate(row[1:], 1):
+                        if cell and 'Course:' in str(cell) and 'BREAK' not in str(cell).upper():
+                            try:
+                                course_part = str(cell).split('Course:')[1].split(',')[0].strip()
+                                if course_part and course_part != "Unknown":
+                                    courses.add(course_part)
+                                    total_hours += 1
+                            except Exception:
+                                continue
+
+                # Safely extract group information and convert to JSON-safe types
+                title = "Unknown Group"
+                student_group_id = None
+                student_count = 0
+                
+                if hasattr(student_group, "name"):
+                    title = str(student_group.name)
+                elif hasattr(student_group, "id"):
+                    title = f"Group {student_group.id}"
+                    
+                if hasattr(student_group, 'id'):
+                    student_group_id = str(student_group.id)  # Convert to string
+                    
+                if hasattr(student_group, 'no_students'):
+                    student_count = int(student_group.no_students) if student_group.no_students else 0
+
+                timetables.append({
+                    'title': title,
+                    'department': str(self.extract_department(student_group)),
+                    'level': str(self.extract_level(student_group)),
+                    'student_group_id': student_group_id,
+                    'courses': [str(c) for c in list(courses)[:10]],  # Convert to strings
+                    'total_courses': len(courses),
+                    'total_hours_scheduled': total_hours,
+                    'student_count': student_count
+                })
+            except Exception as e:
+                print(f"Warning: Error formatting timetable card: {e}")
+                continue
+                
         return timetables
 
+    def extract_level(self, student_group):
+        """Extract level from student group"""
+        try:
+            if hasattr(student_group, 'level') and student_group.level:
+                return f"{student_group.level} Level"
+            
+            name = getattr(student_group, "name", "") or ""
+            name_lower = name.lower()
+            
+            if "year 1" in name_lower or name.startswith("1"):
+                return "100 Level"
+            elif "year 2" in name_lower or name.startswith("2"):
+                return "200 Level"
+            elif "year 3" in name_lower or name.startswith("3"):
+                return "300 Level"
+            elif "year 4" in name_lower or name.startswith("4"):
+                return "400 Level"
+        except Exception:
+            pass
+        return "Unknown Level"
 
-# --------- API Endpoints ---------
-@app.route('/', methods=['GET'])
-def index():
-    return jsonify({'status': 'ok', 'message': 'Timetable Generator API is running.'}), 200
+    def extract_department(self, student_group):
+        """Extract department from student group"""
+        try:
+            if hasattr(student_group, 'dept') and getattr(student_group, 'dept'):
+                return student_group.dept
+            
+            name = getattr(student_group, "name", "") or ""
+            parts = name.split()
+            if len(parts) > 1:
+                return ' '.join(parts[1:])
+        except Exception:
+            pass
+        return "Unknown Department"
 
+    def generate_summary_safe(self, de, best_solution, violations):
+        """Safe summary builder that won't crash if properties are missing - returns JSON serializable data"""
+        try:
+            total_events = len(getattr(de, 'events_list', []))
+        except Exception:
+            total_events = 0
+        
+        scheduled_events = self.count_scheduled_events(best_solution)
+        
+        # Calculate completion rates safely
+        group_completion_rates = []
+        try:
+            student_groups = getattr(de, 'student_groups', [])
+            for student_group in student_groups:
+                expected = sum(getattr(student_group, 'hours_required', []) or [])
+                actual = 0
+                
+                try:
+                    if hasattr(de, 'count_course_occurrences'):
+                        counts = de.count_course_occurrences(best_solution, student_group)
+                        actual = sum(counts.values()) if isinstance(counts, dict) else 0
+                except Exception:
+                    actual = 0
+                
+                if expected > 0:
+                    group_completion_rates.append((actual / expected) * 100)
+        except Exception:
+            group_completion_rates = []
+
+        avg_completion_rate = (sum(group_completion_rates) / len(group_completion_rates) 
+                              if group_completion_rates else 0)
+
+        # Safe fitness evaluation
+        fitness_score = None
+        try:
+            if best_solution is not None and hasattr(de, 'evaluate_fitness'):
+                fitness_score = float(de.evaluate_fitness(best_solution))  # Ensure it's a float
+        except Exception:
+            fitness_score = None
+
+        # Ensure all values are JSON serializable
+        return {
+            'total_student_groups': int(len(getattr(de, 'student_groups', []))),
+            'total_courses': int(len(getattr(de, 'courses', []))),
+            'total_rooms': int(len(getattr(de, 'rooms', []))),
+            'total_events': int(total_events),
+            'scheduled_events': int(scheduled_events),
+            'completion_rate': float(avg_completion_rate),
+            'scheduling_efficiency': float((scheduled_events / total_events * 100) if total_events > 0 else 0),
+            'hard_constraints_satisfied': bool(violations.get('total', float('inf')) < 100 if isinstance(violations, dict) else False),
+            'fitness_score': fitness_score,
+            'constraint_satisfaction_score': float(max(0, 100 - violations.get('total', 100)) if isinstance(violations, dict) else 0),
+            'groups_fully_scheduled': int(len([r for r in group_completion_rates if r >= 100]))
+        }
+
+
+# --- API Endpoints ---
+
+# JSON 500 handler for unexpected errors
+@app.errorhandler(500)
+def handle_internal_error(e):
+    return jsonify({
+        'error': 'Internal server error',
+        'details': str(e)
+    }), 500
 
 @app.route('/upload-excel', methods=['POST'])
 def upload_excel():
+    """Upload Excel and transform into internal input_data used by DE."""
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
     file = request.files['file']
@@ -334,27 +772,41 @@ def upload_excel():
     if not allowed_file(file.filename):
         return jsonify({'error': 'Invalid file type. Please upload .xlsx or .xls files only'}), 400
 
+    # Extra guard for legacy .xls
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    if ext == 'xls':
+        try:
+            import xlrd  # type: ignore
+            ver = getattr(xlrd, '__version__', '2')
+            # xlrd >= 2.0 removed xls support
+            if ver and str(ver).split('.')[0] >= '2':
+                return jsonify({'error': 'Legacy .xls files are not supported by current environment. Please save the file as .xlsx and try again.'}), 400
+        except Exception:
+            return jsonify({'error': 'Legacy .xls files may not be supported. Please upload as .xlsx.'}), 400
+
     try:
         upload_id = str(uuid.uuid4())
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{upload_id}_{filename}")
         file.save(file_path)
-        print(f"[{upload_id}] Uploaded file saved to: {file_path}")
+        print(f"Uploaded file saved to: {file_path}")
 
+        # Validate & transform
         is_valid, validation_message = validate_excel_structure(file_path)
         if not is_valid:
             return jsonify({'error': f'Excel validation failed: {validation_message}'}), 400
 
-        json_data = transform_excel_to_json(file_path)
-
-        input_data = initialize_input_data_from_json(json_data)
-
-        # small test init of DE to catch immediate errors (non-fatal)
         try:
-            DifferentialEvolution(input_data, 10, 0.4, 0.9)
-        except Exception as e:
-            print(f"[{upload_id}] DE initialization warning: {e}")
+            json_data = transform_excel_to_json(file_path)
+        except RuntimeError as exc:
+            return jsonify({'error': f'Excel parsing error: {str(exc)}'}), 400
 
+        try:
+            input_data = initialize_input_data_from_json(json_data)
+        except Exception as exc:
+            return jsonify({'error': f'Failed to initialize input data: {str(exc)}'}), 400
+
+        # Store input_data and metadata for later processing
         generated_timetables[upload_id] = {
             'input_data': input_data,
             'file_path': file_path,
@@ -363,17 +815,18 @@ def upload_excel():
             'json_data': json_data
         }
 
-        # attempt a summary (non-fatal)
+        # Generate preview safely
         try:
             summary = input_data.get_data_summary()
-        except Exception:
+        except Exception as e:
+            print(f"Warning: Could not get data summary: {e}")
             summary = {}
 
         preview_data = {
-            'student_groups': summary.get('student_groups', 0),
-            'courses': summary.get('courses', 0),
-            'rooms': summary.get('rooms', 0),
-            'faculties': summary.get('faculties', 0),
+            'student_groups': summary.get('student_groups', []),
+            'courses': summary.get('courses', []),
+            'rooms': summary.get('rooms', []),
+            'faculties': summary.get('faculties', []),
             'total_student_capacity': summary.get('total_student_capacity', 0),
         }
 
@@ -382,22 +835,19 @@ def upload_excel():
             'upload_id': upload_id,
             'filename': filename,
             'file_size': os.path.getsize(file_path),
-            'preview': preview_data,
-            'debug_info': {
-                'courses': len(getattr(input_data, 'courses', [])),
-                'rooms': len(getattr(input_data, 'rooms', [])),
-                'student_groups': len(getattr(input_data, 'student_groups', [])),
-                'faculties': len(getattr(input_data, 'faculties', []))
-            }
+            'preview': preview_data
         }), 200
 
     except Exception as exc:
-        print(f"[Upload] Error: {exc}")
+        print(f"Upload error: {exc}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Failed to process Excel file: {str(exc)}'}), 500
 
 
 @app.route('/generate-timetable', methods=['POST'])
 def generate_timetable():
+    """Kick off timetable generation in background thread."""
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No JSON data provided'}), 400
@@ -409,80 +859,155 @@ def generate_timetable():
         return jsonify({'error': 'upload_id is required'}), 400
     if upload_id not in generated_timetables:
         return jsonify({'error': 'Invalid upload ID. Please upload an Excel file first.'}), 400
-
+    
+    # Thread-safe check for existing processing job
     lock = get_job_lock(upload_id)
     with lock:
         if upload_id in processing_jobs and processing_jobs[upload_id]['status'] == 'processing':
             return jsonify({'error': 'Timetable generation already in progress for this upload'}), 409
 
-        processing_jobs[upload_id] = {
+    try:
+        stored = generated_timetables[upload_id]
+        input_data = stored['input_data']
+
+        # Initialize job record with thread safety and ensure all values are serializable
+        job_data = {
             'status': 'processing',
             'progress': 0,
             'start_time': datetime.now().isoformat(),
-            'config': make_json_serializable(config),
+            'config': make_json_serializable(config),  # Ensure config is serializable
             'error': None,
-            'result': None,
-            'input_data': None
+            'result': None
         }
+        
+        with lock:
+            processing_jobs[upload_id] = job_data
 
-    stored = generated_timetables[upload_id]
-    input_data = stored['input_data']
+        # Remove stale fresh timetable so UI won't show previous results while new run is in progress
+        try:
+            dash_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+            fresh_path = os.path.join(dash_data_dir, 'fresh_timetable_data.json')
+            if os.path.exists(fresh_path):
+                os.remove(fresh_path)
+                print(f"[GEN] Removed stale fresh file: {fresh_path}")
+        except Exception as rm_err:
+            print(f"[GEN] Warning: Could not remove stale fresh file: {rm_err}")
 
-    processor = TimetableProcessor(upload_id, input_data, config)
+        processor = TimetableProcessor(upload_id, input_data, config)
 
-    pop_size = int(config.get('population_size', 50))
-    max_gen = int(config.get('max_generations', 40))
-    F = float(config.get('F', config.get('mutation_factor', 0.4)))
-    CR = float(config.get('CR', config.get('crossover_rate', 0.9)))
+        # Extract config parameters with defaults
+        pop_size = int(config.get('population_size', 50))
+        max_gen = int(config.get('max_generations', 40))
+        F = float(config.get('F', config.get('mutation_factor', 0.4)))
+        CR = float(config.get('CR', config.get('crossover_rate', 0.9)))
 
-    ### MODIFICATION: The 'args' tuple is now empty
-    thread = threading.Thread(
-        target=processor.run_optimization,
-        args=(),  # Corrected line: No arguments are passed directly
-        daemon=True
-    )
-    thread.start()
+        # Start optimization in separate thread
+        thread = threading.Thread(
+            target=processor.run_optimization,
+            args=(upload_id, input_data, pop_size, max_gen, F, CR),
+            daemon=True
+        )
+        thread.start()
+        print(f"[GEN] Started generation thread for {upload_id} (pop={pop_size}, gens={max_gen}, F={F}, CR={CR})")
 
-    return jsonify({
-        'success': True,
-        'upload_id': upload_id,
-        'message': 'Timetable generation started',
-        'config': config,
-        'estimated_time_minutes': max_gen * 0.05
-    }), 202
+        return jsonify({
+            'success': True,
+            'upload_id': upload_id,
+            'message': 'Timetable generation started',
+            'config': config,
+            'estimated_time_minutes': max_gen * 0.05
+        }), 202
+
+    except Exception as exc:
+        print(f"Generation start error: {exc}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
+        
+        # Update job status safely
+        with lock:
+            if upload_id in processing_jobs:
+                processing_jobs[upload_id]['status'] = 'error'
+                processing_jobs[upload_id]['error'] = str(exc)
+        
+        return jsonify({'error': f'Failed to start timetable generation: {str(exc)}'}), 500
 
 
 @app.route('/get-timetable-status/<upload_id>', methods=['GET'])
 def get_timetable_status(upload_id):
     if upload_id not in processing_jobs:
         return jsonify({'error': 'No processing job found for this upload ID'}), 404
+
     try:
+        # Thread-safe read of job status
         lock = get_job_lock(upload_id)
         with lock:
-            job = dict(processing_jobs[upload_id])
+            job = processing_jobs[upload_id].copy()  # Create a copy to avoid race conditions
+        
+        # Make sure all job data is JSON serializable
         serialized_job = make_json_serializable(job)
+        
         response = {
             'upload_id': str(upload_id),
             'status': str(serialized_job.get('status', 'unknown')),
             'progress': int(serialized_job.get('progress', 0)),
             'start_time': str(serialized_job.get('start_time', '')),
         }
+
         if serialized_job.get('status') == 'completed':
+            # Ensure result is fully serializable
+            result = serialized_job.get('result', {})
+            if result:
+                result = make_json_serializable(result)
+            
             response.update({
                 'message': 'Timetable generation completed successfully',
-                'result': serialized_job.get('result', {})
+                'result': result
             })
         elif serialized_job.get('status') == 'error':
+            error_msg = str(serialized_job.get('error', 'Unknown error'))
             response.update({
-                'message': f"Generation failed: {serialized_job.get('error')}",
-                'error': serialized_job.get('error')
+                'message': f'Generation failed: {error_msg}',
+                'error': error_msg
             })
         else:
-            response.update({'message': f"Processing... {response['progress']}% complete"})
+            progress = int(serialized_job.get('progress', 0))
+            response.update({
+                'message': f'Processing... {progress}% complete'
+            })
+
         return jsonify(response), 200
+    
     except Exception as e:
-        print(f"get_timetable_status error: {e}")
-        return jsonify({'error': f'Status check failed: {str(e)}'}), 500
+        print(f"Error in get_timetable_status: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
+        
+        # Return a safe error response
+        return jsonify({
+            'upload_id': str(upload_id),
+            'status': 'error',
+            'progress': 0,
+            'error': f'Status check failed: {str(e)}',
+            'message': f'Status check failed: {str(e)}'
+        }), 500
+
+
+@app.route('/get-timetable-status', methods=['GET'])
+def list_timetable_jobs():
+    try:
+        summary = {}
+        for uid, job in processing_jobs.items():
+            summary[uid] = {
+                'status': str(job.get('status')),
+                'progress': int(job.get('progress', 0)),
+                'has_result': bool(job.get('result') is not None)
+            }
+        return jsonify({
+            'count': len(summary),
+            'jobs': summary
+        }), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to list jobs: {str(e)}'}), 500
 
 
 @app.route('/export-timetable', methods=['POST'])
@@ -499,10 +1024,11 @@ def export_timetable():
     if upload_id not in processing_jobs:
         return jsonify({'error': 'Invalid upload ID or no results available'}), 404
 
+    # Thread-safe read of job
     lock = get_job_lock(upload_id)
     with lock:
-        job = dict(processing_jobs[upload_id])
-
+        job = processing_jobs[upload_id].copy()
+    
     if job.get('status') != 'completed':
         return jsonify({'error': f'Timetable not ready for export. Status: {job.get("status")}' }), 400
 
@@ -511,7 +1037,7 @@ def export_timetable():
         if not result:
             return jsonify({'error': 'No timetable data available for export'}), 500
 
-        timetable_data = result.get('timetables_raw', []) or result.get('timetables', [])
+        timetable_data = result.get('timetables_raw', [])
         if not timetable_data:
             return jsonify({'error': 'No timetable data found in results'}), 500
 
@@ -520,286 +1046,164 @@ def export_timetable():
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx')
             tmp.write(excel_buffer.getvalue())
             tmp.close()
-            return send_file(tmp.name, as_attachment=True,
-                             download_name=f'timetable_{upload_id}.xlsx',
-                             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            return send_file(
+                tmp.name,
+                as_attachment=True,
+                download_name=f'timetable_{upload_id}.xlsx',
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
         elif format_type == 'pdf':
             pdf_buffer = export_service.export_to_pdf(timetable_data)
             tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
             tmp.write(pdf_buffer.getvalue())
             tmp.close()
-            return send_file(tmp.name, as_attachment=True,
-                             download_name=f'timetable_{upload_id}.pdf',
-                             mimetype='application/pdf')
+            return send_file(
+                tmp.name,
+                as_attachment=True,
+                download_name=f'timetable_{upload_id}.pdf',
+                mimetype='application/pdf'
+            )
         else:
             return jsonify({'error': f'Unsupported format: {format_type}. Supported: excel, pdf'}), 400
 
     except Exception as exc:
         print(f"Export error: {exc}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({'error': f'Export failed: {str(exc)}'}), 500
 
 
-@app.route('/timeslots', methods=['GET', 'OPTIONS'])
-def get_time_slots():
-    if request.method == 'OPTIONS':
-        return '', 200
-    time_slots = [
-        {'start': '09:00', 'end': '10:00', 'label': '9:00 AM'},
-        {'start': '10:00', 'end': '11:00', 'label': '10:00 AM'},
-        {'start': '11:00', 'end': '12:00', 'label': '11:00 AM'},
-        {'start': '12:00', 'end': '13:00', 'label': '12:00 PM'},
-        {'start': '13:00', 'end': '14:00', 'label': '1:00 PM (Break)'},
-        {'start': '14:00', 'end': '15:00', 'label': '2:00 PM'},
-        {'start': '15:00', 'end': '16:00', 'label': '3:00 PM'},
-        {'start': '16:00', 'end': '17:00', 'label': '4:00 PM'},
-    ]
-    return jsonify(time_slots), 200
-
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat(),
-        'version': '1.0.0-clean'
-    }), 200
-
-
-# Simple Dash launching helper (creates session JSON and launches a small script in background)
-def find_dash_port(start_port=8050, max_port=8100):
-    for port in range(start_port, max_port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind(('127.0.0.1', port))
-                return port
-            except OSError:
-                continue
-    return start_port
-
-
-@app.route('/create-dash-session', methods=['POST', 'OPTIONS'])
-@cross_origin()
-def create_dash_session_fixed():
-    """ENHANCED version of dash session creation with proper error handling"""
-    if request.method == 'OPTIONS':
-        return '', 200
-        
+@app.route('/api/download-template', methods=['GET'])
+def download_template():
+    """Download the Excel template file for timetable input"""
     try:
-        data = request.get_json() or {}
-        upload_id = data.get('uploadId') or data.get('upload_id')
+        template_path = os.path.join(os.path.dirname(__file__), 'data', 'NEWLY updated Timetable_Input_Template.xlsx')
         
-        if not upload_id or upload_id not in processing_jobs:
-            return jsonify({'error': 'Invalid or missing upload ID'}), 400
-            
-        job_data = processing_jobs[upload_id]
-        if job_data.get('status') != 'completed':
-            return jsonify({'error': 'Timetable generation not completed'}), 400
+        if not os.path.exists(template_path):
+            return jsonify({'error': 'Template file not found'}), 404
         
-        # Get the result data with enhanced error checking
-        result = job_data.get('result', {}) or {}
-        timetables = result.get('timetables', []) or result.get('timetables_raw', [])
-        
-        if not timetables:
-            print(f"[{upload_id}] No timetables found in result: {list(result.keys())}")
-            return jsonify({'error': 'No timetables available'}), 400
-        
-        # Enhanced data validation and transformation
-        processed_timetables = []
-        for i, timetable in enumerate(timetables):
-            if not isinstance(timetable, dict):
-                print(f"[{upload_id}] Timetable {i} is not a dict: {type(timetable)}")
-                continue
-                
-            # Ensure required fields exist
-            if 'timetable' not in timetable:
-                print(f"[{upload_id}] Timetable {i} missing 'timetable' field")
-                continue
-                
-            # Validate timetable grid structure
-            grid = timetable['timetable']
-            if not isinstance(grid, list) or not grid:
-                print(f"[{upload_id}] Timetable {i} has invalid grid structure")
-                continue
-                
-            processed_timetables.append(timetable)
-        
-        if not processed_timetables:
-            return jsonify({'error': 'No valid timetables found after processing'}), 400
-        
-        # Get input data with fallback logic
-        input_data_raw = result.get('input_data') or generated_timetables.get(upload_id, {}).get('input_data')
-        if not input_data_raw:
-            print(f"[{upload_id}] No input data found")
-            return jsonify({'error': 'No input data available'}), 400
-        
-        # Serialize input data properly
-        if isinstance(input_data_raw, dict):
-            input_data_dict = input_data_raw
-        else:
-            input_data_dict = serialize_input_data(input_data_raw)
-        
-        if not input_data_dict:
-            return jsonify({'error': 'Failed to serialize input data'}), 500
-        
-        # Create session data with enhanced validation
-        try:
-            session_data = TimetableDataConverter.create_session_file(
-                processed_timetables, input_data_dict, upload_id
-            )
-            
-            # Validate session data structure
-            if 'timetables' not in session_data or not session_data['timetables']:
-                raise ValueError("Session data missing timetables")
-                
-        except Exception as e:
-            print(f"[{upload_id}] Session data creation failed: {e}")
-            return jsonify({'error': f'Session creation failed: {str(e)}'}), 500
-        
-        # Find available port
-        port = find_dash_port()
-        dash_url = f"http://127.0.0.1:{port}"
-        
-        # Create session file with proper error handling
-        try:
-            session_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
-            json.dump(session_data, session_file, indent=2, default=str)
-            session_file.close()
-            print(f"[{upload_id}] Created session file: {session_file.name}")
-        except Exception as e:
-            print(f"[{upload_id}] Failed to create session file: {e}")
-            return jsonify({'error': 'Failed to create session file'}), 500
-        
-        # Enhanced launcher script with better error handling
-        launcher_script = f'''
-import sys
-import os
-import traceback
-import signal
-
-# Set up signal handlers for graceful shutdown
-def signal_handler(signum, frame):
-    print(f"Received signal {{signum}}, shutting down...")
-    os._exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
-# Add current directory to Python path
-sys.path.insert(0, '.')
-
-try:
-    print("Starting Dash app...")
-    from dash_server_interactive import create_dash_app
-    
-    app = create_dash_app(r"{session_file.name}")
-    if app:
-        print(f"Dash app created successfully, starting on port {port}")
-        try:
-            # UPDATED: Use app.run() instead of app.run_server()
-            app.run(
-                host='127.0.0.1', 
-                port={port}, 
-                debug=False,
-                use_reloader=False  # Important for subprocess
-            )
-        except Exception as server_e:
-            print(f"Server startup error: {{server_e}}")
-            traceback.print_exc()
-    else:
-        print("Failed to create dash app - check session data")
-        sys.exit(1)
-        
-except Exception as e:
-    print(f"Dash launch error: {{e}}")
-    traceback.print_exc()
-    sys.exit(1)
-'''
-        
-        try:
-            script_file = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
-            script_file.write(launcher_script)
-            script_file.close()
-            
-            # Start Dash process with enhanced logging
-          
-            
-            proc = subprocess.Popen(
-                [sys.executable, script_file.name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding='utf-8',  # Force UTF-8 encoding
-                errors='replace',   # Replace undecodable characters
-                bufsize=1,
-                universal_newlines=True
-            )
-            
-            # Wait a moment for the server to start
-            time.sleep(3)
-            
-            # Check if process is still running
-            if proc.poll() is not None:
-                stdout, _ = proc.communicate()
-                print(f"[{upload_id}] Dash process died immediately: {stdout}")
-                return jsonify({'error': 'Dash server failed to start'}), 500
-            
-            # Store session info
-            dash_sessions[upload_id] = {
-                'port': port,
-                'process': proc,
-                'session_file': session_file.name,
-                'script_file': script_file.name,
-                'created_at': datetime.now().isoformat(),
-                'url': dash_url
-            }
-            
-            print(f"[{upload_id}] Dash session created successfully on port {port}")
-            
-            return jsonify({
-                'success': True,
-                'dash_url': dash_url,
-                'port': port,
-                'session_id': upload_id,
-                'message': 'Interactive session created successfully'
-            }), 200
-            
-        except Exception as e:
-            print(f"[{upload_id}] Process creation failed: {e}")
-            return jsonify({'error': f'Failed to start Dash process: {str(e)}'}), 500
-        
+        return send_file(
+            template_path,
+            as_attachment=True,
+            download_name='Timetable_Input_Template.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     except Exception as exc:
-        print(f"[{upload_id}] Create dash session error: {exc}")
-        traceback.print_exc()
-        return jsonify({'error': f'Session creation failed: {str(exc)}'}), 500
-    
-    
-@app.route('/launch-dash', methods=['GET'])
-@app.route('/launch-dash/<upload_id>', methods=['GET'])
-def launch_dash_endpoint(upload_id=None):
-    # Launch in background thread and return expected URL (attempt)
-    def _launch(u_id):
-        # call create_dash_session_fixed inside a Flask test_request_context so it can read JSON
-        try:
-            with app.test_request_context(json={'uploadId': u_id}):
-                create_dash_session_fixed()
-        except Exception:
-            pass
+        print(f"Template download error: {exc}")
+        return jsonify({'error': f'Template download failed: {str(exc)}'}), 500
 
-    if upload_id is None:
-        # pick latest completed
-        completed = [uid for uid, j in processing_jobs.items() if j.get('status') == 'completed']
-        upload_id = completed[-1] if completed else None
-        if upload_id is None:
-            return jsonify({'success': False, 'message': 'No completed uploads found'}), 400
 
-    thread = threading.Thread(target=_launch, args=(upload_id,), daemon=True)
-    thread.start()
-    port = dash_sessions.get(upload_id, {}).get('port', find_dash_port())
-    return jsonify({'success': True, 'message': 'Dash starting', 'url': f'http://localhost:{port}', 'upload_id': upload_id}), 200
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({'status': 'ok', 'message': 'Timetable Generator API is running.'}), 200
 
+# Ensure Dash knows it is mounted under /interactive so it generates correct asset URLs
+# IMPORTANT: Since we mount Dash via DispatcherMiddleware at '/interactive', do NOT set
+# requests_pathname_prefix or routes_pathname_prefix here. Dash will respect SCRIPT_NAME
+# from the WSGI mount and generate correct asset URLs automatically.
+try:
+    if hasattr(dash_app, 'config'):
+        dash_app.config.suppress_callback_exceptions = True
+except Exception as e:
+    print(f"Warning: Could not adjust Dash config: {e}")
+
+# Mount Dash UI under /interactive using DispatcherMiddleware (most reliable across Dash versions)
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from flask import redirect
+
+# Redirect shims in case any absolute URLs get generated without the prefix
+@app.route('/_dash-component-suites/<path:path>')
+def dash_bundle_redirect(path):
+    return redirect(f'/interactive/_dash-component-suites/{path}', code=302)
+
+@app.route('/_dash-layout')
+def dash_layout_redirect():
+    return redirect('/interactive/_dash-layout', code=302)
+
+@app.route('/_dash-dependencies')
+def dash_deps_redirect():
+    return redirect('/interactive/_dash-dependencies', code=302)
+
+@app.route('/_dash-update-component', methods=['POST'])
+def dash_update_redirect():
+    # 307 preserves method & body
+    return redirect('/interactive/_dash-update-component', code=307)
+
+@app.route('/_favicon.ico')
+def dash_favicon_redirect():
+    return redirect('/interactive/_favicon.ico', code=302)
+
+@app.route('/assets/<path:path>')
+def dash_assets_redirect(path):
+    return redirect(f'/interactive/assets/{path}', code=302)
+
+# Convenience redirect to ensure trailing slash
+@app.route('/interactive')
+def dash_trailing_redirect():
+    return redirect('/interactive/', code=302)
+
+# Unconditionally mount the Dash server under /interactive
+try:
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {'/interactive': dash_app.server})
+    print("Dash app mounted via DispatcherMiddleware at /interactive/")
+except Exception as e:
+    print(f"Warning: Failed to mount Dash app via DispatcherMiddleware: {e}")
+
+# If something still fails later in startup, provide a simple fallback page at /interactive
+@app.route('/interactive/', defaults={'path': ''})
+@app.route('/interactive/<path:path>')
+def interactive_fallback(path):
+    try:
+        # If the request is for dash internal endpoints, let the mounted app handle them (no fallback)
+        if path.startswith('_dash') or path.startswith('assets'):
+            return ('', 404)
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        fresh_path = os.path.join(data_dir, 'fresh_timetable_data.json')
+        saved_path = os.path.join(data_dir, 'timetable_data.json')
+        content = None
+        title = None
+        if os.path.exists(fresh_path):
+            try:
+                with open(fresh_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    title = 'Latest fresh_timetable_data.json'
+            except Exception as read_err:
+                content = f"Error reading fresh_timetable_data.json: {read_err}"
+                title = 'fresh_timetable_data.json (error)'
+        if content is None and os.path.exists(saved_path):
+            try:
+                with open(saved_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    title = 'Latest timetable_data.json'
+            except Exception as read_err:
+                content = f"Error reading timetable_data.json: {read_err}"
+                title = 'timetable_data.json (error)'
+        if content is None:
+            content = 'No fresh or saved timetable JSON found. Please generate a timetable using the API.'
+            title = 'No timetable JSON found'
+        html = f"""
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset='utf-8'/>
+            <title>Interactive Timetable (Fallback)</title>
+            <style>body{{font-family:Arial,Helvetica,sans-serif;padding:20px}} pre{{white-space:pre-wrap;background:#f6f8fa;padding:12px;border-radius:6px;border:1px solid #e1e4e8}}</style>
+          </head>
+          <body>
+            <h2>Interactive Timetable (Fallback)</h2>
+            <p>The Dash UI may still be initializing. If this page persists, check backend logs.</p>
+            <h3>{title}</h3>
+            <pre>{content}</pre>
+          </body>
+        </html>
+        """
+        return html, 200
+    except Exception as e:
+        return jsonify({'error': f'Fallback page error: {str(e)}'}), 500
 
 if __name__ == '__main__':
+    print("Starting Timetable Generator API...")
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     port = int(os.environ.get('PORT', 7860))
-    host = '0.0.0.0'
-    print(f"Starting Timetable Generator API on {host}:{port}")
-    app.run(host=host, port=port, debug=False)
+    print(f"Running on port {port}, debug={debug_mode}")
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
