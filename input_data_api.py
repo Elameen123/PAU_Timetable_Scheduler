@@ -65,14 +65,21 @@ class InputData:
         return None
     
     def create_time_slots(self, no_hours_per_day, no_days_per_week, day_start_time):
+        """
+        Create TimeSlot entries.
+        Note: start_time is stored as an integer hour index within the day (0-based),
+        e.g., 0 => 9:00, 1 => 10:00 when day_start_time=9.
+        This matches constraints.py which uses arithmetic like `timeslot.start_time + 9`.
+        """
         time_slots = []
         for day in range(no_days_per_week):
             for hour in range(no_hours_per_day):
-                start_time = f"{day_start_time + hour}:00"
+                # Store 0-based hour index for numeric arithmetic in constraints
+                start_time_index = hour
                 time_slots.append(TimeSlot(
                     id=len(time_slots), 
                     day=day, 
-                    start_time=start_time, 
+                    start_time=start_time_index, 
                     available=True
                 ))
         return time_slots

@@ -1337,20 +1337,26 @@ class DifferentialEvolution:
         
         print("=== END DIAGNOSIS ===\n")
 
-# Create DE instance and run optimization
-print("Starting Differential Evolution")
-de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-best_solution, fitness_history, generation, diversity_history = de.run(100)
-print("Differential Evolution completed")
+# ============================================================================
+# DEMO/TEST CODE SECTION
+# This code only runs when this file is executed directly (python differential_evolution.py)
+# It will NOT run when imported by app.py
+# ============================================================================
+if __name__ == '__main__':
+    # Create DE instance and run optimization
+    print("Starting Differential Evolution")
+    de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
+    best_solution, fitness_history, generation, diversity_history = de.run(1)
+    print("Differential Evolution completed")
 
-# Get final fitness and detailed breakdown (solution is already repaired inside run())
-final_fitness = de.evaluate_fitness(best_solution)
+    # Get final fitness and detailed breakdown (solution is already repaired inside run())
+    final_fitness = de.evaluate_fitness(best_solution)
 
-# CONSISTENCY CHECK: Ensure constraint violations total matches evaluate_fitness
-violations_debug = de.constraints.get_constraint_violations(best_solution, debug=True)
-violations_total = violations_debug.get('total', 0)
+    # CONSISTENCY CHECK: Ensure constraint violations total matches evaluate_fitness
+    violations_debug = de.constraints.get_constraint_violations(best_solution, debug=True)
+    violations_total = violations_debug.get('total', 0)
 
-# Verify consistency between the two fitness calculations
+    # Verify consistency between the two fitness calculations
 if abs(final_fitness - violations_total) > 0.01:  # Allow small floating point differences
     print(f"⚠️  FITNESS CALCULATION DISCREPANCY DETECTED:")
     print(f"   - evaluate_fitness(): {final_fitness:.4f}")
@@ -4905,8 +4911,7 @@ def update_error_notification_badge(constraint_details, timetables_data):
     
     return str(violated_hard_constraints)
 
-# Run the Dash app
-if __name__ == '__main__':
+    # Run the Dash app (this is inside the if __name__ block that started at line ~1345)
     app.run(debug=False)
     
     # Uncomment below to test DE algorithm performance

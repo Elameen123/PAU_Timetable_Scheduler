@@ -245,7 +245,11 @@ class DifferentialEvolution:
                         end_avail_h = int(end_avail_str.split(':')[0])
                         
                         timeslot_obj = self.timeslots[timeslot_idx]
-                        slot_start_h = int(timeslot_obj.start_time.split(':')[0])
+                        # TimeSlot.start_time may be 0-based hour index (int) or 'HH:MM' string; support both
+                        if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
+                            slot_start_h = 9 + int(timeslot_obj.start_time)
+                        else:
+                            slot_start_h = int(str(timeslot_obj.start_time).split(':')[0])
 
                         if not (start_avail_h <= slot_start_h < end_avail_h):
                             return False

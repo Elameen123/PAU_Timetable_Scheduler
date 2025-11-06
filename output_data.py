@@ -168,18 +168,84 @@ class TimetableExporter:
         return main_name.strip()
 
     def extract_lecturer_info(self, cell_content):
-        """Extract lecturer information from cell content"""
-        if not cell_content or cell_content in ["FREE", "BREAK", ""]:
+        """Extract lecturer information from cell content - handles ALL formats"""
+        if not cell_content or cell_content in ["FREE", "BREAK", "", "Free"]:
             return None
         
-        # Cell format: Course Code\nRoom Name\nFaculty
+        # Format 1: Comma-separated (ACTUAL timetable_data.json format)
+        # "Course: PHY 101, Lecturer: Dr. Name, Room: RoomName"
+        if 'Course:' in cell_content and ',' in cell_content:
+            course_code = None
+            room = None
+            faculty = None
+            
+            # Split by commas and parse each part
+            parts = cell_content.split(',')
+            for part in parts:
+                part = part.strip()
+                if part.startswith('Course:'):
+                    course_part = part.replace('Course:', '').strip()
+                    # Handle "GST 111 - ENG" or "GST 111"
+                    if ' - ' in course_part:
+                        course_code = course_part.split(' - ')[0].strip()
+                    else:
+                        course_code = course_part.strip()
+                elif part.startswith('Lecturer:'):
+                    faculty_part = part.replace('Lecturer:', '').strip()
+                    if '(' in faculty_part:
+                        faculty = faculty_part.split('(')[0].strip()
+                    else:
+                        faculty = faculty_part
+                elif part.startswith('Room:'):
+                    room = part.replace('Room:', '').strip()
+            
+            if course_code:
+                return {
+                    'course_code': course_code,
+                    'room': room or "",
+                    'faculty': faculty or ""
+                }
+        
+        # Format 2: Newline-separated with labels
+        # Course: GST 111\nLecturer: Dr. Name\nRoom: RoomName
         lines = cell_content.split('\n')
-        if len(lines) >= 3:
+        course_code = None
+        room = None
+        faculty = None
+        
+        for line in lines:
+            line = line.strip()
+            if line.startswith('Course:'):
+                course_part = line.replace('Course:', '').strip()
+                if ' - ' in course_part:
+                    course_code = course_part.split(' - ')[0].strip()
+                else:
+                    course_code = course_part.strip()
+            elif line.startswith('Lecturer:'):
+                faculty_part = line.replace('Lecturer:', '').strip()
+                if '(' in faculty_part:
+                    faculty = faculty_part.split('(')[0].strip()
+                else:
+                    faculty = faculty_part
+            elif line.startswith('Room:'):
+                room = line.replace('Room:', '').strip()
+        
+        if course_code:
+            return {
+                'course_code': course_code,
+                'room': room or "",
+                'faculty': faculty or ""
+            }
+        
+        # Format 3: Old SEPT 13 format (no labels)
+        # Course Code\nRoom Name\nFaculty
+        if len(lines) >= 3 and not any(label in cell_content for label in ['Course:', 'Lecturer:', 'Room:']):
             return {
                 'course_code': lines[0].strip(),
                 'room': lines[1].strip(),
                 'faculty': lines[2].strip()
             }
+        
         return None
 
     def create_combined_program_sheet(self, wb, sheet_name, groups_data):
@@ -788,14 +854,14 @@ class TimetableExporter:
                 if day_idx + 1 < len(row_data):  # Skip time column
                     cell_content = row_data[day_idx + 1]
                     
-                    if cell_content and cell_content not in ["FREE", "", "BREAK"]:
-                        lines = cell_content.split('\n')
-                        if len(lines) >= 1:
-                            course_code = lines[0].strip()
-                            if course_code:
-                                if course_code not in courses:
-                                    courses[course_code] = {'hours': 0}
-                                courses[course_code]['hours'] += 1
+                    if cell_content and cell_content not in ["FREE", "", "BREAK", "Free"]:
+                        # Use the updated parser that handles all formats
+                        class_info = self.extract_lecturer_info(cell_content)
+                        if class_info and class_info['course_code']:
+                            course_code = class_info['course_code']
+                            if course_code not in courses:
+                                courses[course_code] = {'hours': 0}
+                            courses[course_code]['hours'] += 1
         
         return courses
 
@@ -819,14 +885,9 @@ class TimetableExporter:
             if day_idx + 1 < len(row_data):  # Skip time column
                 cell_content = row_data[day_idx + 1]
                 
-                if cell_content and cell_content not in ["FREE", "", "BREAK"]:
-                    lines = cell_content.split('\n')
-                    if len(lines) >= 3:
-                        return {
-                            'course_code': lines[0].strip(),
-                            'room': lines[1].strip(),
-                            'faculty': lines[2].strip()
-                        }
+                if cell_content and cell_content not in ["FREE", "", "BREAK", "Free"]:
+                    # Use the updated parser that handles all formats
+                    return self.extract_lecturer_info(cell_content)
         return None
 
     def get_building_from_room(self, room_name):
@@ -874,6 +935,191 @@ def export_lecturer_timetables():
     """Export lecturer timetables"""
     exporter = TimetableExporter()
     return exporter.export_lecturer_timetables()
+
+# New functions that accept data directly from Dash UI and return bytes for browser downloads
+def export_sst_timetables_bytes_from_data(timetable_data):
+    """Export SST timetables from Dash UI data and return bytes for download"""
+    from io import BytesIO
+    
+    if not timetable_data:
+        return None, "No timetable data available"
+    
+    exporter = TimetableExporter()
+    
+    # Extract timetables list
+    data = timetable_data.get('timetables', []) if isinstance(timetable_data, dict) else timetable_data
+    
+    if not data:
+        return None, "No timetable data available"
+    
+    try:
+        # Group SST student groups by main program
+        sst_programs = defaultdict(list)
+        
+        for group_data in data:
+            group_name = group_data['student_group']['name']
+            if exporter.is_sst_group(group_name):
+                main_program = exporter.extract_main_program_name(group_name)
+                sst_programs[main_program].append(group_data)
+        
+        if not sst_programs:
+            return None, "No SST student groups found"
+        
+        # Create workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        
+        for program_name, groups in sst_programs.items():
+            groups.sort(key=lambda x: x['student_group']['name'])
+            safe_sheet_name = re.sub(r'[^\w\s-]', '', program_name)[:31]
+            exporter.create_combined_program_sheet(wb, safe_sheet_name, groups)
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"SST_Timetables_{timestamp}.xlsx"
+        
+        return buffer.getvalue(), filename
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"Error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return None, error_msg
+
+def export_tyd_timetables_bytes_from_data(timetable_data):
+    """Export TYD timetables from Dash UI data and return bytes for download"""
+    from io import BytesIO
+    
+    if not timetable_data:
+        return None, "No timetable data available"
+    
+    exporter = TimetableExporter()
+    
+    # Extract timetables list
+    data = timetable_data.get('timetables', []) if isinstance(timetable_data, dict) else timetable_data
+    
+    if not data:
+        return None, "No timetable data available"
+    
+    try:
+        # Group TYD student groups by main program
+        tyd_programs = defaultdict(list)
+        
+        for group_data in data:
+            group_name = group_data['student_group']['name']
+            if not exporter.is_sst_group(group_name):
+                main_program = exporter.extract_main_program_name(group_name)
+                tyd_programs[main_program].append(group_data)
+        
+        if not tyd_programs:
+            return None, "No TYD student groups found"
+        
+        # Create workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        
+        for program_name, groups in tyd_programs.items():
+            groups.sort(key=lambda x: x['student_group']['name'])
+            safe_sheet_name = re.sub(r'[^\w\s-]', '', program_name)[:31]
+            exporter.create_combined_program_sheet(wb, safe_sheet_name, groups)
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"TYD_Timetables_{timestamp}.xlsx"
+        
+        return buffer.getvalue(), filename
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"Error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return None, error_msg
+
+def export_lecturer_timetables_bytes_from_data(timetable_data):
+    """Export lecturer timetables from Dash UI data and return bytes for download"""
+    from io import BytesIO
+    
+    if not timetable_data:
+        return None, "No timetable data available"
+    
+    exporter = TimetableExporter()
+    
+    # Extract timetables list
+    data = timetable_data.get('timetables', []) if isinstance(timetable_data, dict) else timetable_data
+    
+    if not data:
+        return None, "No timetable data available"
+    
+    try:
+        # Collect all lecturer schedules
+        lecturer_schedules = defaultdict(list)
+        
+        for group_data in data:
+            student_group_name = group_data['student_group']['name']
+            timetable_rows = group_data['timetable']
+            
+            for time_slot_idx, row_data in enumerate(timetable_rows):
+                for day_idx in range(len(exporter.days)):
+                    if day_idx + 1 < len(row_data):  # Skip time column
+                        cell_content = row_data[day_idx + 1]
+                        lecturer_info = exporter.extract_lecturer_info(cell_content)
+                        
+                        if lecturer_info and lecturer_info['course_code']:
+                            course_code = lecturer_info['course_code']
+                            
+                            # Get all faculty for this course
+                            course_info = exporter.course_data.get(course_code, {})
+                            faculty_ids = course_info.get('facultyId', [])
+                            
+                            if isinstance(faculty_ids, str):
+                                faculty_ids = [faculty_ids]
+                            
+                            # Create schedule entries for ALL faculty members
+                            for faculty_id in faculty_ids:
+                                faculty_info = exporter.faculty_data.get(faculty_id, {})
+                                lecturer_name = faculty_info.get('name', faculty_id)
+                                
+                                if lecturer_name.lower() not in ['unknown', 'tbd', 'staff', '']:
+                                    lecturer_schedules[lecturer_name].append({
+                                        'time_slot': time_slot_idx,
+                                        'day': day_idx,
+                                        'course_code': course_code,
+                                        'room': lecturer_info['room'],
+                                        'student_group': student_group_name
+                                    })
+        
+        if not lecturer_schedules:
+            return None, "No lecturer data found"
+        
+        # Create workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        
+        exporter.create_combined_lecturer_sheet(wb, "Lecturer Timetables", lecturer_schedules)
+        
+        # Save to BytesIO
+        buffer = BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"Lecturer_Timetables_{timestamp}.xlsx"
+        
+        return buffer.getvalue(), filename
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"Error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        return None, error_msg
 
 if __name__ == "__main__":
     # Test the export functions
