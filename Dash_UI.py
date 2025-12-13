@@ -433,6 +433,89 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'groups': [s['group'] for s in sessions],
                             'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
                         })
+
+        # Check for Missing or Extra Classes
+        if input_data:
+            for group_data in timetables_data:
+                # Find matching student group in input_data
+                group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
+                
+                student_group = next((g for g in input_data.student_groups if g.name == group_name), None)
+                if not student_group:
+                    continue
+                
+                # Count scheduled hours for each course
+                scheduled_counts = {}
+                timetable_grid = group_data.get('timetable', [])
+                
+                for row in timetable_grid:
+                    # Skip header col (index 0)
+                    for cell in row[1:]:
+                        if not cell or str(cell).strip().upper() in ['FREE', 'BREAK']:
+                            continue
+                        
+                        course_code, _, _ = _parse_cell(cell)
+                        if course_code:
+                            scheduled_counts[course_code] = scheduled_counts.get(course_code, 0) + 1
+                
+                # Compare with requirements
+                for i, course_id in enumerate(student_group.courseIDs):
+                    course = input_data.getCourse(course_id)
+                    if not course: 
+                        continue
+                        
+                    # Special handling for 1-credit courses -> 3 hours
+                    if course.credits == 1:
+                        expected = 3
+                    else:
+                        expected = student_group.hours_required[i]
+                    
+                    actual = scheduled_counts.get(course.code, 0)
+                    
+                    if actual != expected:
+                        issue_type = "Missing" if actual < expected else "Extra"
+                        violations['Missing or Extra Classes'].append({
+                            'group': group_name,
+                            'course': course.code,
+                            'expected': expected,
+                            'actual': actual,
+                            'issue': issue_type,
+                            'location': f"{course.code} for {group_name}"
+                        })
+
+        # Check for Classes During Break Time
+        # Break is at 13:00 (index 4) on Mon (0), Wed (2), Fri (4)
+        break_slot_idx = 4
+        break_days = [0, 2, 4]
+        
+        for group_data in timetables_data:
+            timetable_grid = group_data.get('timetable', [])
+            if len(timetable_grid) <= break_slot_idx:
+                continue
+                
+            row = timetable_grid[break_slot_idx]
+            # row[0] is label, row[1] is Mon (day 0), row[2] is Tue (day 1)...
+            
+            for day_idx in break_days:
+                if day_idx + 1 >= len(row):
+                    continue
+                    
+                cell = row[day_idx + 1]
+                if not cell or str(cell).strip().upper() in ['FREE', 'BREAK']:
+                    continue
+                
+                # If there is a class here, it's a violation
+                course_code, room, lecturer = _parse_cell(cell)
+                group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
+                
+                violations['Classes During Break Time'].append({
+                    'course': course_code,
+                    'group': group_name,
+                    'location': f"{days_map.get(day_idx)} at 13:00",
+                    'day': days_map.get(day_idx),
+                    'time': "13:00"
+                })
+
         return violations
     except Exception as e:
         print(f"Error computing simplified violations: {e}")
@@ -656,16 +739,17 @@ def create_app(_ctx: dict | None = None):
                 font-family: 'Poppins', sans-serif;
             }
             .cell {
-                padding: 12px 10px;
+                padding: 8px 6px;
                 border: 1px solid #e0e0e0;
                 border-radius: 3px;
                 cursor: grab;
-                min-height: 45px;
+                min-height: 40px;
+                height: 100%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: 400;
-                font-size: 12px;
+                font-size: 11px;
                 transition: all 0.2s ease;
                 user-select: none;
                 line-height: 1.2;
@@ -674,6 +758,7 @@ def create_app(_ctx: dict | None = None):
                 white-space: pre-line;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
+                box-sizing: border-box;
             }
             .cell:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.1); border-color: #ccc; }
             .cell.dragging { opacity: 0.6; transform: rotate(2deg); cursor: grabbing; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
@@ -712,12 +797,12 @@ def create_app(_ctx: dict | None = None):
             .conflict-warning-title { font-weight: 600; color: #d32f2f; font-size: 14px; }
             .conflict-warning-close { background: none; border: none; font-size: 18px; color: #d32f2f; cursor: pointer; padding: 2px; }
             .conflict-warning-content { color: #b71c1c; font-size: 12px; line-height: 1.4; }
-            .student-group-container { margin-bottom: 30px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background-color: #fafafa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 1200px; margin: 0 auto 30px auto; }
-            .dropdown-container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
-            table { font-family: 'Poppins', sans-serif; font-size: 12px; border-collapse: separate; border-spacing: 0; width: 100%; background-color: white; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+            .student-group-container { margin-bottom: 30px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background-color: #fafafa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); max-width: 100%; margin: 0 auto 30px auto; }
+            .dropdown-container { max-width: 100%; margin: 0 auto; padding: 0 15px; }
+            table { font-family: 'Poppins', sans-serif; font-size: 12px; border-collapse: separate; border-spacing: 0; width: 100%; background-color: white; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.08); table-layout: fixed; }
             th { background-color: #11214D !important; color: white !important; padding: 12px 10px !important; font-size: 13px !important; font-weight: 600 !important; text-align: center !important; border: 1px solid #0d1a3d !important; }
-            td { padding: 0 !important; border: 1px solid #e0e0e0 !important; background-color: white; }
-            .time-cell { background-color: #11214D !important; color: white !important; padding: 12px 10px !important; font-weight: 600 !important; text-align: center !important; font-size: 12px !important; border: 1px solid #0d1a3d !important; }
+            td { padding: 0 !important; border: 1px solid #e0e0e0 !important; background-color: white; height: 1px; }
+            .time-cell { background-color: #11214D !important; color: white !important; padding: 12px 10px !important; font-weight: 600 !important; text-align: center !important; font-size: 12px !important; border: 1px solid #0d1a3d !important; width: 80px; }
             .timetable-title { color: #11214D; font-weight: 600; margin-bottom: 20px; font-size: 20px; }
             .timetable-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 10px; }
             .nav-arrows { display: flex; align-items: center; gap: 15px; }
@@ -851,8 +936,8 @@ def create_app(_ctx: dict | None = None):
                 dcc.Dropdown(id='student-group-dropdown', options=options, value=0, searchable=True, clearable=False, style={"width": "280px", "fontSize": "13px", "fontFamily": "Poppins, sans-serif"})
             ], style={"display": "flex", "alignItems": "center"})
         ], style={"display": "flex", "alignItems": "center", "justifyContent": "space-between", 
-                 "marginTop": "30px", "marginBottom": "30px", "maxWidth": "1200px", 
-                 "margin": "30px auto", "padding": "0 15px"}),
+                 "marginTop": "20px", "marginBottom": "20px", "maxWidth": "100%", 
+                 "margin": "20px auto", "padding": "0 15px"}),
 
         dcc.Store(id='all-timetables-store', data=timetables),
         dcc.Store(id='rooms-data-store', data=rooms_data),
@@ -878,7 +963,7 @@ def create_app(_ctx: dict | None = None):
         dcc.Store(id='add-class-data', data=None),
 
         # The timetable will be rendered here by callbacks
-        html.Div(id='timetable-container'),
+        html.Div(id='timetable-container', style={"width": "100%", "overflowX": "auto"}),
         # Hidden helpers used by callbacks/clientside init
         html.Div(id='trigger', style={'display': 'none'}),
         html.Div(id='dnd-init-sink', style={'display': 'none'}),
@@ -1058,87 +1143,14 @@ def create_app(_ctx: dict | None = None):
         tdata = all_timetables_data[selected_group_idx]
         name = tdata['student_group']['name'] if isinstance(tdata['student_group'], dict) else getattr(tdata['student_group'], 'name', str(tdata['student_group']))
         rows = tdata['timetable']
-        # Build overlay conflicts from constraints (day/time -> row/col)
-        overlay = {}
-        try:
-            day_map = {'Mon':0,'Tue':1,'Wed':2,'Thu':3,'Fri':4,'Monday':0,'Tuesday':1,'Wednesday':2,'Thursday':3,'Friday':4}
-            def add_overlay(day_idx, time_label, typ):
-                try:
-                    # Expect time_label like '9:00' or '09:00'
-                    hour = None
-                    if isinstance(time_label, str) and ':' in time_label:
-                        hour = int(time_label.split(':')[0])
-                    elif isinstance(time_label, (int, float)):
-                        hour = int(time_label)
-                    if hour is None:
-                        return
-                    r = hour - 9
-                    if 0 <= r < len(rows) and 0 <= int(day_idx) <= 4:
-                        key = f"{r}_{int(day_idx)}"
-                        if key not in overlay:
-                            overlay[key] = typ
-                        else:
-                            if overlay[key] != typ:
-                                overlay[key] = 'both'
-                except Exception:
-                    return
-            if isinstance(constraint_details, dict):
-                for v in constraint_details.get('Different Student Group Overlaps', []) or []:
-                    if isinstance(v, dict):
-                        d = v.get('day', None)
-                        t = v.get('time', None)
-                        # Fallback: parse from 'location' like "Mon at 9:00"
-                        if (d is None or t is None) and isinstance(v.get('location'), str):
-                            try:
-                                loc = v.get('location')
-                                # extract day word and hour
-                                varr = loc.replace(' at ', ' ').replace(',', ' ').split()
-                                # find first day-like token and first token with ':''
-                                dd = None; tt = None
-                                for token in varr:
-                                    if token[:3] in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.']:
-                                        dd = token[:3]
-                                    if ':' in token:
-                                        tt = token
-                                if dd and not d:
-                                    d = dd
-                                if tt and not t:
-                                    t = tt
-                            except Exception:
-                                pass
-                        if isinstance(d, str):
-                            d = day_map.get(d, None)
-                        add_overlay(d, t, 'room')
-                for v in constraint_details.get('Lecturer Clashes', []) or []:
-                    if isinstance(v, dict):
-                        d = v.get('day', None)
-                        t = v.get('time', None)
-                        if (d is None or t is None) and isinstance(v.get('location'), str):
-                            try:
-                                loc = v.get('location')
-                                varr = loc.replace(' at ', ' ').replace(',', ' ').split()
-                                dd = None; tt = None
-                                for token in varr:
-                                    if token[:3] in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.']:
-                                        dd = token[:3]
-                                    if ':' in token:
-                                        tt = token
-                                if dd and not d:
-                                    d = dd
-                                if tt and not t:
-                                    t = tt
-                            except Exception:
-                                pass
-                        if isinstance(d, str):
-                            d = day_map.get(d, None)
-                        add_overlay(d, t, 'lecturer')
-        except Exception:
-            overlay = {}
+        
         # Runtime detection across groups
         conflicts = _detect_conflicts(all_timetables_data, selected_group_idx)
+        
         header_cells = [html.Th('Time', style={"backgroundColor": "#11214D", "color": "white", "padding": "12px 10px", "fontWeight": "600", "fontSize": "13px", "textAlign": "center", "border": "1px solid #0d1a3d"})]
         for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]:
             header_cells.append(html.Th(day, style={"backgroundColor": "#11214D", "color": "white", "padding": "12px 10px", "fontWeight": "600", "fontSize": "13px", "textAlign": "center", "border": "1px solid #0d1a3d"}))
+        
         body_rows = []
         for r in range(len(rows)):
             cells = [html.Td(rows[r][0], className='time-cell')]
@@ -1147,20 +1159,13 @@ def create_app(_ctx: dict | None = None):
                 text = str(raw).strip()
                 text_upper = text.upper()
                 is_break = text_upper == 'BREAK'
+                
                 key = f"{r}_{c-1}"
                 ctype = conflicts.get(key, {}).get('type', 'none') if key in conflicts else 'none'
-                # Do not overlay conflicts on FREE cells
-                if text_upper != 'FREE':
-                    # overlay from constraints file only if not FREE
-                    if key in overlay:
-                        if ctype == 'none':
-                            ctype = overlay[key]
-                        elif ctype != overlay[key]:
-                            ctype = 'both'
-                else:
-                    ctype = 'none'
+                
                 manual_key = f"{selected_group_idx}_{r}_{c-1}"
                 is_manual = bool(manual_cells_state) and manual_key in (manual_cells_state or [])
+                
                 if is_break:
                     cls = 'cell break-time'; draggable = 'false'
                 elif is_manual:
@@ -1186,10 +1191,13 @@ def create_app(_ctx: dict | None = None):
                 else:
                     cls = 'cell'
                     draggable = 'true'
+                
                 cell_id = {"type": "cell", "group": selected_group_idx, "row": r, "col": c-1}
                 cells.append(html.Td(html.Div(text, id=cell_id, className=cls, draggable=draggable, n_clicks=0), style={"padding": "0", "border": "1px solid #e0e0e0"}))
             body_rows.append(html.Tr(cells))
+            
         table = html.Table([html.Thead(html.Tr(header_cells)), html.Tbody(body_rows)], style={"width": "100%", "borderCollapse": "separate", "borderSpacing": "0", "backgroundColor": "white", "borderRadius": "6px", "overflow": "hidden", "fontSize": "12px", "boxShadow": "0 2px 6px rgba(0,0,0,0.08)", "fontFamily": "Poppins, sans-serif"})
+        
         # Header with title and navigation arrows
         header = html.Div([
             html.Div([
@@ -1319,7 +1327,12 @@ def create_app(_ctx: dict | None = None):
         if updated and current_constraints:
             # CRITICAL: Preserve constraints from original DE algorithm that don't change with swaps
             # These are calculated based on course allocations, not cell positions
-            constraints_to_preserve = ['Missing or Extra Classes', 'Classes During Break Time']
+            constraints_to_preserve = [
+                'Lecturer Schedule Conflicts (Day/Time)',
+                'Lecturer Workload Violations',
+                'Consecutive Slot Violations',
+                'Same Course in Multiple Rooms on Same Day'
+            ]
             for constraint_type in constraints_to_preserve:
                 if constraint_type in current_constraints:
                     updated[constraint_type] = current_constraints[constraint_type]
@@ -1327,7 +1340,7 @@ def create_app(_ctx: dict | None = None):
         try:
             print("[Dash_UI] Updated constraint details (preserving original algorithm constraints):")
             if updated:
-                for constraint_type in ['Missing or Extra Classes', 'Classes During Break Time']:
+                for constraint_type in constraints_to_preserve:
                     if constraint_type in updated:
                         print(f"  - {constraint_type}: {len(updated[constraint_type])} violations preserved")
         except Exception:

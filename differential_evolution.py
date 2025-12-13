@@ -1544,6 +1544,21 @@ def save_fresh_optimization_data(data):
 # Save the fresh data
 save_fresh_optimization_data(all_timetables)
 
+# Save detailed constraint violations for Dash UI
+def save_constraint_violations(de_instance, chromosome):
+    """Save detailed constraint violations to JSON for the UI."""
+    try:
+        detailed_violations = de_instance.constraints.get_detailed_constraint_violations(chromosome)
+        violations_path = os.path.join(os.path.dirname(__file__), 'data', 'constraint_violations.json')
+        with open(violations_path, 'w', encoding='utf-8') as f:
+            json.dump(detailed_violations, f, indent=2, ensure_ascii=False)
+        print(f"✅ Saved detailed constraint violations to {violations_path}")
+    except Exception as e:
+        print(f"❌ Error saving constraint violations: {e}")
+        traceback.print_exc()
+
+save_constraint_violations(de, best_solution)
+
 # Load rooms data for classroom selection
 rooms_data = []
 try:
