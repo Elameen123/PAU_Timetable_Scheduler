@@ -1072,7 +1072,7 @@ def create_app(_ctx: dict | None = None):
                                 html.Span('Break time - Classes cannot be scheduled')
                             ], className='color-item'),
                             html.Div([
-                                html.Div(className='color-box.room-conflict'),
+                                html.Div(className='color-box room-conflict'),
                                 html.Span('Room conflict - Same classroom used by multiple groups')
                             ], className='color-item'),
                             html.Div([

@@ -1,5 +1,4 @@
 from input_data import input_data
-from old_GA.timetable import Timetable
 
 class Utility:
 
@@ -20,24 +19,6 @@ class Utility:
             teacher = input_data.faculties[i]
             print(f"{teacher.faculty_id} {teacher.name} {teacher.courseID}")
     
-    @staticmethod
-    def print_slots():
-        days = input_data.days
-        hours = input_data.hours
-        nostgrp = input_data.nostudentgroup
-        
-        # print(Timetable.__dict__)
-
-        print("----Slots----")
-        for i in range(days * hours * nostgrp):
-            slot = Timetable.periods_list[i]
-            if slot is not None:
-                print(f"{i}- {slot.student_group.name} {slot.course_id} {slot.faculty_id}")
-            # else:
-            #     print("Free Period")
-            
-            if (i + 1) % (hours * days) == 0:
-                print("******************************")
 
 def print_timetable(individual, student_group, events_map, days, hours_per_day, day_start_time=9):
     # Create a blank timetable grid for the student group
