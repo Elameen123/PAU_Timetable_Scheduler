@@ -316,8 +316,10 @@ def save_timetable_to_file(timetables_data, manual_cells_data):
         data = {'timetables': timetables_data, 'manual_cells': manual_cells_data or []}
         with open(session_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        with open(export_path, 'w', encoding='utf-8') as f:
-            json.dump(timetables_data, f, indent=2, ensure_ascii=False)
+        # REMOVED: Do not overwrite fresh_timetable_data.json with manual edits
+        # This ensures restarts always load the clean optimization result
+        # with open(export_path, 'w', encoding='utf-8') as f:
+        #     json.dump(timetables_data, f, indent=2, ensure_ascii=False)
         return True
     except Exception as e:
         print(f"Error auto-saving timetable: {e}")
@@ -366,6 +368,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
             for day in range(max_days):
                 room_usage = {}
                 lecturer_usage = {}
+                group_usage = {}
                 time_label = None
 
                 for timetable in timetables_data:
@@ -390,6 +393,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
 
                     if room:
                         room_usage.setdefault(room, []).append(group_name)
+                        group_usage.setdefault(group_name, []).append({'room': room, 'course': course})
                     if lecturer:
                         lecturer_usage.setdefault(lecturer, []).append({'group': group_name, 'course': course})
 
@@ -417,6 +421,18 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                         violations['Different Student Group Overlaps'].append({
                             'room': room_name,
                             'groups': groups,
+                            'day': days_map.get(day, str(day)),
+                            'time': time_label or f"{time_slot+9}:00",
+                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                        })
+
+                # Record Same Student Group Overlaps
+                for g_name, usages in group_usage.items():
+                    if len(usages) > 1:
+                        violations['Same Student Group Overlaps'].append({
+                            'group': g_name,
+                            'courses': [u['course'] for u in usages],
+                            'rooms': [u['room'] for u in usages],
                             'day': days_map.get(day, str(day)),
                             'time': time_label or f"{time_slot+9}:00",
                             'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
@@ -465,10 +481,16 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                         continue
                         
                     # Special handling for 1-credit courses -> 3 hours
-                    if course.credits == 1:
-                        expected = 3
+                    # Use hours_required from student group data
+                    if i < len(student_group.hours_required):
+                        raw_hours = student_group.hours_required[i]
+                        if raw_hours == 1:
+                            expected = 3
+                        else:
+                            expected = raw_hours
                     else:
-                        expected = student_group.hours_required[i]
+                        # Fallback if index out of bounds
+                        expected = 3 if course.credits == 1 else course.credits
                     
                     actual = scheduled_counts.get(course.code, 0)
                     
@@ -516,6 +538,47 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                     'time': "13:00"
                 })
 
+        # Check for Same Course in Multiple Rooms on Same Day
+        for group_data in timetables_data:
+            group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
+            timetable_grid = group_data.get('timetable', [])
+            
+            # Track rooms per course per day
+            # Structure: { day_idx: { course_code: {room1, room2, ...} } }
+            course_rooms_per_day = {}
+            
+            for r_idx, row in enumerate(timetable_grid):
+                # Skip header row if any (usually row 0 is times, but here grid seems to be [Time, Mon, Tue...])
+                # Actually based on other checks, row is [TimeLabel, Mon, Tue, Wed, Thu, Fri]
+                
+                for d_idx in range(5): # 0=Mon, 4=Fri
+                    if d_idx + 1 >= len(row):
+                        continue
+                        
+                    cell = row[d_idx + 1]
+                    if not cell or str(cell).strip().upper() in ['FREE', 'BREAK']:
+                        continue
+                        
+                    course_code, room, _ = _parse_cell(cell)
+                    if course_code and room:
+                        if d_idx not in course_rooms_per_day:
+                            course_rooms_per_day[d_idx] = {}
+                        if course_code not in course_rooms_per_day[d_idx]:
+                            course_rooms_per_day[d_idx][course_code] = set()
+                        course_rooms_per_day[d_idx][course_code].add(room)
+            
+            # Analyze for violations
+            for d_idx, courses in course_rooms_per_day.items():
+                for course_code, rooms in courses.items():
+                    if len(rooms) > 1:
+                        violations['Same Course in Multiple Rooms on Same Day'].append({
+                            'group': group_name,
+                            'course': course_code,
+                            'day': days_map.get(d_idx),
+                            'rooms': list(rooms),
+                            'location': f"{course_code} on {days_map.get(d_idx)}"
+                        })
+
         return violations
     except Exception as e:
         print(f"Error computing simplified violations: {e}")
@@ -540,7 +603,7 @@ def _make_excel_bytes(all_timetables):
     return buf.getvalue()
 
 
-def create_errors_modal_content(constraint_details, expanded_constraint=None, toggle_constraint=None):
+def create_errors_modal_content(constraint_details, timetables_data=None, expanded_constraint=None, toggle_constraint=None):
     """Create the content for the errors modal with constraint dropdowns - SEPT 13 format"""
     if not constraint_details:
         return [html.Div("No constraint violation data available.", style={"padding": "20px", "textAlign": "center"})]
@@ -560,6 +623,14 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
     if expanded_constraint:
         create_errors_modal_content.expanded_states.add(expanded_constraint)
     
+    # Build group name to index map for navigation
+    group_map = {}
+    if timetables_data:
+        for idx, t in enumerate(timetables_data):
+            g = t['student_group']
+            name = g['name'] if isinstance(g, dict) else getattr(g, 'name', str(g))
+            group_map[name] = idx
+
     # Mapping from user-friendly names to internal names (SEPT 13 format)
     constraint_mapping = {
         'Same Student Group Overlaps': 'Same Student Group Overlaps',
@@ -598,95 +669,95 @@ def create_errors_modal_content(constraint_details, expanded_constraint=None, to
         details_content = []
         if violations:
             for i, violation in enumerate(violations):
+                item_text = None
+                target_group_idx = None
+                
+                # Extract text and try to find target group
                 if internal_name == 'Same Student Group Overlaps':
-                    details_content.append(html.Div(
-                        f"Group '{violation['group']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
-                        className="constraint-item"
-                    ))
+                    item_text = f"Group '{violation['group']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
                 elif internal_name == 'Different Student Group Overlaps':
-                    # Handle both old format (events) and new format (groups)
                     if 'events' in violation:
-                        details_content.append(html.Div(
-                            f"Room conflict at {violation['location']}: {', '.join(violation['events'])}",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Room conflict at {violation['location']}: {', '.join(violation['events'])}"
+                        # Try to extract group name from event string "Course (Group: Name)"
+                        import re
+                        match = re.search(r"Group: '([^']+)'", violation['events'][0]) if violation['events'] else None
+                        if match and match.group(1) in group_map:
+                            target_group_idx = group_map[match.group(1)]
                     elif 'groups' in violation:
-                        details_content.append(html.Div(
-                            f"Room conflict in {violation['room']} at {violation['location']}: Groups {', '.join(violation['groups'])} both scheduled",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Room conflict in {violation['room']} at {violation['location']}: Groups {', '.join(violation['groups'])} both scheduled"
+                        if violation['groups'] and violation['groups'][0] in group_map:
+                            target_group_idx = group_map[violation['groups'][0]]
                     else:
-                        details_content.append(html.Div(
-                            f"Room conflict at {violation.get('location', 'Unknown location')}",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Room conflict at {violation.get('location', 'Unknown location')}"
+                        
                 elif internal_name == 'Lecturer Clashes':
-                    # Show both student groups that are clashing
                     if 'groups' in violation and len(violation['groups']) >= 2:
-                        details_content.append(html.Div(
-                            f"Lecturer '{violation['lecturer']}' has clashing courses {violation['courses'][0]} for group {violation['groups'][0]}, and {violation['courses'][1]} for group {violation['groups'][1]} on {violation['location']}",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Lecturer '{violation['lecturer']}' has clashing courses {violation['courses'][0]} for group {violation['groups'][0]}, and {violation['courses'][1]} for group {violation['groups'][1]} on {violation['location']}"
+                        if violation['groups'][0] in group_map:
+                            target_group_idx = group_map[violation['groups'][0]]
                     else:
-                        # Fallback to original format if groups info is missing
-                        details_content.append(html.Div(
-                            f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}"
+                        
                 elif internal_name == 'Lecturer Schedule Conflicts (Day/Time)':
-                    details_content.append(html.Div(
-                        f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}",
-                        className="constraint-item"
-                    ))
+                    item_text = f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
                 elif internal_name == 'Lecturer Workload Violations':
                     if violation['type'] == 'Excessive Daily Hours':
                         courses_text = violation.get('courses', 'Unknown courses')
-                        details_content.append(html.Div(
-                            f"Lecturer '{violation['lecturer']}' has {violation['hours_scheduled']} hours on {violation['day']} from courses {courses_text}, exceeding maximum of {violation['max_allowed']} hours per day",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Lecturer '{violation['lecturer']}' has {violation['hours_scheduled']} hours on {violation['day']} from courses {courses_text}, exceeding maximum of {violation['max_allowed']} hours per day"
                     elif violation['type'] == 'Excessive Consecutive Hours':
                         courses_text = violation.get('courses', 'Unknown courses')
-                        details_content.append(html.Div(
-                            f"Lecturer '{violation['lecturer']}' has {violation['consecutive_hours']} consecutive hours on {violation['day']} from courses {courses_text} ({', '.join(violation['hours_times'])}), exceeding maximum of {violation['max_allowed']} consecutive hours",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Lecturer '{violation['lecturer']}' has {violation['consecutive_hours']} consecutive hours on {violation['day']} from courses {courses_text} ({', '.join(violation['hours_times'])}), exceeding maximum of {violation['max_allowed']} consecutive hours"
                     else:
-                        details_content.append(html.Div(
-                            f"Lecturer workload violation for {violation['lecturer']} on {violation['day']}: {violation.get('violation', 'Unknown violation')}",
-                            className="constraint-item"
-                        ))
+                        item_text = f"Lecturer workload violation for {violation['lecturer']} on {violation['day']}: {violation.get('violation', 'Unknown violation')}"
+                        
                 elif internal_name == 'Consecutive Slot Violations':
-                    details_content.append(html.Div(
-                        f"{violation['reason']}: Course '{violation['course']}' ({violation.get('course_name', '')}) for group '{violation['group']}' at times {', '.join(violation['times'])}",
-                        className="constraint-item"
-                    ))
+                    item_text = f"{violation['reason']}: Course '{violation['course']}' ({violation.get('course_name', '')}) for group '{violation['group']}' at times {', '.join(violation['times'])}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
                 elif internal_name == 'Missing or Extra Classes':
-                    details_content.append(html.Div(
-                        f"{violation['issue']} classes for {violation['location']}: Expected {violation['expected']}, Got {violation['actual']}",
-                        className="constraint-item"
-                    ))
+                    item_text = f"{violation['issue']} classes for {violation['location']}: Expected {violation['expected']}, Got {violation['actual']}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
                 elif internal_name == 'Same Course in Multiple Rooms on Same Day':
-                    details_content.append(html.Div(
-                        f"{violation['location']} in multiple rooms: {', '.join(violation['rooms'])}",
-                        className="constraint-item"
-                    ))
+                    item_text = f"{violation['location']} in multiple rooms: {', '.join(violation['rooms'])}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
                 elif internal_name == 'Room Capacity/Type Conflicts':
                     if violation['type'] == 'Room Type Mismatch':
+                        item_text = f"Room type mismatch at {violation['location']}: {violation['course']} for group {violation['group']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})"
+                    else:
+                        item_text = f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                        
+                elif internal_name == 'Classes During Break Time':
+                    item_text = f"Class during break time at {violation['location']}: {violation['course']} for {violation['group']}"
+                    if violation.get('group') in group_map:
+                        target_group_idx = group_map[violation['group']]
+                
+                # Create the item div
+                if item_text:
+                    if target_group_idx is not None:
                         details_content.append(html.Div(
-                            f"Room type mismatch at {violation['location']}: {violation['course']} for group {violation['group']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})",
-                            className="constraint-item"
+                            item_text,
+                            className="constraint-item clickable",
+                            id={'type': 'error-nav-item', 'index': f"{internal_name}_{i}", 'group_idx': target_group_idx},
+                            title="Click to view this student group's timetable"
                         ))
                     else:
                         details_content.append(html.Div(
-                            f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})",
+                            item_text,
                             className="constraint-item"
                         ))
-                elif internal_name == 'Classes During Break Time':
-                    details_content.append(html.Div(
-                        f"Class during break time at {violation['location']}: {violation['course']} for {violation['group']}",
-                        className="constraint-item"
-                    ))
         else:
             details_content.append(html.Div("No violations found.", className="constraint-item", style={"color": "#28a745", "fontStyle": "italic"}))
         
@@ -879,6 +950,14 @@ def create_app(_ctx: dict | None = None):
             .constraint-item:last-child {
                 border-bottom: none;
             }
+            .constraint-item.clickable {
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .constraint-item.clickable:hover {
+                background-color: #e3f2fd;
+                color: #11214D;
+            }
             .constraint-arrow {
                 font-weight: bold;
                 transition: transform 0.3s ease;
@@ -1054,7 +1133,8 @@ def create_app(_ctx: dict | None = None):
                         html.P('• Click and drag any class cell to swap it with another cell'),
                         html.P('• Double-click any cell to view and change the classroom for that class'),
                         html.P('• Use the navigation arrows (‹ ›) to switch between different student groups'),
-                        html.P('• Click \'View Errors\' to see constraint violations and conflicts')
+                        html.P('• Click \'View Errors\' to see constraint violations and conflicts'),
+                        html.P('• Click on any error in the \'View Errors\' list to jump to the relevant student group timetable')
                     ], className='help-section'),
                     html.Div([
                         html.H4('Cell Color Meanings:', style={"color": "#11214D", "fontWeight": "600", "marginBottom": "10px", "fontSize": "16px"}),
@@ -1330,8 +1410,9 @@ def create_app(_ctx: dict | None = None):
             constraints_to_preserve = [
                 'Lecturer Schedule Conflicts (Day/Time)',
                 'Lecturer Workload Violations',
-                'Consecutive Slot Violations',
-                'Same Course in Multiple Rooms on Same Day'
+                'Consecutive Slot Violations'
+                # 'Same Course in Multiple Rooms on Same Day' - Removed to allow dynamic updates
+                # 'Same Student Group Overlaps' - Removed to allow dynamic updates
             ]
             for constraint_type in constraints_to_preserve:
                 if constraint_type in current_constraints:
@@ -1364,11 +1445,11 @@ def create_app(_ctx: dict | None = None):
     @app.callback(
         [Output('errors-modal-overlay', 'style'), Output('errors-modal', 'style'), Output('errors-content', 'children')],
         [Input('errors-btn', 'n_clicks'), Input('errors-modal-close-btn', 'n_clicks'), Input('errors-close-btn', 'n_clicks'), Input('errors-modal-overlay', 'n_clicks')],
-        State('constraint-details-store', 'data'),
+        [State('constraint-details-store', 'data'), State('all-timetables-store', 'data')],
         prevent_initial_call=True
    
     )
-    def handle_errors_modal(errors_btn_clicks, close1, close2, overlay, constraint_details):
+    def handle_errors_modal(errors_btn_clicks, close1, close2, overlay, constraint_details, timetables_data):
         ctx = dash.callback_context
         if not ctx.triggered:
             raise dash.exceptions.PreventUpdate
@@ -1378,7 +1459,7 @@ def create_app(_ctx: dict | None = None):
         if trigger_id == 'errors-btn' and errors_btn_clicks:
             if hasattr(create_errors_modal_content, 'expanded_states'):
                 create_errors_modal_content.expanded_states.clear()
-            content = create_errors_modal_content(constraint_details)
+            content = create_errors_modal_content(constraint_details, timetables_data)
             return {"display": "block"}, {"display": "block"}, content
         
         if trigger_id in ['errors-modal-close-btn', 'errors-close-btn', 'errors-modal-overlay']:
@@ -1386,15 +1467,60 @@ def create_app(_ctx: dict | None = None):
         
         raise dash.exceptions.PreventUpdate
 
+    # Update error notification badge count
+    @app.callback(
+        Output('error-notification-badge', 'children'),
+        Input('constraint-details-store', 'data')
+    )
+    def update_error_badge(constraint_details):
+        if not constraint_details:
+            return "0"
+        
+        # Count categories with > 0 violations
+        count = 0
+        # Use the same mapping as create_errors_modal_content to be consistent
+        constraint_mapping = {
+            'Same Student Group Overlaps': 'Same Student Group Overlaps',
+            'Different Student Group Overlaps': 'Different Student Group Overlaps', 
+            'Lecturer Clashes': 'Lecturer Clashes',
+            'Lecturer Schedule Conflicts (Day/Time)': 'Lecturer Schedule Conflicts (Day/Time)',
+            'Lecturer Workload Violations': 'Lecturer Workload Violations',
+            'Consecutive Slot Violations': 'Consecutive Slot Violations',
+            'Missing or Extra Classes': 'Missing or Extra Classes',
+            'Same Course in Multiple Rooms on Same Day': 'Same Course in Multiple Rooms on Same Day',
+            'Room Capacity/Type Conflicts': 'Room Capacity/Type Conflicts',
+            'Classes During Break Time': 'Classes During Break Time'
+        }
+        
+        for display_name, internal_name in constraint_mapping.items():
+            violations = constraint_details.get(internal_name, [])
+            if violations and len(violations) > 0:
+                count += 1
+        
+        return str(count)
+
+    # Update errors content when constraints change (if modal is open)
+    @app.callback(
+        Output('errors-content', 'children', allow_duplicate=True),
+        Input('constraint-details-store', 'data'),
+        [State('errors-modal', 'style'), State('all-timetables-store', 'data')],
+        prevent_initial_call=True
+    )
+    def update_errors_content_on_change(constraint_details, modal_style, timetables_data):
+        if not modal_style or modal_style.get('display') == 'none':
+            raise dash.exceptions.PreventUpdate
+        return create_errors_modal_content(constraint_details, timetables_data)
+
     # Handle expanding/collapsing constraint details in the errors modal
     @app.callback(
         Output('errors-content', 'children', allow_duplicate=True),
         Input({'type': 'constraint-header', 'index': dash.dependencies.ALL}, 'n_clicks'),
         [State('constraint-details-store', 'data'),
-         State({'type': 'constraint-header', 'index': dash.dependencies.ALL}, 'id')],
+         State({'type': 'constraint-header', 'index': dash.dependencies.ALL}, 'id'),
+         State('all-timetables-store', 'data')],
         prevent_initial_call=True
     )
-    def toggle_constraint_details(n_clicks, constraint_details, ids):
+    def toggle_constraint_details(n_clicks, constraint_details, ids, timetables_data):
         ctx = dash.callback_context
         if not ctx.triggered or not any(n_clicks):
             raise dash.exceptions.PreventUpdate
@@ -1408,8 +1534,33 @@ def create_app(_ctx: dict | None = None):
             raise dash.exceptions.PreventUpdate
 
         # The create_errors_modal_content function uses a stateful set to track expanded items
-        content = create_errors_modal_content(constraint_details, toggle_constraint=index_to_toggle)
+        content = create_errors_modal_content(constraint_details, timetables_data, toggle_constraint=index_to_toggle)
         return content
+
+    # Handle navigation from error item to student group
+    @app.callback(
+        [Output('student-group-dropdown', 'value', allow_duplicate=True),
+         Output('errors-modal', 'style', allow_duplicate=True),
+         Output('errors-modal-overlay', 'style', allow_duplicate=True)],
+        Input({'type': 'error-nav-item', 'index': ALL, 'group_idx': ALL}, 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def navigate_to_error_group(n_clicks):
+        ctx = dash.callback_context
+        if not ctx.triggered or not any(n_clicks):
+            raise dash.exceptions.PreventUpdate
+        
+        triggering_id = ctx.triggered[0]['prop_id']
+        try:
+            # Extract group_idx from the ID
+            id_dict = json.loads(triggering_id.split('.')[0])
+            group_idx = id_dict['group_idx']
+            
+            # Return new group index and hide modal
+            return group_idx, {"display": "none"}, {"display": "none"}
+        except Exception as e:
+            print(f"Error navigating to group: {e}")
+            raise dash.exceptions.PreventUpdate
 
     # Handle help button to show/hide help modal and overlay (matches Sept 13)
     @app.callback(
@@ -1814,8 +1965,72 @@ def create_app(_ctx: dict | None = None):
             )
         
         # Determine if DELETE SCHEDULE button should be shown
-        manual_cell_key = f"{group_idx}_{row_idx}_{col_idx}"
-        is_manual_cell = manual_cells and manual_cell_key in manual_cells
+        # manual_cell_key = f"{group_idx}_{row_idx}_{col_idx}"
+        # is_manual_cell = manual_cells and manual_cell_key in manual_cells
+        
+        # NEW LOGIC: Check for Extra Classes
+        show_delete = False
+        
+        # Get cell content
+        try:
+            # Note: timetable structure is [Time, Mon, Tue, Wed, Thu, Fri]
+            # col_idx 0 -> Mon (index 1 in list)
+            cell_content = timetables_state[group_idx]['timetable'][row_idx][col_idx + 1]
+            
+            if cell_content and cell_content != "FREE" and cell_content != "BREAK" and cell_content != "":
+                # Extract course code
+                course_code = cell_content.split('\n')[0].strip()
+                
+                # Count scheduled hours
+                scheduled_hours = 0
+                current_timetable = timetables_state[group_idx]['timetable']
+                for row in current_timetable:
+                    # Skip time column (index 0)
+                    for col in range(1, len(row)):
+                        cell = row[col]
+                        if cell and isinstance(cell, str):
+                            cell_course = cell.split('\n')[0].strip()
+                            if cell_course == course_code:
+                                scheduled_hours += 1
+                
+                # Get required hours
+                required_hours = 0
+                if input_data:
+                    # Get student group object
+                    current_group = timetables_state[group_idx]['student_group']
+                    group_name = current_group['name'] if isinstance(current_group, dict) else current_group.name
+                    
+                    sg_obj = None
+                    # Try by ID first
+                    group_id = current_group.get('id') if isinstance(current_group, dict) else getattr(current_group, 'id', None)
+                    if group_id:
+                        sg_obj = input_data.getStudentGroup(group_id)
+                    
+                    # Try by Name if ID failed
+                    if not sg_obj:
+                        for sg in input_data.student_groups:
+                            if sg.name == group_name:
+                                sg_obj = sg
+                                break
+                    
+                    if sg_obj and course_code in sg_obj.courseIDs:
+                        try:
+                            idx = sg_obj.courseIDs.index(course_code)
+                            if idx < len(sg_obj.hours_required):
+                                raw_hours = sg_obj.hours_required[idx]
+                                if raw_hours == 1:
+                                    required_hours = 3
+                                else:
+                                    required_hours = raw_hours
+                        except ValueError:
+                            pass
+                
+                # Check if extra classes
+                if scheduled_hours > required_hours:
+                    show_delete = True
+                    
+        except Exception as e:
+            print(f"Error checking delete condition: {e}")
         
         delete_btn_style = {
             "backgroundColor": "#dc3545", 
@@ -1827,7 +2042,7 @@ def create_app(_ctx: dict | None = None):
             "marginRight": "10px",
             "fontFamily": "Poppins, sans-serif", 
             "fontWeight": "600", 
-            "display": "inline-block" if is_manual_cell else "none"
+            "display": "inline-block" if show_delete else "none"
         }
         
         return room_options, {"display": "block"}, {"display": "block"}, delete_btn_style
@@ -2126,11 +2341,44 @@ def create_app(_ctx: dict | None = None):
             display_course = missing_class['course']
             display_faculty = missing_class.get('faculty', 'Unknown Faculty')
             
+            # Calculate hours required
+            hours_text = ""
+            if input_data:
+                # Try to find the student group object to get specific hours for this group
+                sg_obj = None
+                
+                # Try by ID first
+                group_id = current_group.get('id') if isinstance(current_group, dict) else getattr(current_group, 'id', None)
+                if group_id:
+                    sg_obj = input_data.getStudentGroup(group_id)
+                
+                # Try by Name if ID failed
+                if not sg_obj:
+                    # group_name is already defined above
+                    for sg in input_data.student_groups:
+                        if sg.name == group_name:
+                            sg_obj = sg
+                            break
+                
+                if sg_obj and display_course in sg_obj.courseIDs:
+                    try:
+                        idx = sg_obj.courseIDs.index(display_course)
+                        if idx < len(sg_obj.hours_required):
+                            raw_hours = sg_obj.hours_required[idx]
+                            # Rule: If 1 credit/hour in JSON, it requires 3 hours in timetable
+                            if raw_hours == 1:
+                                hours = 3
+                            else:
+                                hours = raw_hours
+                            hours_text = f", Hours Required - {hours}"
+                    except ValueError:
+                        pass
+
             class_options.append(
                 html.Button([
                     html.Div([
                         html.Span(display_course, style={"fontWeight": "600"}),
-                        html.Span(f" ({missing_class['type']})", style={"fontSize": "11px", "color": "#666", "marginLeft": "8px"})
+                        html.Span(f" ({missing_class['type']}{hours_text})", style={"fontSize": "11px", "color": "#666", "marginLeft": "8px"})
                     ]),
                     html.Div(
                         display_faculty,

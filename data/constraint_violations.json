@@ -1,101 +1,95 @@
 {
   "Same Student Group Overlaps": [
     {
-      "group": "Economics - Year 3",
+      "group": "Data Science - Year 1",
       "day": "Mon",
       "time": "9:00",
       "courses": [
-        "PAU-ECO 315",
-        "PAU-ECO 312"
+        "PAU-CSC 111",
+        "PAU-CSC 111"
       ],
       "location": "Mon at 9:00"
     },
     {
-      "group": "Computer Science - Year  1",
-      "day": "Tue",
+      "group": "Data Science - Year 1",
+      "day": "Fri",
       "time": "9:00",
       "courses": [
         "PAU-CSC 192",
         "PHY 107 - CSC"
       ],
-      "location": "Tue at 9:00"
-    },
-    {
-      "group": "Computer Science - Year  1",
-      "day": "Thu",
-      "time": "11:00",
-      "courses": [
-        "PHY101",
-        "PHY101"
-      ],
-      "location": "Thu at 11:00"
-    },
-    {
-      "group": "Data Science - Year 1",
-      "day": "Thu",
-      "time": "11:00",
-      "courses": [
-        "PHY101",
-        "PHY101"
-      ],
-      "location": "Thu at 11:00"
+      "location": "Fri at 9:00"
     }
   ],
   "Different Student Group Overlaps": [],
   "Lecturer Clashes": [
     {
-      "lecturer": "Mr. Philip Okposo",
-      "day": "Mon",
-      "time": "9:00",
-      "courses": [
-        "PAU-ECO 315",
-        "PAU-ECO 312"
-      ],
-      "groups": [
-        "Economics - Year 3",
-        "Economics - Year 3"
-      ],
-      "location": "Mon at 9:00"
-    },
-    {
       "lecturer": "Jennifer Iloekwe",
       "day": "Mon",
       "time": "9:00",
       "courses": [
-        "CSC 497",
+        "PAU-CSC 111",
         "PAU-CSC 111"
       ],
       "groups": [
-        "Computer Science - Year  4/Stream 2",
+        "Data Science - Year 1",
         "Data Science - Year 1"
       ],
       "location": "Mon at 9:00"
     },
     {
       "lecturer": "Jennifer Iloekwe",
+      "day": "Mon",
+      "time": "9:00",
+      "courses": [
+        "PAU-CSC 111",
+        "CSC 497"
+      ],
+      "groups": [
+        "Data Science - Year 1",
+        "Computer Science - Year  4/Stream 2"
+      ],
+      "location": "Mon at 9:00"
+    },
+    {
+      "lecturer": "Prof. Roland Loto",
+      "day": "Mon",
+      "time": "9:00",
+      "courses": [
+        "GET 207",
+        "PAU-MEE 409"
+      ],
+      "groups": [
+        "Mechatronics Engineering - Year 2",
+        "Mechanical Engineering - Year 4"
+      ],
+      "location": "Mon at 9:00"
+    },
+    {
+      "lecturer": "Dr. Lawal",
       "day": "Tue",
       "time": "9:00",
       "courses": [
-        "CSC 497",
-        "PAU-CSC 111"
+        "BUA 204",
+        "BUS 403 - FIN"
       ],
       "groups": [
-        "Computer Science - Year  4/Stream 2",
-        "Software Engineering - Year 1"
+        "Business Administration - Year 2",
+        "Finance - Year 4"
       ],
       "location": "Tue at 9:00"
     },
     {
-      "lecturer": "Fr. Ifeanyi Ogboh",
+      "lecturer": "Dr. Rilwan Balogun",
       "day": "Tue",
       "time": "9:00",
       "courses": [
-        "PAU-CSC 192",
-        "PAU-MCM 191 -MCM"
+        "PHY101",
+        "PHY 107 - CSC"
       ],
       "groups": [
-        "Computer Science - Year  1",
-        "Mass Communication - Year 1"
+        "Data Science - Year 1",
+        "Computer Science - Year  1"
       ],
       "location": "Tue at 9:00"
     },
@@ -104,193 +98,193 @@
       "day": "Tue",
       "time": "14:00",
       "courses": [
-        "ENT 312 - FIN",
-        "ENT 312 - ECO"
-      ],
-      "groups": [
-        "Finance - Year 3",
-        "Economics - Year 3"
-      ],
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "14:00",
-      "courses": [
-        "ENT 312 - FIN",
-        "ENT 312 - EEE"
-      ],
-      "groups": [
-        "Finance - Year 3",
-        "Electrical Engineering - Year 3"
-      ],
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "14:00",
-      "courses": [
-        "ENT 312 - FIN",
-        "ENT 211 - FIN"
-      ],
-      "groups": [
-        "Finance - Year 3",
-        "Finance - Year 2"
-      ],
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 - CSC"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Computer Science - Year  2/Stream 2"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 -MCM"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Mass Communication - Year 2"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 - EEE"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Mechatronics Engineering - Year 2"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 - CSC"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Computer Science - Year  2/Stream 1"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 312 - FMM"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Film & Media Studies - Year 3"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "15:00",
-      "courses": [
-        "ENT 312 - ISM",
-        "ENT 312 - EEE"
-      ],
-      "groups": [
-        "ISMS - Year 3",
-        "Electrical Engineering - Year 3"
-      ],
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Tue",
-      "time": "16:00",
-      "courses": [
-        "ENT 312 - ACC",
+        "ENT 312 - ECO",
         "ENT 312 - BUA"
       ],
       "groups": [
-        "Accounting - Year 3",
+        "Economics - Year 3",
         "Business Administration - Year 3"
       ],
-      "location": "Tue at 16:00"
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "14:00",
+      "courses": [
+        "ENT 312 - ECO",
+        "ENT 211 - EEE"
+      ],
+      "groups": [
+        "Economics - Year 3",
+        "Mechatronics Engineering - Year 2"
+      ],
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "14:00",
+      "courses": [
+        "ENT 312 - ECO",
+        "ENT 211 - EEE"
+      ],
+      "groups": [
+        "Economics - Year 3",
+        "Electrical Engineering - Year 2"
+      ],
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "Dr. Dada Ibidapo",
+      "day": "Tue",
+      "time": "14:00",
+      "courses": [
+        "COS 201",
+        "COS 201"
+      ],
+      "groups": [
+        "Computer Science - Year  2/Stream 1",
+        "Software Engineering - Year 2"
+      ],
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "15:00",
+      "courses": [
+        "ENT 312 - ACC",
+        "ENT 211 - FIN"
+      ],
+      "groups": [
+        "Accounting - Year 3",
+        "Finance - Year 2"
+      ],
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "15:00",
+      "courses": [
+        "ENT 312 - ACC",
+        "ENT 211 - EEE"
+      ],
+      "groups": [
+        "Accounting - Year 3",
+        "Electrical Engineering - Year 2"
+      ],
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "Dr. Dada Ibidapo",
+      "day": "Tue",
+      "time": "15:00",
+      "courses": [
+        "COS 201",
+        "COS 201"
+      ],
+      "groups": [
+        "Computer Science - Year  2/Stream 2",
+        "Software Engineering - Year 2"
+      ],
+      "location": "Tue at 15:00"
     },
     {
       "lecturer": "Miss Halima Rabiu",
       "day": "Tue",
       "time": "16:00",
       "courses": [
-        "ENT 312 - ACC",
+        "ENT 211 - ECO",
         "ENT 211 - BUA"
       ],
       "groups": [
-        "Accounting - Year 3",
+        "Economics - Year 2",
         "Business Administration - Year 2"
       ],
       "location": "Tue at 16:00"
     },
     {
-      "lecturer": "Fr. Elobuike Asogwa",
-      "day": "Tue",
-      "time": "16:00",
-      "courses": [
-        "PAU-EEE 191",
-        "PAU-EEE 191"
-      ],
-      "groups": [
-        "Mechanical Engineering - Year 1",
-        "Electrical Engineering - Year 1"
-      ],
-      "location": "Tue at 16:00"
-    },
-    {
       "lecturer": "Miss Halima Rabiu",
       "day": "Tue",
       "time": "16:00",
       "courses": [
-        "ENT 312 - ACC",
+        "ENT 211 - ECO",
         "ENT 211 -ISM"
       ],
       "groups": [
-        "Accounting - Year 3",
+        "Economics - Year 2",
         "ISMS - Year 2"
       ],
       "location": "Tue at 16:00"
     },
     {
       "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "16:00",
+      "courses": [
+        "ENT 211 - ECO",
+        "ENT 211 - FIN"
+      ],
+      "groups": [
+        "Economics - Year 2",
+        "Finance - Year 2"
+      ],
+      "location": "Tue at 16:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "time": "16:00",
+      "courses": [
+        "ENT 211 - ECO",
+        "ENT 211 - ACC"
+      ],
+      "groups": [
+        "Economics - Year 2",
+        "Accounting - Year 2"
+      ],
+      "location": "Tue at 16:00"
+    },
+    {
+      "lecturer": "Mr. Philip Okposo",
+      "day": "Wed",
+      "time": "9:00",
+      "courses": [
+        "PAU-ECO 315",
+        "ISM 302"
+      ],
+      "groups": [
+        "Economics - Year 3",
+        "ISMS - Year 3"
+      ],
+      "location": "Wed at 9:00"
+    },
+    {
+      "lecturer": "Jennifer Iloekwe",
+      "day": "Wed",
+      "time": "9:00",
+      "courses": [
+        "PAU-CSC 111",
+        "PAU-CSC 111"
+      ],
+      "groups": [
+        "Data Science - Year 1",
+        "Computer Science - Year  1"
+      ],
+      "location": "Wed at 9:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
       "day": "Wed",
       "time": "14:00",
       "courses": [
-        "ENT 211 -ISM",
+        "ENT 211 - CSC",
         "ENT 312 - ECO"
       ],
       "groups": [
-        "ISMS - Year 2",
+        "Computer Science - Year  2/Stream 1",
         "Economics - Year 3"
       ],
       "location": "Wed at 14:00"
@@ -300,70 +294,70 @@
       "day": "Wed",
       "time": "14:00",
       "courses": [
-        "ENT 211 -ISM",
-        "ENT 211 - EEE"
+        "ENT 211 - CSC",
+        "ENT 211 - CSC"
       ],
       "groups": [
-        "ISMS - Year 2",
-        "Electrical Engineering - Year 2"
+        "Computer Science - Year  2/Stream 1",
+        "Computer Science - Year  2/Stream 2"
       ],
       "location": "Wed at 14:00"
     },
     {
       "lecturer": "Miss Halima Rabiu",
       "day": "Wed",
-      "time": "16:00",
+      "time": "14:00",
       "courses": [
         "ENT 211 - CSC",
-        "ENT 211 - ACC"
+        "ENT 312 - EEE"
       ],
       "groups": [
-        "Computer Science - Year  2/Stream 2",
-        "Accounting - Year 2"
+        "Computer Science - Year  2/Stream 1",
+        "Electrical Engineering - Year 3"
       ],
-      "location": "Wed at 16:00"
+      "location": "Wed at 14:00"
     },
     {
-      "lecturer": "Miss Halima Rabiu",
+      "lecturer": "Dr. Dada Ibidapo",
       "day": "Wed",
       "time": "16:00",
       "courses": [
-        "ENT 211 - CSC",
-        "ENT 211 -MCM"
+        "CSC 409 - ELE",
+        "COS 201"
       ],
       "groups": [
-        "Computer Science - Year  2/Stream 2",
-        "Mass Communication - Year 2"
-      ],
-      "location": "Wed at 16:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Wed",
-      "time": "16:00",
-      "courses": [
-        "ENT 211 - CSC",
-        "ENT 211 - ECO"
-      ],
-      "groups": [
-        "Computer Science - Year  2/Stream 2",
-        "Economics - Year 2"
+        "Computer Science - Year  4/Stream 2",
+        "Computer Science - Year  2/Stream 1"
       ],
       "location": "Wed at 16:00"
     },
     {
       "lecturer": "Dr. Rilwan Balogun",
       "day": "Thu",
-      "time": "11:00",
+      "time": "9:00",
       "courses": [
         "PHY101",
-        "PHY101"
+        "PHY 107 - CSC"
       ],
       "groups": [
         "Computer Science - Year  1",
-        "Computer Science - Year  1"
+        "Software Engineering - Year 1"
       ],
-      "location": "Thu at 11:00"
+      "location": "Thu at 9:00"
+    },
+    {
+      "lecturer": "Dr. Lawal",
+      "day": "Thu",
+      "time": "9:00",
+      "courses": [
+        "BUS 403 - FIN",
+        "BUS 403 - ACC"
+      ],
+      "groups": [
+        "Finance - Year 4",
+        "Accounting - Year 4"
+      ],
+      "location": "Thu at 9:00"
     },
     {
       "lecturer": "Dr. Rilwan Balogun",
@@ -385,11 +379,11 @@
       "time": "11:00",
       "courses": [
         "PHY101",
-        "PHY101"
+        "PHY 107 - CSC"
       ],
       "groups": [
         "Computer Science - Year  1",
-        "Data Science - Year 1"
+        "Software Engineering - Year 1"
       ],
       "location": "Thu at 11:00"
     },
@@ -398,12 +392,12 @@
       "day": "Thu",
       "time": "14:00",
       "courses": [
-        "ENT 312 - FIN",
-        "ENT 312 - ACC"
+        "ENT 211 - FMM",
+        "ENT 211 - CSC"
       ],
       "groups": [
-        "Finance - Year 3",
-        "Accounting - Year 3"
+        "Film & Media Studies - Year 2",
+        "Computer Science - Year  2/Stream 2"
       ],
       "location": "Thu at 14:00"
     },
@@ -412,11 +406,25 @@
       "day": "Thu",
       "time": "14:00",
       "courses": [
-        "ENT 312 - FIN",
+        "ENT 211 - FMM",
+        "ENT 211 - BUA"
+      ],
+      "groups": [
+        "Film & Media Studies - Year 2",
+        "Business Administration - Year 2"
+      ],
+      "location": "Thu at 14:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Thu",
+      "time": "14:00",
+      "courses": [
+        "ENT 211 - FMM",
         "ENT 312 - MEE"
       ],
       "groups": [
-        "Finance - Year 3",
+        "Film & Media Studies - Year 2",
         "Mechanical Engineering - Year 3"
       ],
       "location": "Thu at 14:00"
@@ -424,14 +432,56 @@
     {
       "lecturer": "Miss Halima Rabiu",
       "day": "Thu",
-      "time": "16:00",
+      "time": "15:00",
       "courses": [
-        "ENT 211 - CSC",
-        "ENT 211 - FMM"
+        "ENT 312 - BUA",
+        "ENT 312 - ISM"
       ],
       "groups": [
-        "Software Engineering - Year 2",
-        "Film & Media Studies - Year 2"
+        "Business Administration - Year 3",
+        "ISMS - Year 3"
+      ],
+      "location": "Thu at 15:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Thu",
+      "time": "15:00",
+      "courses": [
+        "ENT 312 - BUA",
+        "ENT 211 -MCM"
+      ],
+      "groups": [
+        "Business Administration - Year 3",
+        "Mass Communication - Year 2"
+      ],
+      "location": "Thu at 15:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Thu",
+      "time": "15:00",
+      "courses": [
+        "ENT 312 - BUA",
+        "ENT 312 - MEE"
+      ],
+      "groups": [
+        "Business Administration - Year 3",
+        "Mechanical Engineering - Year 3"
+      ],
+      "location": "Thu at 15:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Thu",
+      "time": "16:00",
+      "courses": [
+        "ENT 312 - FMM",
+        "ENT 211 - ECO"
+      ],
+      "groups": [
+        "Film & Media Studies - Year 3",
+        "Economics - Year 2"
       ],
       "location": "Thu at 16:00"
     },
@@ -440,12 +490,12 @@
       "day": "Thu",
       "time": "16:00",
       "courses": [
-        "ENT 211 - CSC",
-        "ENT 211 - FIN"
+        "ENT 312 - FMM",
+        "ENT 312 - ACC"
       ],
       "groups": [
-        "Software Engineering - Year 2",
-        "Finance - Year 2"
+        "Film & Media Studies - Year 3",
+        "Accounting - Year 3"
       ],
       "location": "Thu at 16:00"
     },
@@ -454,12 +504,12 @@
       "day": "Thu",
       "time": "16:00",
       "courses": [
-        "ENT 211 - CSC",
-        "ENT 312 - FMM"
+        "ENT 312 - FMM",
+        "ENT 312 - ISM"
       ],
       "groups": [
-        "Software Engineering - Year 2",
-        "Film & Media Studies - Year 3"
+        "Film & Media Studies - Year 3",
+        "ISMS - Year 3"
       ],
       "location": "Thu at 16:00"
     },
@@ -468,11 +518,11 @@
       "day": "Thu",
       "time": "16:00",
       "courses": [
-        "ENT 211 - CSC",
+        "ENT 312 - FMM",
         "ENT 211 - CSC"
       ],
       "groups": [
-        "Software Engineering - Year 2",
+        "Film & Media Studies - Year 3",
         "Computer Science - Year  2/Stream 1"
       ],
       "location": "Thu at 16:00"
@@ -482,6 +532,34 @@
       "day": "Fri",
       "time": "9:00",
       "courses": [
+        "GET 207",
+        "GET 207"
+      ],
+      "groups": [
+        "Mechatronics Engineering - Year 2",
+        "Mechanical Engineering - Year 2"
+      ],
+      "location": "Fri at 9:00"
+    },
+    {
+      "lecturer": "Fr. Ifeanyi Ogboh",
+      "day": "Fri",
+      "time": "9:00",
+      "courses": [
+        "PAU-CSC 192",
+        "PAU-CSC 192"
+      ],
+      "groups": [
+        "Data Science - Year 1",
+        "Computer Science - Year  1"
+      ],
+      "location": "Fri at 9:00"
+    },
+    {
+      "lecturer": "Prof. Roland Loto",
+      "day": "Fri",
+      "time": "11:00",
+      "courses": [
         "PAU-MEE 409",
         "GET 207"
       ],
@@ -489,47 +567,19 @@
         "Mechanical Engineering - Year 4",
         "Mechanical Engineering - Year 2"
       ],
-      "location": "Fri at 9:00"
-    },
-    {
-      "lecturer": "Jennifer Iloekwe",
-      "day": "Fri",
-      "time": "9:00",
-      "courses": [
-        "CSC 497",
-        "CSC 497"
-      ],
-      "groups": [
-        "Computer Science - Year  4/Stream 2",
-        "Computer Science - Year  4/Stream 1"
-      ],
-      "location": "Fri at 9:00"
-    },
-    {
-      "lecturer": "Dr. Peter Onu",
-      "day": "Fri",
-      "time": "10:00",
-      "courses": [
-        "PAU-MCT 302",
-        "PAU-MEE 521"
-      ],
-      "groups": [
-        "Mechanical Engineering - Year 3",
-        "Mechanical Engineering - Year 5"
-      ],
-      "location": "Fri at 10:00"
+      "location": "Fri at 11:00"
     },
     {
       "lecturer": "Miss Halima Rabiu",
       "day": "Fri",
       "time": "14:00",
       "courses": [
-        "ENT 211 - ACC",
-        "ENT 211 - CSC"
+        "ENT 211 - CSC",
+        "ENT 312 - FIN"
       ],
       "groups": [
-        "Accounting - Year 2",
-        "Software Engineering - Year 2"
+        "Software Engineering - Year 2",
+        "Finance - Year 3"
       ],
       "location": "Fri at 14:00"
     },
@@ -538,40 +588,26 @@
       "day": "Fri",
       "time": "14:00",
       "courses": [
-        "ENT 211 - ACC",
-        "ENT 211 - BUA"
-      ],
-      "groups": [
-        "Accounting - Year 2",
-        "Business Administration - Year 2"
-      ],
-      "location": "Fri at 14:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Fri",
-      "time": "14:00",
-      "courses": [
-        "ENT 211 - ACC",
+        "ENT 211 - CSC",
         "ENT 211 - FMM"
       ],
       "groups": [
-        "Accounting - Year 2",
+        "Software Engineering - Year 2",
         "Film & Media Studies - Year 2"
       ],
       "location": "Fri at 14:00"
     },
     {
-      "lecturer": "Dr. Dada Ibidapo",
+      "lecturer": "Miss Halima Rabiu",
       "day": "Fri",
       "time": "14:00",
       "courses": [
-        "CSC 409 - ELE",
-        "CSC 409 - ELE"
+        "ENT 211 - CSC",
+        "ENT 211 -MCM"
       ],
       "groups": [
-        "Computer Science - Year  4/Stream 2",
-        "Computer Science - Year  4/Stream 1"
+        "Software Engineering - Year 2",
+        "Mass Communication - Year 2"
       ],
       "location": "Fri at 14:00"
     },
@@ -580,11 +616,25 @@
       "day": "Fri",
       "time": "14:00",
       "courses": [
-        "ENT 211 - ACC",
+        "ENT 211 - CSC",
+        "ENT 211 -ISM"
+      ],
+      "groups": [
+        "Software Engineering - Year 2",
+        "ISMS - Year 2"
+      ],
+      "location": "Fri at 14:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Fri",
+      "time": "14:00",
+      "courses": [
+        "ENT 211 - CSC",
         "ENT 211 - EEE"
       ],
       "groups": [
-        "Accounting - Year 2",
+        "Software Engineering - Year 2",
         "Mechanical Engineering - Year 2"
       ],
       "location": "Fri at 14:00"
@@ -592,28 +642,14 @@
     {
       "lecturer": "Miss Halima Rabiu",
       "day": "Fri",
-      "time": "14:00",
-      "courses": [
-        "ENT 211 - ACC",
-        "ENT 312 - BUA"
-      ],
-      "groups": [
-        "Accounting - Year 2",
-        "Business Administration - Year 3"
-      ],
-      "location": "Fri at 14:00"
-    },
-    {
-      "lecturer": "Miss Halima Rabiu",
-      "day": "Fri",
       "time": "16:00",
       "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 - EEE"
+        "ENT 312 - FIN",
+        "ENT 211 - CSC"
       ],
       "groups": [
-        "ISMS - Year 3",
-        "Mechatronics Engineering - Year 2"
+        "Finance - Year 3",
+        "Software Engineering - Year 2"
       ],
       "location": "Fri at 16:00"
     },
@@ -622,43 +658,67 @@
       "day": "Fri",
       "time": "16:00",
       "courses": [
-        "ENT 312 - ISM",
-        "ENT 211 - ECO"
+        "ENT 312 - FIN",
+        "ENT 312 - FMM"
       ],
       "groups": [
-        "ISMS - Year 3",
-        "Economics - Year 2"
+        "Finance - Year 3",
+        "Film & Media Studies - Year 3"
+      ],
+      "location": "Fri at 16:00"
+    },
+    {
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Fri",
+      "time": "16:00",
+      "courses": [
+        "ENT 312 - FIN",
+        "ENT 211 - EEE"
+      ],
+      "groups": [
+        "Finance - Year 3",
+        "Mechatronics Engineering - Year 2"
       ],
       "location": "Fri at 16:00"
     }
   ],
   "Lecturer Schedule Conflicts (Day/Time)": [
     {
-      "lecturer": "rokolo@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "BUA 101",
-      "group": "Business Administration - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "rokolo@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Tue",
       "time": "14:00",
-      "course": "BUA 101",
-      "group": "Business Administration - Year 1",
+      "course": "FIN 308",
+      "group": "Finance - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Tue at 14:00"
     },
     {
+      "lecturer": "tbd",
+      "day": "Tue",
+      "time": "15:00",
+      "course": "FIN 308",
+      "group": "Finance - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "tbd",
+      "day": "Tue",
+      "time": "16:00",
+      "course": "FIN 308",
+      "group": "Finance - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 16:00"
+    },
+    {
       "lecturer": "roji@pau.edu.ng",
       "day": "Mon",
       "time": "14:00",
-      "course": "GST 111 - SMSS",
-      "group": "Business Administration - Year 1",
+      "course": "PAU-STC 118",
+      "group": "Strategic Communication - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 14:00"
@@ -667,31 +727,121 @@
       "lecturer": "roji@pau.edu.ng",
       "day": "Mon",
       "time": "15:00",
-      "course": "GST 111 - SMSS",
-      "group": "Business Administration - Year 1",
+      "course": "PAU-STC 118",
+      "group": "Strategic Communication - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 15:00"
     },
     {
-      "lecturer": "ckezie@pau.edu.ng",
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Mon",
+      "time": "16:00",
+      "course": "PAU-STC 118",
+      "group": "Strategic Communication - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 16:00"
+    },
+    {
+      "lecturer": "tbd",
       "day": "Wed",
       "time": "9:00",
-      "course": "GST 312 - ECO",
-      "group": "Economics - Year 3",
+      "course": "COM 409",
+      "group": "Mass Communication - Year 4",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Wed at 9:00"
     },
     {
-      "lecturer": "ckezie@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Wed",
       "time": "10:00",
-      "course": "GST 312 - ECO",
-      "group": "Economics - Year 3",
+      "course": "COM 409",
+      "group": "Mass Communication - Year 4",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Wed at 10:00"
+    },
+    {
+      "lecturer": "tbd",
+      "day": "Wed",
+      "time": "11:00",
+      "course": "COM 409",
+      "group": "Mass Communication - Year 4",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 11:00"
+    },
+    {
+      "lecturer": "nokpara@pau.edu.ng",
+      "day": "Tue",
+      "time": "15:00",
+      "course": "STC 109",
+      "group": "Strategic Communication - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "nokpara@pau.edu.ng",
+      "day": "Tue",
+      "time": "16:00",
+      "course": "STC 109",
+      "group": "Strategic Communication - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 16:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Thu",
+      "time": "13:00",
+      "course": "GST 111 - SMSS",
+      "group": "Finance - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 13:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Thu",
+      "time": "14:00",
+      "course": "GST 111 - SMSS",
+      "group": "Finance - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 14:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "10:00",
+      "course": "FIN 209",
+      "group": "Finance - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 10:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "11:00",
+      "course": "FIN 209",
+      "group": "Finance - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 11:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "12:00",
+      "course": "FIN 209",
+      "group": "Finance - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 12:00"
     },
     {
       "lecturer": "ialamezie@pau.edu.ng",
@@ -714,96 +864,6 @@
       "location": "Wed at 12:00"
     },
     {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Mon",
-      "time": "9:00",
-      "course": "FIN 303",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 9:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Mon",
-      "time": "10:00",
-      "course": "FIN 303",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 10:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Mon",
-      "time": "11:00",
-      "course": "FIN 303",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 11:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Tue",
-      "time": "10:00",
-      "course": "FIN 308",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 10:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Tue",
-      "time": "11:00",
-      "course": "FIN 308",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 11:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Tue",
-      "time": "12:00",
-      "course": "FIN 308",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 12:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Wed",
-      "time": "15:00",
-      "course": "MCM 105",
-      "group": "Mass Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 15:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Wed",
-      "time": "16:00",
-      "course": "MCM 105",
-      "group": "Mass Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 16:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Thu",
-      "time": "14:00",
-      "course": "GST 111 - SMSS",
-      "group": "Accounting - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 14:00"
-    },
-    {
       "lecturer": "roji@pau.edu.ng",
       "day": "Thu",
       "time": "15:00",
@@ -814,11 +874,21 @@
       "location": "Thu at 15:00"
     },
     {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Thu",
+      "time": "16:00",
+      "course": "GST 111 - SMSS",
+      "group": "Accounting - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 16:00"
+    },
+    {
       "lecturer": "tbd",
       "day": "Fri",
       "time": "14:00",
-      "course": "FIN 305",
-      "group": "Finance - Year 3",
+      "course": "MCM 105",
+      "group": "Mass Communication - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 14:00"
@@ -827,241 +897,11 @@
       "lecturer": "tbd",
       "day": "Fri",
       "time": "15:00",
-      "course": "FIN 305",
-      "group": "Finance - Year 3",
+      "course": "MCM 105",
+      "group": "Mass Communication - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 15:00"
-    },
-    {
-      "lecturer": "okwy@pau.edu.ng",
-      "day": "Wed",
-      "time": "9:00",
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 9:00"
-    },
-    {
-      "lecturer": "okwy@pau.edu.ng",
-      "day": "Wed",
-      "time": "10:00",
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 10:00"
-    },
-    {
-      "lecturer": "okwy@pau.edu.ng",
-      "day": "Wed",
-      "time": "11:00",
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 11:00"
-    },
-    {
-      "lecturer": "nokpara@pau.edu.ng",
-      "day": "Tue",
-      "time": "12:00",
-      "course": "STC 109",
-      "group": "Strategic Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 12:00"
-    },
-    {
-      "lecturer": "nokpara@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "STC 109",
-      "group": "Strategic Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "ialamezie@pau.edu.ng",
-      "day": "Thu",
-      "time": "14:00",
-      "course": "GST 212 - BUA",
-      "group": "Business Administration - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 14:00"
-    },
-    {
-      "lecturer": "ialamezie@pau.edu.ng",
-      "day": "Thu",
-      "time": "15:00",
-      "course": "GST 212 - BUA",
-      "group": "Business Administration - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 15:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Fri",
-      "time": "10:00",
-      "course": "GST 312 - ACC",
-      "group": "Accounting - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 10:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Fri",
-      "time": "11:00",
-      "course": "GST 312 - ACC",
-      "group": "Accounting - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 11:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Thu",
-      "time": "11:00",
-      "course": "GST 312 - BUA",
-      "group": "Business Administration - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 11:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Thu",
-      "time": "12:00",
-      "course": "GST 312 - BUA",
-      "group": "Business Administration - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 12:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Thu",
-      "time": "9:00",
-      "course": "GST 111 - SMSS",
-      "group": "Finance - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 9:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Thu",
-      "time": "10:00",
-      "course": "GST 111 - SMSS",
-      "group": "Finance - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 10:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Thu",
-      "time": "16:00",
-      "course": "GST 312 - FIN",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 16:00"
-    },
-    {
-      "lecturer": "aonwudinjo@pau.edu.ng",
-      "day": "Fri",
-      "time": "9:00",
-      "course": "GST 312 - FIN",
-      "group": "Finance - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 9:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Tue",
-      "time": "9:00",
-      "course": "FIN 209",
-      "group": "Finance - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 9:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Tue",
-      "time": "10:00",
-      "course": "FIN 209",
-      "group": "Finance - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 10:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Tue",
-      "time": "11:00",
-      "course": "FIN 209",
-      "group": "Finance - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 11:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Mon",
-      "time": "9:00",
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 9:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Mon",
-      "time": "10:00",
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 10:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Mon",
-      "time": "11:00",
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 11:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "GST 111 - SMSS",
-      "group": "Economics - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "roji@pau.edu.ng",
-      "day": "Tue",
-      "time": "14:00",
-      "course": "GST 111 - SMSS",
-      "group": "Economics - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 14:00"
     },
     {
       "lecturer": "ialamezie@pau.edu.ng",
@@ -1084,26 +924,196 @@
       "location": "Thu at 13:00"
     },
     {
-      "lecturer": "rokolo@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Fri",
       "time": "11:00",
-      "course": "PAU-ECO 107",
-      "group": "Economics - Year 1",
+      "course": "FIN 305",
+      "group": "Finance - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 11:00"
     },
     {
-      "lecturer": "rokolo@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Fri",
       "time": "12:00",
-      "course": "PAU-ECO 107",
-      "group": "Economics - Year 1",
+      "course": "FIN 305",
+      "group": "Finance - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 12:00"
     },
     {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Mon",
+      "time": "14:00",
+      "course": "FIN 303",
+      "group": "Finance - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 14:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Mon",
+      "time": "15:00",
+      "course": "FIN 303",
+      "group": "Finance - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 15:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Mon",
+      "time": "16:00",
+      "course": "FIN 303",
+      "group": "Finance - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 16:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "13:00",
+      "course": "FIN 101",
+      "group": "Finance - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 13:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "14:00",
+      "course": "FIN 101",
+      "group": "Finance - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "time": "15:00",
+      "course": "FIN 101",
+      "group": "Finance - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Tue",
+      "time": "12:00",
+      "course": "GST 111 - SMSS",
+      "group": "Economics - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 12:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Tue",
+      "time": "13:00",
+      "course": "GST 111 - SMSS",
+      "group": "Economics - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 13:00"
+    },
+    {
+      "lecturer": "aonwudinjo@pau.edu.ng",
+      "day": "Fri",
+      "time": "10:00",
+      "course": "GST 312 - ACC",
+      "group": "Accounting - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 10:00"
+    },
+    {
+      "lecturer": "aonwudinjo@pau.edu.ng",
+      "day": "Fri",
+      "time": "11:00",
+      "course": "GST 312 - ACC",
+      "group": "Accounting - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 11:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Tue",
+      "time": "10:00",
+      "course": "GST 111 - SMSS",
+      "group": "Business Administration - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 10:00"
+    },
+    {
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Tue",
+      "time": "11:00",
+      "course": "GST 111 - SMSS",
+      "group": "Business Administration - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 11:00"
+    },
+    {
+      "lecturer": "ckezie@pau.edu.ng",
+      "day": "Wed",
+      "time": "15:00",
+      "course": "GST 312 - ECO",
+      "group": "Economics - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 15:00"
+    },
+    {
+      "lecturer": "ckezie@pau.edu.ng",
+      "day": "Wed",
+      "time": "16:00",
+      "course": "GST 312 - ECO",
+      "group": "Economics - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 16:00"
+    },
+    {
+      "lecturer": "ialamezie@pau.edu.ng",
+      "day": "Thu",
+      "time": "15:00",
+      "course": "GST 212 - BUA",
+      "group": "Business Administration - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 15:00"
+    },
+    {
+      "lecturer": "ialamezie@pau.edu.ng",
+      "day": "Thu",
+      "time": "16:00",
+      "course": "GST 212 - BUA",
+      "group": "Business Administration - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 16:00"
+    },
+    {
+      "lecturer": "tbd",
+      "day": "Fri",
+      "time": "9:00",
+      "course": "INS 401",
+      "group": "Computer Science - Year  4/Stream 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 9:00"
+    },
+    {
       "lecturer": "tbd",
       "day": "Fri",
       "time": "10:00",
@@ -1114,414 +1124,124 @@
       "location": "Fri at 10:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Fri",
-      "time": "11:00",
-      "course": "INS 401",
-      "group": "Computer Science - Year  4/Stream 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 11:00"
-    },
-    {
-      "lecturer": "ialamezie@pau.edu.ng",
-      "day": "Tue",
-      "time": "12:00",
-      "course": "PAU-FMM 292",
-      "group": "Film & Media Studies - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 12:00"
-    },
-    {
-      "lecturer": "ialamezie@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "PAU-FMM 292",
-      "group": "Film & Media Studies - Year 2",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
-      "day": "Tue",
-      "time": "14:00",
-      "course": "FIN 101",
-      "group": "Finance - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "oikpesu@pau.edu.ng",
+      "lecturer": "rokolo@pau.edu.ng",
       "day": "Tue",
       "time": "15:00",
-      "course": "FIN 101",
-      "group": "Finance - Year 1",
+      "course": "BUA 101",
+      "group": "Business Administration - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Tue at 15:00"
     },
     {
-      "lecturer": "oikpesu@pau.edu.ng",
+      "lecturer": "rokolo@pau.edu.ng",
       "day": "Tue",
       "time": "16:00",
-      "course": "FIN 101",
-      "group": "Finance - Year 1",
+      "course": "BUA 101",
+      "group": "Business Administration - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Tue at 16:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Mon",
+      "lecturer": "aonwudinjo@pau.edu.ng",
+      "day": "Tue",
+      "time": "16:00",
+      "course": "GST 312 - BUA",
+      "group": "Business Administration - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 16:00"
+    },
+    {
+      "lecturer": "aonwudinjo@pau.edu.ng",
+      "day": "Wed",
       "time": "9:00",
-      "course": "PAU-EEE 407",
-      "group": "Electrical Engineering - Year 4",
+      "course": "GST 312 - BUA",
+      "group": "Business Administration - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Mon at 9:00"
+      "location": "Wed at 9:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Mon",
-      "time": "10:00",
-      "course": "PAU-EEE 407",
-      "group": "Electrical Engineering - Year 4",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 10:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Mon",
-      "time": "11:00",
-      "course": "PAU-EEE 407",
-      "group": "Electrical Engineering - Year 4",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 11:00"
-    },
-    {
-      "lecturer": "jajiboye@pau.edu.ng",
+      "lecturer": "aonwudinjo@pau.edu.ng",
       "day": "Thu",
-      "time": "10:00",
-      "course": "MEE 407",
-      "group": "Mechanical Engineering - Year 4",
+      "time": "13:00",
+      "course": "GST 312 - FIN",
+      "group": "Finance - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Thu at 10:00"
+      "location": "Thu at 13:00"
     },
     {
-      "lecturer": "jajiboye@pau.edu.ng",
-      "day": "Thu",
-      "time": "11:00",
-      "course": "MEE 407",
-      "group": "Mechanical Engineering - Year 4",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 11:00"
-    },
-    {
-      "lecturer": "gokoacha@pau.edu.ng",
+      "lecturer": "aonwudinjo@pau.edu.ng",
       "day": "Thu",
       "time": "14:00",
-      "course": "STA 111",
-      "group": "Computer Science - Year  1",
+      "course": "GST 312 - FIN",
+      "group": "Finance - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Thu at 14:00"
     },
     {
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Thu",
-      "time": "15:00",
-      "course": "STA 111",
-      "group": "Computer Science - Year  1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 15:00"
-    },
-    {
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Thu",
-      "time": "16:00",
-      "course": "STA 111",
-      "group": "Computer Science - Year  1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 16:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "12:00",
-      "course": "CSC 308",
-      "group": "Software Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 12:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "CSC 308",
-      "group": "Software Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "14:00",
-      "course": "CSC 308",
-      "group": "Software Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "eofor@pau.edu.ng",
-      "day": "Fri",
-      "time": "15:00",
-      "course": "CHM 101",
-      "group": "Electrical Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 15:00"
-    },
-    {
-      "lecturer": "eofor@pau.edu.ng",
-      "day": "Fri",
-      "time": "16:00",
-      "course": "CHM 101",
-      "group": "Electrical Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 16:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Mon",
-      "time": "14:00",
-      "course": "GET 101",
-      "group": "Mechanical Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 14:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Mon",
-      "time": "15:00",
-      "course": "GET 101",
-      "group": "Mechanical Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 15:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Mon",
-      "time": "16:00",
-      "course": "GET 101",
-      "group": "Mechanical Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 16:00"
-    },
-    {
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Wed",
-      "time": "10:00",
-      "course": "STA 111",
-      "group": "Data Science - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 10:00"
-    },
-    {
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Wed",
-      "time": "11:00",
-      "course": "STA 111",
-      "group": "Data Science - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 11:00"
-    },
-    {
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Wed",
-      "time": "12:00",
-      "course": "STA 111",
-      "group": "Data Science - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Wed at 12:00"
-    },
-    {
       "lecturer": "tbd",
-      "day": "Thu",
-      "time": "9:00",
-      "course": "INS 401",
-      "group": "Computer Science - Year  4/Stream 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 9:00"
-    },
-    {
-      "lecturer": "tbd",
-      "day": "Thu",
-      "time": "10:00",
-      "course": "INS 401",
-      "group": "Computer Science - Year  4/Stream 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 10:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Tue",
-      "time": "13:00",
-      "course": "GET 101",
-      "group": "Mechatronics Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 13:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Tue",
-      "time": "14:00",
-      "course": "GET 101",
-      "group": "Mechatronics Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 14:00"
-    },
-    {
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Tue",
-      "time": "15:00",
-      "course": "GET 101",
-      "group": "Mechatronics Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 15:00"
-    },
-    {
-      "lecturer": "dmoru@pau.edu.ng",
       "day": "Mon",
       "time": "10:00",
-      "course": "COS 101",
-      "group": "Computer Science - Year  1",
+      "course": "PAU-EEE 407",
+      "group": "Electrical Engineering - Year 4",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 10:00"
     },
     {
-      "lecturer": "dmoru@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Mon",
       "time": "11:00",
-      "course": "COS 101",
-      "group": "Computer Science - Year  1",
+      "course": "PAU-EEE 407",
+      "group": "Electrical Engineering - Year 4",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 11:00"
     },
     {
-      "lecturer": "dmoru@pau.edu.ng",
+      "lecturer": "tbd",
       "day": "Mon",
       "time": "12:00",
-      "course": "COS 101",
-      "group": "Computer Science - Year  1",
+      "course": "PAU-EEE 407",
+      "group": "Electrical Engineering - Year 4",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 12:00"
     },
     {
-      "lecturer": "dmoru@pau.edu.ng",
-      "day": "Mon",
-      "time": "14:00",
-      "course": "COS 101",
-      "group": "Software Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 14:00"
-    },
-    {
-      "lecturer": "dmoru@pau.edu.ng",
-      "day": "Mon",
-      "time": "15:00",
-      "course": "COS 101",
-      "group": "Software Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 15:00"
-    },
-    {
-      "lecturer": "dmoru@pau.edu.ng",
-      "day": "Mon",
-      "time": "16:00",
-      "course": "COS 101",
-      "group": "Software Engineering - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Mon at 16:00"
-    },
-    {
-      "lecturer": "dmoru@pau.edu.ng",
-      "day": "Tue",
-      "time": "9:00",
-      "course": "COS 101",
-      "group": "Data Science - Year 1",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 9:00"
-    },
-    {
-      "lecturer": "dmoru@pau.edu.ng",
+      "lecturer": "george.uwagbale@pau.edu.ng",
       "day": "Tue",
       "time": "10:00",
-      "course": "COS 101",
-      "group": "Data Science - Year 1",
+      "course": "CSC 308",
+      "group": "Computer Science - Year  3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Tue at 10:00"
     },
     {
-      "lecturer": "dmoru@pau.edu.ng",
+      "lecturer": "george.uwagbale@pau.edu.ng",
       "day": "Tue",
       "time": "11:00",
-      "course": "COS 101",
-      "group": "Data Science - Year 1",
+      "course": "CSC 308",
+      "group": "Computer Science - Year  3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Tue at 11:00"
     },
     {
-      "lecturer": "snwokoye@pau.edu.ng",
-      "day": "Thu",
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
       "time": "12:00",
-      "course": "CSC 322 - SEN",
-      "group": "Software Engineering - Year 3",
+      "course": "CSC 308",
+      "group": "Computer Science - Year  3",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Thu at 12:00"
-    },
-    {
-      "lecturer": "snwokoye@pau.edu.ng",
-      "day": "Thu",
-      "time": "13:00",
-      "course": "CSC 322 - SEN",
-      "group": "Software Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Thu at 13:00"
+      "location": "Tue at 12:00"
     },
     {
       "lecturer": "gokoacha@pau.edu.ng",
@@ -1554,64 +1274,84 @@
       "location": "Wed at 16:00"
     },
     {
-      "lecturer": "oomeje@pau.edu.ng",
-      "day": "Fri",
-      "time": "9:00",
-      "course": "EEE 311",
-      "group": "Electrical Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 9:00"
-    },
-    {
-      "lecturer": "oomeje@pau.edu.ng",
-      "day": "Fri",
-      "time": "10:00",
-      "course": "EEE 311",
-      "group": "Electrical Engineering - Year 3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Fri at 10:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "9:00",
-      "course": "CSC 308",
-      "group": "Computer Science - Year  3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 9:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "10:00",
-      "course": "CSC 308",
-      "group": "Computer Science - Year  3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 10:00"
-    },
-    {
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "time": "11:00",
-      "course": "CSC 308",
-      "group": "Computer Science - Year  3",
-      "available_days": "Not specified",
-      "available_times": "Not specified",
-      "location": "Tue at 11:00"
-    },
-    {
-      "lecturer": "snwokoye@pau.edu.ng",
+      "lecturer": "gokoacha@pau.edu.ng",
       "day": "Thu",
-      "time": "9:00",
-      "course": "CSC 322 - CSC",
-      "group": "Computer Science - Year  3",
+      "time": "13:00",
+      "course": "STA 111",
+      "group": "Computer Science - Year  1",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Thu at 9:00"
+      "location": "Thu at 13:00"
+    },
+    {
+      "lecturer": "gokoacha@pau.edu.ng",
+      "day": "Thu",
+      "time": "14:00",
+      "course": "STA 111",
+      "group": "Computer Science - Year  1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 14:00"
+    },
+    {
+      "lecturer": "gokoacha@pau.edu.ng",
+      "day": "Thu",
+      "time": "15:00",
+      "course": "STA 111",
+      "group": "Computer Science - Year  1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 15:00"
+    },
+    {
+      "lecturer": "eofor@pau.edu.ng",
+      "day": "Fri",
+      "time": "14:00",
+      "course": "CHM 101",
+      "group": "Mechatronics Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 14:00"
+    },
+    {
+      "lecturer": "eofor@pau.edu.ng",
+      "day": "Fri",
+      "time": "15:00",
+      "course": "CHM 101",
+      "group": "Mechatronics Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 15:00"
+    },
+    {
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
+      "time": "13:00",
+      "course": "CSC 308",
+      "group": "Software Engineering - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 13:00"
+    },
+    {
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
+      "time": "14:00",
+      "course": "CSC 308",
+      "group": "Software Engineering - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
+      "time": "15:00",
+      "course": "CSC 308",
+      "group": "Software Engineering - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 15:00"
     },
     {
       "lecturer": "snwokoye@pau.edu.ng",
@@ -1624,81 +1364,201 @@
       "location": "Thu at 10:00"
     },
     {
-      "lecturer": "eofor@pau.edu.ng",
+      "lecturer": "snwokoye@pau.edu.ng",
+      "day": "Thu",
+      "time": "11:00",
+      "course": "CSC 322 - CSC",
+      "group": "Computer Science - Year  3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 11:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
+      "time": "14:00",
+      "course": "COS 101",
+      "group": "Software Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 14:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
+      "time": "15:00",
+      "course": "COS 101",
+      "group": "Software Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 15:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
+      "time": "16:00",
+      "course": "COS 101",
+      "group": "Software Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 16:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Tue",
+      "time": "11:00",
+      "course": "COS 101",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 11:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Tue",
+      "time": "12:00",
+      "course": "COS 101",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 12:00"
+    },
+    {
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Tue",
+      "time": "13:00",
+      "course": "COS 101",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 13:00"
+    },
+    {
+      "lecturer": "snwokoye@pau.edu.ng",
+      "day": "Thu",
+      "time": "12:00",
+      "course": "CSC 322 - SEN",
+      "group": "Software Engineering - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 12:00"
+    },
+    {
+      "lecturer": "snwokoye@pau.edu.ng",
       "day": "Thu",
       "time": "13:00",
-      "course": "CHM 101",
-      "group": "Mechanical Engineering - Year 1",
+      "course": "CSC 322 - SEN",
+      "group": "Software Engineering - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Thu at 13:00"
     },
     {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Mon",
+      "time": "14:00",
+      "course": "GET 101",
+      "group": "Electrical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 14:00"
+    },
+    {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Mon",
+      "time": "15:00",
+      "course": "GET 101",
+      "group": "Electrical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 15:00"
+    },
+    {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Mon",
+      "time": "16:00",
+      "course": "GET 101",
+      "group": "Electrical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 16:00"
+    },
+    {
       "lecturer": "eofor@pau.edu.ng",
       "day": "Thu",
-      "time": "14:00",
+      "time": "11:00",
       "course": "CHM 101",
       "group": "Mechanical Engineering - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Thu at 14:00"
+      "location": "Thu at 11:00"
     },
     {
       "lecturer": "eofor@pau.edu.ng",
+      "day": "Thu",
+      "time": "12:00",
+      "course": "CHM 101",
+      "group": "Mechanical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 12:00"
+    },
+    {
+      "lecturer": "oomeje@pau.edu.ng",
       "day": "Fri",
       "time": "10:00",
-      "course": "CHM 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "course": "EEE 311",
+      "group": "Electrical Engineering - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 10:00"
     },
     {
-      "lecturer": "eofor@pau.edu.ng",
+      "lecturer": "oomeje@pau.edu.ng",
       "day": "Fri",
       "time": "11:00",
-      "course": "CHM 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "course": "EEE 311",
+      "group": "Electrical Engineering - Year 3",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Fri at 11:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Wed",
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
       "time": "10:00",
-      "course": "COM 409",
-      "group": "Mass Communication - Year 4",
+      "course": "COS 101",
+      "group": "Computer Science - Year  1",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Wed at 10:00"
+      "location": "Mon at 10:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Wed",
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
       "time": "11:00",
-      "course": "COM 409",
-      "group": "Mass Communication - Year 4",
+      "course": "COS 101",
+      "group": "Computer Science - Year  1",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Wed at 11:00"
+      "location": "Mon at 11:00"
     },
     {
-      "lecturer": "tbd",
-      "day": "Wed",
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
       "time": "12:00",
-      "course": "COM 409",
-      "group": "Mass Communication - Year 4",
+      "course": "COS 101",
+      "group": "Computer Science - Year  1",
       "available_days": "Not specified",
       "available_times": "Not specified",
-      "location": "Wed at 12:00"
+      "location": "Mon at 12:00"
     },
     {
       "lecturer": "aagholor@pau.edu.ng",
       "day": "Mon",
       "time": "10:00",
       "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "group": "Mechanical Engineering - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 10:00"
@@ -1708,7 +1568,7 @@
       "day": "Mon",
       "time": "11:00",
       "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "group": "Mechanical Engineering - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 11:00"
@@ -1718,13 +1578,231 @@
       "day": "Mon",
       "time": "12:00",
       "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "group": "Mechanical Engineering - Year 1",
       "available_days": "Not specified",
       "available_times": "Not specified",
       "location": "Mon at 12:00"
+    },
+    {
+      "lecturer": "jajiboye@pau.edu.ng",
+      "day": "Mon",
+      "time": "14:00",
+      "course": "MEE 407",
+      "group": "Mechanical Engineering - Year 4",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 14:00"
+    },
+    {
+      "lecturer": "jajiboye@pau.edu.ng",
+      "day": "Mon",
+      "time": "15:00",
+      "course": "MEE 407",
+      "group": "Mechanical Engineering - Year 4",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Mon at 15:00"
+    },
+    {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Tue",
+      "time": "9:00",
+      "course": "GET 101",
+      "group": "Mechatronics Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 9:00"
+    },
+    {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Tue",
+      "time": "10:00",
+      "course": "GET 101",
+      "group": "Mechatronics Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 10:00"
+    },
+    {
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Tue",
+      "time": "11:00",
+      "course": "GET 101",
+      "group": "Mechatronics Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 11:00"
+    },
+    {
+      "lecturer": "eofor@pau.edu.ng",
+      "day": "Fri",
+      "time": "10:00",
+      "course": "CHM 101",
+      "group": "Electrical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 10:00"
+    },
+    {
+      "lecturer": "eofor@pau.edu.ng",
+      "day": "Fri",
+      "time": "11:00",
+      "course": "CHM 101",
+      "group": "Electrical Engineering - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 11:00"
+    },
+    {
+      "lecturer": "tbd",
+      "day": "Thu",
+      "time": "12:00",
+      "course": "INS 401",
+      "group": "Computer Science - Year  4/Stream 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 12:00"
+    },
+    {
+      "lecturer": "tbd",
+      "day": "Thu",
+      "time": "13:00",
+      "course": "INS 401",
+      "group": "Computer Science - Year  4/Stream 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Thu at 13:00"
+    },
+    {
+      "lecturer": "ialamezie@pau.edu.ng",
+      "day": "Tue",
+      "time": "14:00",
+      "course": "PAU-FMM 292",
+      "group": "Film & Media Studies - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 14:00"
+    },
+    {
+      "lecturer": "ialamezie@pau.edu.ng",
+      "day": "Tue",
+      "time": "15:00",
+      "course": "PAU-FMM 292",
+      "group": "Film & Media Studies - Year 2",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Tue at 15:00"
+    },
+    {
+      "lecturer": "okwy@pau.edu.ng",
+      "day": "Wed",
+      "time": "9:00",
+      "course": "ACC 308",
+      "group": "Accounting - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 9:00"
+    },
+    {
+      "lecturer": "okwy@pau.edu.ng",
+      "day": "Wed",
+      "time": "10:00",
+      "course": "ACC 308",
+      "group": "Accounting - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 10:00"
+    },
+    {
+      "lecturer": "okwy@pau.edu.ng",
+      "day": "Wed",
+      "time": "11:00",
+      "course": "ACC 308",
+      "group": "Accounting - Year 3",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Wed at 11:00"
+    },
+    {
+      "lecturer": "rokolo@pau.edu.ng",
+      "day": "Fri",
+      "time": "10:00",
+      "course": "PAU-ECO 107",
+      "group": "Economics - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 10:00"
+    },
+    {
+      "lecturer": "rokolo@pau.edu.ng",
+      "day": "Fri",
+      "time": "11:00",
+      "course": "PAU-ECO 107",
+      "group": "Economics - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 11:00"
+    },
+    {
+      "lecturer": "gokoacha@pau.edu.ng",
+      "day": "Fri",
+      "time": "14:00",
+      "course": "STA 111",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 14:00"
+    },
+    {
+      "lecturer": "gokoacha@pau.edu.ng",
+      "day": "Fri",
+      "time": "15:00",
+      "course": "STA 111",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 15:00"
+    },
+    {
+      "lecturer": "gokoacha@pau.edu.ng",
+      "day": "Fri",
+      "time": "16:00",
+      "course": "STA 111",
+      "group": "Data Science - Year 1",
+      "available_days": "Not specified",
+      "available_times": "Not specified",
+      "location": "Fri at 16:00"
     }
   ],
   "Lecturer Workload Violations": [
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "tbd",
+      "day": "Fri",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Book Publishing, Financial Systems in Nigeria, Project Management",
+      "violation": "2 extra hours",
+      "location": "tbd on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "tbd",
+      "day": "Fri",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Book Publishing, Financial Systems in Nigeria, Project Management",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "tbd on Fri"
+    },
     {
       "type": "Excessive Daily Hours",
       "lecturer": "Prof. Oloyombo",
@@ -1736,144 +1814,163 @@
       "location": "Prof. Oloyombo on Wed"
     },
     {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Prof. Vincent",
-      "day": "Tue",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Bank Lending and Loan Administration, Auditing and Assurance I",
-      "violation": "2 extra hours",
-      "location": "Prof. Vincent on Tue"
-    },
-    {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Prof. Vincent",
-      "day": "Tue",
-      "consecutive_hours": 6,
+      "lecturer": "Ms. Nkem Agam",
+      "day": "Thu",
+      "consecutive_hours": 4,
       "max_allowed": 3,
-      "courses": "Bank Lending and Loan Administration, Auditing and Assurance I",
+      "courses": "Audio & Video Special Effects I, Film and Multimedia Production:Design and Editing I",
       "hours_times": [
         "9:00",
         "10:00",
         "11:00",
-        "12:00",
-        "13:00",
-        "14:00"
+        "12:00"
       ],
-      "violation": "3 extra consecutive hours",
-      "location": "Prof. Vincent on Tue"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Agbonrofo Hope",
-      "day": "Mon",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Principles of Economics I",
-      "violation": "2 extra hours",
-      "location": "Dr. Agbonrofo Hope on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Nwani",
-      "day": "Thu",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Introductory Mathematics I, Intermediate Microeconomics l, Basic Mathematics",
-      "violation": "2 extra hours",
-      "location": "Dr. Nwani on Thu"
+      "violation": "1 extra consecutive hours",
+      "location": "Ms. Nkem Agam on Thu"
     },
     {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Nwani",
-      "day": "Thu",
-      "consecutive_hours": 6,
-      "max_allowed": 3,
-      "courses": "Introductory Mathematics I, Intermediate Microeconomics l, Basic Mathematics",
-      "hours_times": [
-        "10:00",
-        "11:00",
-        "12:00",
-        "13:00",
-        "14:00",
-        "15:00"
-      ],
-      "violation": "3 extra consecutive hours",
-      "location": "Dr. Nwani on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
       "lecturer": "roji@pau.edu.ng",
-      "day": "Mon",
-      "hours_scheduled": 5,
-      "max_allowed": 4,
-      "courses": "Communication in English, Indigenous Language Media",
-      "violation": "1 extra hours",
-      "location": "roji@pau.edu.ng on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Aifuwa Edosomwan",
-      "day": "Tue",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "History of Nigerian Media, Introduction to Human Communication",
-      "violation": "2 extra hours",
-      "location": "Dr. Aifuwa Edosomwan on Tue"
-    },
-    {
-      "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Aifuwa Edosomwan",
-      "day": "Tue",
+      "day": "Thu",
       "consecutive_hours": 4,
       "max_allowed": 3,
-      "courses": "History of Nigerian Media, Introduction to Human Communication",
+      "courses": "Communication in English",
       "hours_times": [
-        "10:00",
-        "11:00",
-        "12:00",
         "13:00",
+        "14:00",
         "15:00",
         "16:00"
       ],
       "violation": "1 extra consecutive hours",
-      "location": "Dr. Aifuwa Edosomwan on Tue"
+      "location": "roji@pau.edu.ng on Thu"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Tue",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Communication in English",
+      "hours_times": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "roji@pau.edu.ng on Tue"
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Aifuwa Edosomwan",
+      "lecturer": "Dr. Stephen Adubi",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Data Structures",
+      "violation": "2 extra hours",
+      "location": "Dr. Stephen Adubi on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Fredrick Ikpesu",
+      "day": "Wed",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Finance 1, International Finance",
+      "violation": "2 extra hours",
+      "location": "Dr. Fredrick Ikpesu on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Nwani",
       "day": "Thu",
       "hours_scheduled": 6,
       "max_allowed": 4,
-      "courses": "History of Nigerian Media, Introduction to Human Communication",
+      "courses": "Basic Mathematics, Introductory Mathematics I, Intermediate Microeconomics l",
       "violation": "2 extra hours",
-      "location": "Dr. Aifuwa Edosomwan on Thu"
+      "location": "Dr. Nwani on Thu"
     },
     {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Aifuwa Edosomwan",
+      "lecturer": "Dr. Nwani",
       "day": "Thu",
       "consecutive_hours": 4,
       "max_allowed": 3,
-      "courses": "History of Nigerian Media, Introduction to Human Communication",
+      "courses": "Basic Mathematics, Introductory Mathematics I, Intermediate Microeconomics l",
       "hours_times": [
         "9:00",
         "10:00",
-        "12:00",
         "13:00",
         "14:00",
-        "15:00"
+        "15:00",
+        "16:00"
       ],
       "violation": "1 extra consecutive hours",
-      "location": "Dr. Aifuwa Edosomwan on Thu"
+      "location": "Dr. Nwani on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Osuji",
+      "day": "Thu",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Social and Political Environment of Business, International Economics",
+      "violation": "1 extra hours",
+      "location": "Prof. Osuji on Thu"
     },
     {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "ialamezie@pau.edu.ng",
+      "lecturer": "Prof. Osuji",
+      "day": "Thu",
+      "consecutive_hours": 5,
+      "max_allowed": 3,
+      "courses": "Social and Political Environment of Business, International Economics",
+      "hours_times": [
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "2 extra consecutive hours",
+      "location": "Prof. Osuji on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Juan Elegido",
+      "day": "Fri",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Peace Studies and Conflict Resolution, The Nature of Human Beings",
+      "violation": "2 extra hours",
+      "location": "Prof. Juan Elegido on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Prof. Juan Elegido",
+      "day": "Fri",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Peace Studies and Conflict Resolution, The Nature of Human Beings",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Prof. Juan Elegido on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Prof. Juan Elegido",
       "day": "Thu",
       "consecutive_hours": 4,
       "max_allowed": 3,
-      "courses": "Philosophy, Logic, and Human Existence, Philosophy, Logic and Human Existence",
+      "courses": "The Nature of Human Beings",
       "hours_times": [
         "12:00",
         "13:00",
@@ -1881,7 +1978,44 @@
         "15:00"
       ],
       "violation": "1 extra consecutive hours",
-      "location": "ialamezie@pau.edu.ng on Thu"
+      "location": "Prof. Juan Elegido on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Okon",
+      "day": "Wed",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "International Business, Production and Operation Management",
+      "violation": "2 extra hours",
+      "location": "Dr. Okon on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Nwachukwu Egbunike",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Techniques in Book Publishing, Digital Rights",
+      "violation": "1 extra hours",
+      "location": "Dr. Nwachukwu Egbunike on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Nwachukwu Egbunike",
+      "day": "Tue",
+      "consecutive_hours": 5,
+      "max_allowed": 3,
+      "courses": "Techniques in Book Publishing, Digital Rights",
+      "hours_times": [
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "2 extra consecutive hours",
+      "location": "Dr. Nwachukwu Egbunike on Tue"
     },
     {
       "type": "Excessive Daily Hours",
@@ -1904,72 +2038,32 @@
       "location": "oikpesu@pau.edu.ng on Tue"
     },
     {
-      "type": "Excessive Daily Hours",
-      "lecturer": "tbd",
-      "day": "Wed",
-      "hours_scheduled": 5,
-      "max_allowed": 4,
-      "courses": "Introduction to Book Publishing, Film Production Techniques",
-      "violation": "1 extra hours",
-      "location": "tbd on Wed"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Fredrick Ikpesu",
-      "day": "Wed",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "International Finance, Introduction to Finance 1",
-      "violation": "2 extra hours",
-      "location": "Dr. Fredrick Ikpesu on Wed"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Okon",
-      "day": "Wed",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Production and Operation Management, International Business",
-      "violation": "2 extra hours",
-      "location": "Dr. Okon on Wed"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Prof. Osuji",
-      "day": "Thu",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Social and Political Environment of Business, International Economics",
-      "violation": "2 extra hours",
-      "location": "Prof. Osuji on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Enyinnaya",
-      "day": "Fri",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Innovation Management, E-Commerce, Principles of Negotiations",
-      "violation": "2 extra hours",
-      "location": "Dr. Enyinnaya on Fri"
-    },
-    {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Enyinnaya",
-      "day": "Fri",
-      "consecutive_hours": 4,
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Tue",
+      "consecutive_hours": 6,
       "max_allowed": 3,
-      "courses": "Innovation Management, E-Commerce, Principles of Negotiations",
+      "courses": "Elements of Banking, Introduction to Finance",
       "hours_times": [
-        "9:00",
         "10:00",
         "11:00",
         "12:00",
-        "15:00",
-        "16:00"
+        "13:00",
+        "14:00",
+        "15:00"
       ],
-      "violation": "1 extra consecutive hours",
-      "location": "Dr. Enyinnaya on Fri"
+      "violation": "3 extra consecutive hours",
+      "location": "oikpesu@pau.edu.ng on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Agbonrofo Hope",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Principles of Economics I",
+      "violation": "2 extra hours",
+      "location": "Dr. Agbonrofo Hope on Mon"
     },
     {
       "type": "Excessive Daily Hours",
@@ -1980,6 +2074,50 @@
       "courses": "Financial Accounting I",
       "violation": "2 extra hours",
       "location": "Dr. Ini Udofia on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Aifuwa Edosomwan",
+      "day": "Thu",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Human Communication, History of Nigerian Media",
+      "violation": "2 extra hours",
+      "location": "Dr. Aifuwa Edosomwan on Thu"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Aifuwa Edosomwan",
+      "day": "Thu",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Human Communication, History of Nigerian Media",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Aifuwa Edosomwan on Thu"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Aifuwa Edosomwan",
+      "day": "Tue",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Human Communication",
+      "hours_times": [
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Aifuwa Edosomwan on Tue"
     },
     {
       "type": "Excessive Daily Hours",
@@ -2013,75 +2151,21 @@
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Mr. Lawrence Akande",
-      "day": "Wed",
-      "hours_scheduled": 5,
-      "max_allowed": 4,
-      "courses": "Introduction to Audio, Video, and Graphics editing systems, Film Analysis and Criticism",
-      "violation": "1 extra hours",
-      "location": "Mr. Lawrence Akande on Wed"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Prof. Juan Elegido",
-      "day": "Thu",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "The Nature of Human Beings, Peace Studies and Conflict Resolution",
-      "violation": "2 extra hours",
-      "location": "Prof. Juan Elegido on Thu"
-    },
-    {
-      "type": "Excessive Consecutive Hours",
-      "lecturer": "Prof. Juan Elegido",
-      "day": "Thu",
-      "consecutive_hours": 4,
-      "max_allowed": 3,
-      "courses": "The Nature of Human Beings, Peace Studies and Conflict Resolution",
-      "hours_times": [
-        "9:00",
-        "10:00",
-        "12:00",
-        "13:00",
-        "14:00",
-        "15:00"
-      ],
-      "violation": "1 extra consecutive hours",
-      "location": "Prof. Juan Elegido on Thu"
-    },
-    {
-      "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Akudo Ijezie",
-      "day": "Thu",
-      "consecutive_hours": 4,
-      "max_allowed": 3,
-      "courses": "Elementary Mathematics I (Algebra & Trigonometry), Discrete Structures",
-      "hours_times": [
-        "10:00",
-        "11:00",
-        "12:00",
-        "13:00"
-      ],
-      "violation": "1 extra consecutive hours",
-      "location": "Dr. Akudo Ijezie on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Clinton Ifegwu",
+      "lecturer": "Prof. Norbert Edomah",
       "day": "Thu",
       "hours_scheduled": 7,
       "max_allowed": 4,
-      "courses": "Elementary Mathematics I, General Practical Chemistry I",
+      "courses": "Electromechanical Systems, Introduction to Electrical and Electronic Engineering, Applied Electricity I",
       "violation": "3 extra hours",
-      "location": "Dr. Clinton Ifegwu on Thu"
+      "location": "Prof. Norbert Edomah on Thu"
     },
     {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Dr. Clinton Ifegwu",
+      "lecturer": "Prof. Norbert Edomah",
       "day": "Thu",
       "consecutive_hours": 7,
       "max_allowed": 3,
-      "courses": "Elementary Mathematics I, General Practical Chemistry I",
+      "courses": "Electromechanical Systems, Introduction to Electrical and Electronic Engineering, Applied Electricity I",
       "hours_times": [
         "9:00",
         "10:00",
@@ -2092,55 +2176,7 @@
         "15:00"
       ],
       "violation": "4 extra consecutive hours",
-      "location": "Dr. Clinton Ifegwu on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. George Ihenacho",
-      "day": "Mon",
-      "hours_scheduled": 5,
-      "max_allowed": 4,
-      "courses": "Mechanical (Machine) Engineering Design II, B.Eng. Project I",
-      "violation": "1 extra hours",
-      "location": "Dr. George Ihenacho on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "gokoacha@pau.edu.ng",
-      "day": "Wed",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Descriptive Statistics",
-      "violation": "2 extra hours",
-      "location": "gokoacha@pau.edu.ng on Wed"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Operating Systems",
-      "violation": "2 extra hours",
-      "location": "george.uwagbale@pau.edu.ng on Tue"
-    },
-    {
-      "type": "Excessive Consecutive Hours",
-      "lecturer": "george.uwagbale@pau.edu.ng",
-      "day": "Tue",
-      "consecutive_hours": 6,
-      "max_allowed": 3,
-      "courses": "Operating Systems",
-      "hours_times": [
-        "9:00",
-        "10:00",
-        "11:00",
-        "12:00",
-        "13:00",
-        "14:00"
-      ],
-      "violation": "3 extra consecutive hours",
-      "location": "george.uwagbale@pau.edu.ng on Tue"
+      "location": "Prof. Norbert Edomah on Thu"
     },
     {
       "type": "Excessive Daily Hours",
@@ -2153,68 +2189,58 @@
       "location": "Prof. Norbert Edomah on Mon"
     },
     {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Prof. Norbert Edomah",
-      "day": "Tue",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Applied Electricity I",
-      "violation": "2 extra hours",
-      "location": "Prof. Norbert Edomah on Tue"
-    },
-    {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Prof. Norbert Edomah",
-      "day": "Tue",
-      "consecutive_hours": 6,
+      "lecturer": "Dr. Akudo Ijezie",
+      "day": "Fri",
+      "consecutive_hours": 4,
       "max_allowed": 3,
-      "courses": "Applied Electricity I",
+      "courses": "Elementary Mathematics I (Algebra & Trigonometry)",
       "hours_times": [
         "9:00",
         "10:00",
         "11:00",
-        "12:00",
-        "13:00",
-        "14:00"
+        "12:00"
       ],
-      "violation": "3 extra consecutive hours",
-      "location": "Prof. Norbert Edomah on Tue"
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Akudo Ijezie on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Mr. Solomon Alile",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Computer Hardware and Networking Essentials",
+      "violation": "2 extra hours",
+      "location": "Mr. Solomon Alile on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Operating Systems",
+      "violation": "2 extra hours",
+      "location": "george.uwagbale@pau.edu.ng on Tue"
     },
     {
       "type": "Excessive Consecutive Hours",
-      "lecturer": "Prof. Norbert Edomah",
-      "day": "Thu",
-      "consecutive_hours": 4,
+      "lecturer": "george.uwagbale@pau.edu.ng",
+      "day": "Tue",
+      "consecutive_hours": 6,
       "max_allowed": 3,
-      "courses": "Electromechanical Systems, Introduction to Electrical and Electronic Engineering",
+      "courses": "Operating Systems",
       "hours_times": [
+        "10:00",
+        "11:00",
         "12:00",
         "13:00",
         "14:00",
         "15:00"
       ],
-      "violation": "1 extra consecutive hours",
-      "location": "Prof. Norbert Edomah on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "aagholor@pau.edu.ng",
-      "day": "Mon",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Engineer in Society",
-      "violation": "2 extra hours",
-      "location": "aagholor@pau.edu.ng on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Anthony Onokwai",
-      "day": "Mon",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Fundamentals of Fluid Mechanics",
-      "violation": "2 extra hours",
-      "location": "Dr. Anthony Onokwai on Mon"
+      "violation": "3 extra consecutive hours",
+      "location": "george.uwagbale@pau.edu.ng on Tue"
     },
     {
       "type": "Excessive Daily Hours",
@@ -2238,22 +2264,12 @@
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Stephen Adubi",
-      "day": "Mon",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Data Structures",
-      "violation": "2 extra hours",
-      "location": "Dr. Stephen Adubi on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
       "lecturer": "Dr. Avbenake Onoriode",
       "day": "Mon",
-      "hours_scheduled": 6,
+      "hours_scheduled": 5,
       "max_allowed": 4,
       "courses": "Engineering Mathematics III, Engineering Statistics and Data Analytics",
-      "violation": "2 extra hours",
+      "violation": "1 extra hours",
       "location": "Dr. Avbenake Onoriode on Mon"
     },
     {
@@ -2262,49 +2278,29 @@
       "day": "Tue",
       "hours_scheduled": 6,
       "max_allowed": 4,
-      "courses": "Engineering Statistics & Data Analytics, Engineering Mathematics III",
+      "courses": "Engineering Mathematics III, Engineering Statistics & Data Analytics",
       "violation": "2 extra hours",
       "location": "Dr. Avbenake Onoriode on Tue"
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Mr. Solomon Alile",
+      "lecturer": "Dr. Anthony Onokwai",
       "day": "Mon",
       "hours_scheduled": 6,
       "max_allowed": 4,
-      "courses": "Computer Hardware and Networking Essentials",
+      "courses": "Fundamentals of Fluid Mechanics",
       "violation": "2 extra hours",
-      "location": "Mr. Solomon Alile on Mon"
+      "location": "Dr. Anthony Onokwai on Mon"
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Jeremiah Bandele",
-      "day": "Thu",
-      "hours_scheduled": 5,
-      "max_allowed": 4,
-      "courses": "Analogue Electronic Circuits, Computing & Software Engineering",
-      "violation": "1 extra hours",
-      "location": "Dr. Jeremiah Bandele on Thu"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "dmoru@pau.edu.ng",
-      "day": "Mon",
+      "lecturer": "Mr. Taiwo Amoo",
+      "day": "Wed",
       "hours_scheduled": 6,
       "max_allowed": 4,
-      "courses": "Introduction to Computer Science",
+      "courses": "Compiler Construction",
       "violation": "2 extra hours",
-      "location": "dmoru@pau.edu.ng on Mon"
-    },
-    {
-      "type": "Excessive Daily Hours",
-      "lecturer": "Dr. Benjamin Anyaegbuna",
-      "day": "Tue",
-      "hours_scheduled": 6,
-      "max_allowed": 4,
-      "courses": "Engineering Project Management, Engineering (Project) Management [PMI]",
-      "violation": "2 extra hours",
-      "location": "Dr. Benjamin Anyaegbuna on Tue"
+      "location": "Mr. Taiwo Amoo on Wed"
     },
     {
       "type": "Excessive Daily Hours",
@@ -2318,135 +2314,113 @@
     },
     {
       "type": "Excessive Daily Hours",
-      "lecturer": "Mr. Taiwo Amoo",
-      "day": "Wed",
+      "lecturer": "Dr. Benjamin Anyaegbuna",
+      "day": "Tue",
       "hours_scheduled": 6,
       "max_allowed": 4,
-      "courses": "Compiler Construction",
+      "courses": "Engineering (Project) Management [PMI], Engineering Project Management",
       "violation": "2 extra hours",
-      "location": "Mr. Taiwo Amoo on Wed"
+      "location": "Dr. Benjamin Anyaegbuna on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "snwokoye@pau.edu.ng",
+      "day": "Thu",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Software Engineering Innovation and New Technology, Computer Science Innovation and New Technology",
+      "hours_times": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "snwokoye@pau.edu.ng on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Clinton Ifegwu",
+      "day": "Tue",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "General Practical Chemistry I",
+      "violation": "2 extra hours",
+      "location": "Dr. Clinton Ifegwu on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Clinton Ifegwu",
+      "day": "Tue",
+      "consecutive_hours": 6,
+      "max_allowed": 3,
+      "courses": "General Practical Chemistry I",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00"
+      ],
+      "violation": "3 extra consecutive hours",
+      "location": "Dr. Clinton Ifegwu on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Computer Science",
+      "violation": "2 extra hours",
+      "location": "dmoru@pau.edu.ng on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Jeremiah Bandele",
+      "day": "Thu",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Computing & Software Engineering, Analogue Electronic Circuits",
+      "violation": "1 extra hours",
+      "location": "Dr. Jeremiah Bandele on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "aagholor@pau.edu.ng",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Engineer in Society",
+      "violation": "2 extra hours",
+      "location": "aagholor@pau.edu.ng on Mon"
     }
   ],
   "Consecutive Slot Violations": [
     {
-      "course": "CSC 497",
-      "course_name": "Final Year Project I",
-      "group": "Computer Science - Year  4/Stream 2",
+      "course": "GET 207",
+      "course_name": "Applied Mechanics",
+      "group": "Mechatronics Engineering - Year 2",
       "times": [
         "9:00",
         "9:00",
         "9:00"
       ],
       "credits": 3,
-      "location": "CSC 497 for Computer Science - Year  4/Stream 2",
+      "location": "GET 207 for Mechatronics Engineering - Year 2",
       "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
-    },
-    {
-      "course": "ENT 312 - ISM",
-      "course_name": "Venture Creation",
-      "group": "ISMS - Year 3",
-      "times": [
-        "15:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 312 - ISM for ISMS - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 312 - ACC",
-      "course_name": "Venture Creation",
-      "group": "Accounting - Year 3",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 312 - ACC for Accounting - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - CSC",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Computer Science - Year  2/Stream 2",
-      "times": [
-        "15:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - CSC for Computer Science - Year  2/Stream 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "PHY101",
-      "course_name": "General Physics I",
-      "group": "Computer Science - Year  1",
-      "times": [
-        "11:00",
-        "11:00"
-      ],
-      "credits": 2,
-      "location": "PHY101 for Computer Science - Year  1",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - CSC",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Software Engineering - Year 2",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - CSC for Software Engineering - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - ACC",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Accounting - Year 2",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - ACC for Accounting - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
     },
     {
       "course": "PAU-MCT 302",
       "course_name": "Introduction to Robotics",
       "group": "Mechanical Engineering - Year 3",
       "times": [
-        "11:00",
-        "10:00"
+        "9:00",
+        "9:00"
       ],
       "credits": 2,
       "location": "PAU-MCT 302 for Mechanical Engineering - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "PAU-ISM 392",
-      "course_name": "Professional and Personal Skills",
-      "group": "ISMS - Year 3",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "PAU-ISM 392 for ISMS - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 312 - FIN",
-      "course_name": "Venture Creation",
-      "group": "Finance - Year 3",
-      "times": [
-        "14:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 312 - FIN for Finance - Year 3",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
@@ -2462,39 +2436,51 @@
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "MTH 201",
-      "course_name": "Mathematical Method I",
-      "group": "Computer Science - Year  2/Stream 1",
+      "course": "PHY101",
+      "course_name": "General Physics I",
+      "group": "Computer Science - Year  1",
+      "times": [
+        "9:00",
+        "11:00"
+      ],
+      "credits": 2,
+      "location": "PHY101 for Computer Science - Year  1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 312 - BUA",
+      "course_name": "Venture Creation",
+      "group": "Business Administration - Year 3",
+      "times": [
+        "14:00",
+        "15:00"
+      ],
+      "credits": 2,
+      "location": "ENT 312 - BUA for Business Administration - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 312 - FMM",
+      "course_name": "Venture Creation",
+      "group": "Film & Media Studies - Year 3",
+      "times": [
+        "16:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 312 - FMM for Film & Media Studies - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 312 - FIN",
+      "course_name": "Venture Creation",
+      "group": "Finance - Year 3",
       "times": [
         "14:00",
         "16:00"
       ],
       "credits": 2,
-      "location": "MTH 201 for Computer Science - Year  2/Stream 1",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 -MCM",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Mass Communication - Year 2",
-      "times": [
-        "15:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 -MCM for Mass Communication - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "PAU-EEE 191",
-      "course_name": "Introduction to Christian Theology",
-      "group": "Mechanical Engineering - Year 1",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "PAU-EEE 191 for Mechanical Engineering - Year 1",
+      "location": "ENT 312 - FIN for Finance - Year 3",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
@@ -2502,7 +2488,7 @@
       "course_name": "General Physics I",
       "group": "Data Science - Year 1",
       "times": [
-        "11:00",
+        "9:00",
         "11:00"
       ],
       "credits": 2,
@@ -2510,123 +2496,39 @@
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "ENT 211 - FMM",
+      "course": "ENT 211 - ECO",
       "course_name": "Entrepreneurship and Innovation",
-      "group": "Film & Media Studies - Year 2",
+      "group": "Economics - Year 2",
       "times": [
         "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - FMM for Film & Media Studies - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "MCM 211",
-      "course_name": "Basics of Screenwriting and Film Animation",
-      "group": "Mass Communication - Year 2",
-      "times": [
-        "9:00",
-        "9:00"
-      ],
-      "credits": 2,
-      "location": "MCM 211 for Mass Communication - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "CSC 409 - ELE",
-      "course_name": "Human Computer Interface (Elective)",
-      "group": "Computer Science - Year  4/Stream 2",
-      "times": [
-        "14:00",
         "16:00"
       ],
       "credits": 2,
-      "location": "CSC 409 - ELE for Computer Science - Year  4/Stream 2",
+      "location": "ENT 211 - ECO for Economics - Year 2",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "PAU-ECO 312",
-      "course_name": "Data Science for Social Scientist",
-      "group": "Economics - Year 3",
-      "times": [
-        "9:00",
-        "9:00"
-      ],
-      "credits": 2,
-      "location": "PAU-ECO 312 for Economics - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "PAU-MCM 191 - STC",
+      "course": "PAU-CSC 192",
       "course_name": "Introduction to Christian Theology",
-      "group": "Strategic Communication - Year 1",
+      "group": "Data Science - Year 1",
       "times": [
-        "11:00",
+        "10:00",
         "9:00"
       ],
       "credits": 2,
-      "location": "PAU-MCM 191 - STC for Strategic Communication - Year 1",
+      "location": "PAU-CSC 192 for Data Science - Year 1",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "PAU-MEE 409",
-      "course_name": "Corrosion Engineering and Protections",
-      "group": "Mechanical Engineering - Year 4",
-      "times": [
-        "9:00",
-        "9:00"
-      ],
-      "credits": 2,
-      "location": "PAU-MEE 409 for Mechanical Engineering - Year 4",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - EEE",
+      "course": "ENT 211 - CSC",
       "course_name": "Entrepreneurship and Innovation",
-      "group": "Mechatronics Engineering - Year 2",
-      "times": [
-        "15:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - EEE for Mechatronics Engineering - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 -ISM",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "ISMS - Year 2",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 -ISM for ISMS - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "GST-111",
-      "course_name": "Communication in English",
-      "group": "Mass Communication - Year 1",
-      "times": [
-        "11:00",
-        "9:00"
-      ],
-      "credits": 2,
-      "location": "GST-111 for Mass Communication - Year 1",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - FIN",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Finance - Year 2",
+      "group": "Software Engineering - Year 2",
       "times": [
         "14:00",
         "16:00"
       ],
       "credits": 2,
-      "location": "ENT 211 - FIN for Finance - Year 2",
+      "location": "ENT 211 - CSC for Software Engineering - Year 2",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
@@ -2642,15 +2544,137 @@
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "ENT 312 - BUA",
-      "course_name": "Venture Creation",
-      "group": "Business Administration - Year 3",
+      "course": "CSC 409 - ELE",
+      "course_name": "Human Computer Interface (Elective)",
+      "group": "Computer Science - Year  4/Stream 2",
       "times": [
         "16:00",
         "14:00"
       ],
       "credits": 2,
-      "location": "ENT 312 - BUA for Business Administration - Year 3",
+      "location": "CSC 409 - ELE for Computer Science - Year  4/Stream 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "BUS 403 - FIN",
+      "course_name": "Analysis for Business Decisions",
+      "group": "Finance - Year 4",
+      "times": [
+        "9:00",
+        "9:00",
+        "9:00"
+      ],
+      "credits": 3,
+      "location": "BUS 403 - FIN for Finance - Year 4",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "PAU-CSC 111",
+      "course_name": "Introduction to Software Packages",
+      "group": "Data Science - Year 1",
+      "times": [
+        "9:00",
+        "9:00",
+        "9:00"
+      ],
+      "credits": 3,
+      "location": "PAU-CSC 111 for Data Science - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "ENT 312 - ACC",
+      "course_name": "Venture Creation",
+      "group": "Accounting - Year 3",
+      "times": [
+        "15:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 312 - ACC for Accounting - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - CSC",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Computer Science - Year  2/Stream 1",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - CSC for Computer Science - Year  2/Stream 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - FMM",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Film & Media Studies - Year 2",
+      "times": [
+        "14:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - FMM for Film & Media Studies - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 -MCM",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Mass Communication - Year 2",
+      "times": [
+        "15:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 -MCM for Mass Communication - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "GST-111",
+      "course_name": "Communication in English",
+      "group": "Mass Communication - Year 1",
+      "times": [
+        "11:00",
+        "9:00"
+      ],
+      "credits": 2,
+      "location": "GST-111 for Mass Communication - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-MEE 409",
+      "course_name": "Corrosion Engineering and Protections",
+      "group": "Mechanical Engineering - Year 4",
+      "times": [
+        "9:00",
+        "11:00"
+      ],
+      "credits": 2,
+      "location": "PAU-MEE 409 for Mechanical Engineering - Year 4",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - ACC",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Accounting - Year 2",
+      "times": [
+        "16:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - ACC for Accounting - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - CSC",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Computer Science - Year  2/Stream 2",
+      "times": [
+        "14:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - CSC for Computer Science - Year  2/Stream 2",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
@@ -2666,15 +2690,39 @@
       "reason": "2-hour course not scheduled consecutively"
     },
     {
-      "course": "ENT 211 - CSC",
+      "course": "ENT 211 -ISM",
       "course_name": "Entrepreneurship and Innovation",
-      "group": "Computer Science - Year  2/Stream 1",
+      "group": "ISMS - Year 2",
       "times": [
-        "15:00",
+        "16:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 -ISM for ISMS - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "AMS 104 - FIN",
+      "course_name": "Fundamentals of Project Management",
+      "group": "Finance - Year 1",
+      "times": [
+        "16:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "AMS 104 - FIN for Finance - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - EEE",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Mechatronics Engineering - Year 2",
+      "times": [
+        "14:00",
         "16:00"
       ],
       "credits": 2,
-      "location": "ENT 211 - CSC for Computer Science - Year  2/Stream 1",
+      "location": "ENT 211 - EEE for Mechatronics Engineering - Year 2",
       "reason": "2-hour course not scheduled consecutively"
     },
     {
@@ -2688,94 +2736,69 @@
       "credits": 2,
       "location": "PAU-CSC 192 for Computer Science - Year  1",
       "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 312 - FMM",
-      "course_name": "Venture Creation",
-      "group": "Film & Media Studies - Year 3",
-      "times": [
-        "15:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 312 - FMM for Film & Media Studies - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "PAU‐FMM 392",
-      "course_name": "Professional and Personal Skills",
-      "group": "Film & Media Studies - Year 3",
-      "times": [
-        "16:00",
-        "14:00"
-      ],
-      "credits": 2,
-      "location": "PAU‐FMM 392 for Film & Media Studies - Year 3",
-      "reason": "2-hour course not scheduled consecutively"
-    },
-    {
-      "course": "ENT 211 - ECO",
-      "course_name": "Entrepreneurship and Innovation",
-      "group": "Economics - Year 2",
-      "times": [
-        "16:00",
-        "16:00"
-      ],
-      "credits": 2,
-      "location": "ENT 211 - ECO for Economics - Year 2",
-      "reason": "2-hour course not scheduled consecutively"
     }
   ],
-  "Missing or Extra Classes": [
-    {
-      "group": "Data Science - Year 1",
-      "course": "PHY 107 - CSC",
-      "expected": 3,
-      "actual": 1,
-      "issue": "Missing",
-      "location": "PHY 107 - CSC for Data Science - Year 1 (1-credit → 3 hours)"
-    }
-  ],
+  "Missing or Extra Classes": [],
   "Same Course in Multiple Rooms on Same Day": [
+    {
+      "course": "ENT 211 - CSC",
+      "group": "Software Engineering - Year 2",
+      "day": "Fri",
+      "rooms": [
+        "Ado-Ekiti",
+        "Enugu"
+      ],
+      "location": "ENT 211 - CSC for Software Engineering - Year 2 on Fri"
+    },
     {
       "course": "PHY101",
       "group": "Computer Science - Year  1",
       "day": "Thu",
       "rooms": [
         "Maiduguri",
-        "Ado-Ekiti"
+        "Uyo"
       ],
       "location": "PHY101 for Computer Science - Year  1 on Thu"
     },
     {
-      "course": "MTH 201",
-      "group": "Computer Science - Year  2/Stream 1",
-      "day": "Tue",
-      "rooms": [
-        "Classroom 4",
-        "Jalingo"
-      ],
-      "location": "MTH 201 for Computer Science - Year  2/Stream 1 on Tue"
-    },
-    {
-      "course": "CSC 409 - ELE",
-      "group": "Computer Science - Year  4/Stream 2",
-      "day": "Fri",
-      "rooms": [
-        "Abakaliki",
-        "Jalingo"
-      ],
-      "location": "CSC 409 - ELE for Computer Science - Year  4/Stream 2 on Fri"
-    },
-    {
-      "course": "PHY101",
-      "group": "Data Science - Year 1",
+      "course": "ENT 312 - ISM",
+      "group": "ISMS - Year 3",
       "day": "Thu",
       "rooms": [
-        "Jalingo",
+        "Ado-Ekiti",
+        "Port-Harcourt"
+      ],
+      "location": "ENT 312 - ISM for ISMS - Year 3 on Thu"
+    },
+    {
+      "course": "ENT 211 - FIN",
+      "group": "Finance - Year 2",
+      "day": "Tue",
+      "rooms": [
+        "Asaba",
+        "Classroom 3"
+      ],
+      "location": "ENT 211 - FIN for Finance - Year 2 on Tue"
+    },
+    {
+      "course": "ENT 312 - FIN",
+      "group": "Finance - Year 3",
+      "day": "Fri",
+      "rooms": [
+        "Maiduguri",
+        "Jalingo"
+      ],
+      "location": "ENT 312 - FIN for Finance - Year 3 on Fri"
+    },
+    {
+      "course": "PAU-CSC 111",
+      "group": "Data Science - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Zaria",
         "Jos"
       ],
-      "location": "PHY101 for Data Science - Year 1 on Thu"
+      "location": "PAU-CSC 111 for Data Science - Year 1 on Mon"
     }
   ],
   "Room Capacity/Type Conflicts": [
@@ -2783,12 +2806,12 @@
       "type": "Room Capacity Exceeded",
       "room": "Maiduguri",
       "capacity": 50,
-      "students": 52,
-      "course": "CSC 497",
-      "group": "Computer Science - Year  4/Stream 2",
-      "day": "Tue",
+      "students": 58,
+      "course": "GET 207",
+      "group": "Mechatronics Engineering - Year 2",
+      "day": "Mon",
       "time": "9:00",
-      "location": "Maiduguri on Tue at 9:00"
+      "location": "Maiduguri on Mon at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
@@ -2798,82 +2821,38 @@
       "course": "PHY101",
       "group": "Computer Science - Year  1",
       "day": "Thu",
-      "time": "11:00",
-      "location": "Maiduguri on Thu at 11:00"
+      "time": "9:00",
+      "location": "Maiduguri on Thu at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Maiduguri",
       "capacity": 50,
-      "students": 52,
-      "course": "CSC 497",
-      "group": "Computer Science - Year  4/Stream 2",
+      "students": 58,
+      "course": "GET 207",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Fri",
       "time": "9:00",
       "location": "Maiduguri on Fri at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
-      "room": "Ado-Ekiti",
-      "capacity": 50,
-      "students": 60,
-      "course": "GST 111 - ENG",
-      "group": "Mechanical Engineering - Year 1",
+      "room": "Uyo",
+      "capacity": 40,
+      "students": 50,
+      "course": "PAU-FIN 201",
+      "group": "Finance - Year 2",
       "day": "Mon",
       "time": "9:00",
-      "location": "Ado-Ekiti on Mon at 9:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Ado-Ekiti",
-      "capacity": 50,
-      "students": 60,
-      "course": "GST 111 - ENG",
-      "group": "Mechanical Engineering - Year 1",
-      "day": "Mon",
-      "time": "10:00",
-      "location": "Ado-Ekiti on Mon at 10:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Ado-Ekiti",
-      "capacity": 50,
-      "students": 60,
-      "course": "PHY101",
-      "group": "Computer Science - Year  1",
-      "day": "Thu",
-      "time": "11:00",
-      "location": "Ado-Ekiti on Thu at 11:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Jos",
-      "capacity": 50,
-      "students": 58,
-      "course": "ENT 211 - EEE",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Tue",
-      "time": "15:00",
-      "location": "Jos on Tue at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Enugu",
-      "capacity": 50,
-      "students": 58,
-      "course": "ENT 211 - EEE",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Fri",
-      "time": "16:00",
-      "location": "Enugu on Fri at 16:00"
+      "location": "Uyo on Mon at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 401 - ACC",
-      "group": "Accounting - Year 4",
+      "course": "PAU-FIN 201",
+      "group": "Finance - Year 2",
       "day": "Mon",
       "time": "10:00",
       "location": "Uyo on Mon at 10:00"
@@ -2883,8 +2862,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 401 - ACC",
-      "group": "Accounting - Year 4",
+      "course": "PAU-FIN 201",
+      "group": "Finance - Year 2",
       "day": "Mon",
       "time": "11:00",
       "location": "Uyo on Mon at 11:00"
@@ -2894,19 +2873,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 401 - ACC",
-      "group": "Accounting - Year 4",
-      "day": "Mon",
-      "time": "12:00",
-      "location": "Uyo on Mon at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Uyo",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-CSC 317",
-      "group": "Software Engineering - Year 3",
+      "course": "MCM 213",
+      "group": "Mass Communication - Year 2",
       "day": "Mon",
       "time": "15:00",
       "location": "Uyo on Mon at 15:00"
@@ -2916,8 +2884,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-CSC 317",
-      "group": "Software Engineering - Year 3",
+      "course": "MCM 213",
+      "group": "Mass Communication - Year 2",
       "day": "Mon",
       "time": "16:00",
       "location": "Uyo on Mon at 16:00"
@@ -2927,8 +2895,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 209",
-      "group": "Mass Communication - Year 2",
+      "course": "ISM 405",
+      "group": "ISMS - Year 4",
       "day": "Tue",
       "time": "9:00",
       "location": "Uyo on Tue at 9:00"
@@ -2938,8 +2906,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 209",
-      "group": "Mass Communication - Year 2",
+      "course": "ISM 405",
+      "group": "ISMS - Year 4",
       "day": "Tue",
       "time": "10:00",
       "location": "Uyo on Tue at 10:00"
@@ -2949,8 +2917,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "GST 112 -SMSS",
-      "group": "Business Administration - Year 1",
+      "course": "ISM 405",
+      "group": "ISMS - Year 4",
       "day": "Tue",
       "time": "11:00",
       "location": "Uyo on Tue at 11:00"
@@ -2960,52 +2928,30 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "GST 112 -SMSS",
-      "group": "Business Administration - Year 1",
-      "day": "Tue",
-      "time": "12:00",
-      "location": "Uyo on Tue at 12:00"
+      "course": "ACC 402",
+      "group": "Accounting - Year 4",
+      "day": "Wed",
+      "time": "9:00",
+      "location": "Uyo on Wed at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 204",
-      "group": "Accounting - Year 2",
-      "day": "Tue",
-      "time": "14:00",
-      "location": "Uyo on Tue at 14:00"
+      "course": "ACC 402",
+      "group": "Accounting - Year 4",
+      "day": "Wed",
+      "time": "10:00",
+      "location": "Uyo on Wed at 10:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 204",
-      "group": "Accounting - Year 2",
-      "day": "Tue",
-      "time": "15:00",
-      "location": "Uyo on Tue at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Uyo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ACC 204",
-      "group": "Accounting - Year 2",
-      "day": "Tue",
-      "time": "16:00",
-      "location": "Uyo on Tue at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Uyo",
-      "capacity": 40,
-      "students": 50,
-      "course": "CMS 301 - MCM",
-      "group": "Mass Communication - Year 3",
+      "course": "ACC 402",
+      "group": "Accounting - Year 4",
       "day": "Wed",
       "time": "11:00",
       "location": "Uyo on Wed at 11:00"
@@ -3015,30 +2961,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "CMS 301 - MCM",
-      "group": "Mass Communication - Year 3",
-      "day": "Wed",
-      "time": "12:00",
-      "location": "Uyo on Wed at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Uyo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ENT 312 - ECO",
-      "group": "Economics - Year 3",
-      "day": "Wed",
-      "time": "14:00",
-      "location": "Uyo on Wed at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Uyo",
-      "capacity": 40,
-      "students": 50,
-      "course": "AMS 104 - FIN",
-      "group": "Finance - Year 1",
+      "course": "MTH 201",
+      "group": "Software Engineering - Year 2",
       "day": "Wed",
       "time": "15:00",
       "location": "Uyo on Wed at 15:00"
@@ -3048,8 +2972,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 104 - FIN",
-      "group": "Finance - Year 1",
+      "course": "MTH 201",
+      "group": "Software Engineering - Year 2",
       "day": "Wed",
       "time": "16:00",
       "location": "Uyo on Wed at 16:00"
@@ -3059,8 +2983,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 102 -ACC",
-      "group": "Accounting - Year 1",
+      "course": "CMS 211",
+      "group": "ISMS - Year 2",
       "day": "Thu",
       "time": "9:00",
       "location": "Uyo on Thu at 9:00"
@@ -3070,8 +2994,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 102 -ACC",
-      "group": "Accounting - Year 1",
+      "course": "CMS 211",
+      "group": "ISMS - Year 2",
       "day": "Thu",
       "time": "10:00",
       "location": "Uyo on Thu at 10:00"
@@ -3080,9 +3004,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Uyo",
       "capacity": 40,
-      "students": 50,
-      "course": "AMS 102 -FIN",
-      "group": "Finance - Year 1",
+      "students": 60,
+      "course": "PHY101",
+      "group": "Computer Science - Year  1",
       "day": "Thu",
       "time": "11:00",
       "location": "Uyo on Thu at 11:00"
@@ -3092,8 +3016,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 102 -FIN",
-      "group": "Finance - Year 1",
+      "course": "ACC 407",
+      "group": "Accounting - Year 4",
       "day": "Thu",
       "time": "12:00",
       "location": "Uyo on Thu at 12:00"
@@ -3103,8 +3027,19 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 301",
-      "group": "Economics - Year 3",
+      "course": "ACC 407",
+      "group": "Accounting - Year 4",
+      "day": "Thu",
+      "time": "13:00",
+      "location": "Uyo on Thu at 13:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Uyo",
+      "capacity": 40,
+      "students": 50,
+      "course": "ACC 407",
+      "group": "Accounting - Year 4",
       "day": "Thu",
       "time": "14:00",
       "location": "Uyo on Thu at 14:00"
@@ -3114,8 +3049,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 301",
-      "group": "Economics - Year 3",
+      "course": "FIN 304",
+      "group": "Finance - Year 3",
       "day": "Thu",
       "time": "15:00",
       "location": "Uyo on Thu at 15:00"
@@ -3125,19 +3060,19 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "BUA 313",
-      "group": "Business Administration - Year 3",
-      "day": "Fri",
-      "time": "9:00",
-      "location": "Uyo on Fri at 9:00"
+      "course": "FIN 304",
+      "group": "Finance - Year 3",
+      "day": "Thu",
+      "time": "16:00",
+      "location": "Uyo on Thu at 16:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "BUA 313",
-      "group": "Business Administration - Year 3",
+      "course": "MIS 401  - ACC",
+      "group": "Accounting - Year 4",
       "day": "Fri",
       "time": "10:00",
       "location": "Uyo on Fri at 10:00"
@@ -3147,8 +3082,8 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 207",
-      "group": "Economics - Year 2",
+      "course": "MIS 401  - ACC",
+      "group": "Accounting - Year 4",
       "day": "Fri",
       "time": "11:00",
       "location": "Uyo on Fri at 11:00"
@@ -3158,30 +3093,41 @@
       "room": "Uyo",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 207",
-      "group": "Economics - Year 2",
+      "course": "MIS 401  - ACC",
+      "group": "Accounting - Year 4",
       "day": "Fri",
       "time": "12:00",
       "location": "Uyo on Fri at 12:00"
     },
     {
       "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
+      "room": "Uyo",
       "capacity": 40,
-      "students": 52,
-      "course": "CSC 497",
-      "group": "Computer Science - Year  4/Stream 2",
-      "day": "Mon",
-      "time": "9:00",
-      "location": "Lokoja on Mon at 9:00"
+      "students": 58,
+      "course": "CYB 201",
+      "group": "Computer Science - Year  3",
+      "day": "Fri",
+      "time": "15:00",
+      "location": "Uyo on Fri at 15:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Uyo",
+      "capacity": 40,
+      "students": 58,
+      "course": "CYB 201",
+      "group": "Computer Science - Year  3",
+      "day": "Fri",
+      "time": "16:00",
+      "location": "Uyo on Fri at 16:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 101",
-      "group": "Mass Communication - Year 1",
+      "course": "ECO 411",
+      "group": "Economics - Year 4",
       "day": "Mon",
       "time": "10:00",
       "location": "Lokoja on Mon at 10:00"
@@ -3191,8 +3137,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 101",
-      "group": "Mass Communication - Year 1",
+      "course": "ECO 411",
+      "group": "Economics - Year 4",
       "day": "Mon",
       "time": "11:00",
       "location": "Lokoja on Mon at 11:00"
@@ -3202,8 +3148,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 101",
-      "group": "Mass Communication - Year 1",
+      "course": "ECO 411",
+      "group": "Economics - Year 4",
       "day": "Mon",
       "time": "12:00",
       "location": "Lokoja on Mon at 12:00"
@@ -3213,8 +3159,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-FIN 201",
-      "group": "Finance - Year 2",
+      "course": "BUS 402 - ACC",
+      "group": "Accounting - Year 4",
       "day": "Mon",
       "time": "14:00",
       "location": "Lokoja on Mon at 14:00"
@@ -3224,8 +3170,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-FIN 201",
-      "group": "Finance - Year 2",
+      "course": "BUS 402 - ACC",
+      "group": "Accounting - Year 4",
       "day": "Mon",
       "time": "15:00",
       "location": "Lokoja on Mon at 15:00"
@@ -3235,8 +3181,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-FIN 201",
-      "group": "Finance - Year 2",
+      "course": "BUS 402 - ACC",
+      "group": "Accounting - Year 4",
       "day": "Mon",
       "time": "16:00",
       "location": "Lokoja on Mon at 16:00"
@@ -3246,8 +3192,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "GST-111",
-      "group": "Strategic Communication - Year 1",
+      "course": "PAU-MCM 191 -MCM",
+      "group": "Mass Communication - Year 1",
       "day": "Tue",
       "time": "9:00",
       "location": "Lokoja on Tue at 9:00"
@@ -3257,8 +3203,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "GST-111",
-      "group": "Strategic Communication - Year 1",
+      "course": "PAU-MCM 191 -MCM",
+      "group": "Mass Communication - Year 1",
       "day": "Tue",
       "time": "10:00",
       "location": "Lokoja on Tue at 10:00"
@@ -3268,41 +3214,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 101",
-      "group": "Accounting - Year 1",
-      "day": "Tue",
-      "time": "11:00",
-      "location": "Lokoja on Tue at 11:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
-      "capacity": 40,
-      "students": 50,
-      "course": "ACC 101",
-      "group": "Accounting - Year 1",
-      "day": "Tue",
-      "time": "12:00",
-      "location": "Lokoja on Tue at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
-      "capacity": 40,
-      "students": 50,
-      "course": "ACC 101",
-      "group": "Accounting - Year 1",
-      "day": "Tue",
-      "time": "13:00",
-      "location": "Lokoja on Tue at 13:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-ISM 292",
-      "group": "ISMS - Year 2",
+      "course": "CMS 101 - ISM",
+      "group": "Mass Communication - Year 1",
       "day": "Tue",
       "time": "14:00",
       "location": "Lokoja on Tue at 14:00"
@@ -3312,8 +3225,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ISM 292",
-      "group": "ISMS - Year 2",
+      "course": "CMS 101 - ISM",
+      "group": "Mass Communication - Year 1",
       "day": "Tue",
       "time": "15:00",
       "location": "Lokoja on Tue at 15:00"
@@ -3323,19 +3236,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "ENT 312 - BUA",
-      "group": "Business Administration - Year 3",
-      "day": "Tue",
-      "time": "16:00",
-      "location": "Lokoja on Tue at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
-      "capacity": 40,
-      "students": 50,
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
+      "course": "ISM 415",
+      "group": "ISMS - Year 4",
       "day": "Wed",
       "time": "9:00",
       "location": "Lokoja on Wed at 9:00"
@@ -3345,8 +3247,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
+      "course": "ISM 415",
+      "group": "ISMS - Year 4",
       "day": "Wed",
       "time": "10:00",
       "location": "Lokoja on Wed at 10:00"
@@ -3356,8 +3258,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 308",
-      "group": "Accounting - Year 3",
+      "course": "MCM 303",
+      "group": "Mass Communication - Year 3",
       "day": "Wed",
       "time": "11:00",
       "location": "Lokoja on Wed at 11:00"
@@ -3367,8 +3269,19 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 215",
-      "group": "Mass Communication - Year 2",
+      "course": "MCM 303",
+      "group": "Mass Communication - Year 3",
+      "day": "Wed",
+      "time": "12:00",
+      "location": "Lokoja on Wed at 12:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Lokoja",
+      "capacity": 40,
+      "students": 50,
+      "course": "BUS 405",
+      "group": "Business Administration - Year 4",
       "day": "Wed",
       "time": "14:00",
       "location": "Lokoja on Wed at 14:00"
@@ -3378,8 +3291,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "MCM 215",
-      "group": "Mass Communication - Year 2",
+      "course": "BUS 405",
+      "group": "Business Administration - Year 4",
       "day": "Wed",
       "time": "15:00",
       "location": "Lokoja on Wed at 15:00"
@@ -3389,8 +3302,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "ENT 211 - ACC",
-      "group": "Accounting - Year 2",
+      "course": "BUS 405",
+      "group": "Business Administration - Year 4",
       "day": "Wed",
       "time": "16:00",
       "location": "Lokoja on Wed at 16:00"
@@ -3400,8 +3313,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 304",
-      "group": "Economics - Year 4",
+      "course": "AMS 102 - BUA",
+      "group": "Business Administration - Year 1",
       "day": "Thu",
       "time": "9:00",
       "location": "Lokoja on Thu at 9:00"
@@ -3411,8 +3324,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 304",
-      "group": "Economics - Year 4",
+      "course": "AMS 102 - BUA",
+      "group": "Business Administration - Year 1",
       "day": "Thu",
       "time": "10:00",
       "location": "Lokoja on Thu at 10:00"
@@ -3422,19 +3335,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 304",
-      "group": "Economics - Year 4",
-      "day": "Thu",
-      "time": "11:00",
-      "location": "Lokoja on Thu at 11:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
-      "capacity": 40,
-      "students": 50,
-      "course": "FIN 403",
-      "group": "Finance - Year 4",
+      "course": "PAU-MCM 391",
+      "group": "Mass Communication - Year 3",
       "day": "Thu",
       "time": "12:00",
       "location": "Lokoja on Thu at 12:00"
@@ -3444,8 +3346,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 403",
-      "group": "Finance - Year 4",
+      "course": "PAU-MCM 391",
+      "group": "Mass Communication - Year 3",
       "day": "Thu",
       "time": "13:00",
       "location": "Lokoja on Thu at 13:00"
@@ -3454,9 +3356,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Lokoja",
       "capacity": 40,
-      "students": 50,
-      "course": "FIN 403",
-      "group": "Finance - Year 4",
+      "students": 45,
+      "course": "ENT 211 - CSC",
+      "group": "Computer Science - Year  2/Stream 2",
       "day": "Thu",
       "time": "14:00",
       "location": "Lokoja on Thu at 14:00"
@@ -3466,8 +3368,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-BUA 105",
-      "group": "Business Administration - Year 1",
+      "course": "BUS 304",
+      "group": "Economics - Year 4",
       "day": "Thu",
       "time": "15:00",
       "location": "Lokoja on Thu at 15:00"
@@ -3477,8 +3379,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-BUA 105",
-      "group": "Business Administration - Year 1",
+      "course": "BUS 304",
+      "group": "Economics - Year 4",
       "day": "Thu",
       "time": "16:00",
       "location": "Lokoja on Thu at 16:00"
@@ -3488,8 +3390,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-CSC 192",
-      "group": "Data Science - Year 1",
+      "course": "BUS 304",
+      "group": "Economics - Year 4",
       "day": "Fri",
       "time": "9:00",
       "location": "Lokoja on Fri at 9:00"
@@ -3499,8 +3401,8 @@
       "room": "Lokoja",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-CSC 192",
-      "group": "Data Science - Year 1",
+      "course": "GST 112 -SMSS",
+      "group": "Accounting - Year 1",
       "day": "Fri",
       "time": "10:00",
       "location": "Lokoja on Fri at 10:00"
@@ -3509,31 +3411,53 @@
       "type": "Room Capacity Exceeded",
       "room": "Lokoja",
       "capacity": 40,
-      "students": 58,
-      "course": "CYB 201",
-      "group": "Computer Science - Year  3",
+      "students": 50,
+      "course": "GST 112 -SMSS",
+      "group": "Accounting - Year 1",
+      "day": "Fri",
+      "time": "11:00",
+      "location": "Lokoja on Fri at 11:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Lokoja",
+      "capacity": 40,
+      "students": 50,
+      "course": "MCM 105",
+      "group": "Mass Communication - Year 1",
+      "day": "Fri",
+      "time": "14:00",
+      "location": "Lokoja on Fri at 14:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Lokoja",
+      "capacity": 40,
+      "students": 50,
+      "course": "MCM 105",
+      "group": "Mass Communication - Year 1",
       "day": "Fri",
       "time": "15:00",
       "location": "Lokoja on Fri at 15:00"
     },
     {
       "type": "Room Capacity Exceeded",
-      "room": "Lokoja",
+      "room": "Oshogbo",
       "capacity": 40,
-      "students": 58,
-      "course": "CYB 201",
-      "group": "Computer Science - Year  3",
-      "day": "Fri",
-      "time": "16:00",
-      "location": "Lokoja on Fri at 16:00"
+      "students": 50,
+      "course": "COM 415",
+      "group": "Mass Communication - Year 4",
+      "day": "Mon",
+      "time": "9:00",
+      "location": "Oshogbo on Mon at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-MCM 317",
-      "group": "Mass Communication - Year 3",
+      "course": "COM 415",
+      "group": "Mass Communication - Year 4",
       "day": "Mon",
       "time": "10:00",
       "location": "Oshogbo on Mon at 10:00"
@@ -3543,8 +3467,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-MCM 317",
-      "group": "Mass Communication - Year 3",
+      "course": "COM 415",
+      "group": "Mass Communication - Year 4",
       "day": "Mon",
       "time": "11:00",
       "location": "Oshogbo on Mon at 11:00"
@@ -3553,20 +3477,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Oshogbo",
       "capacity": 40,
-      "students": 50,
-      "course": "PAU-MCM 317",
-      "group": "Mass Communication - Year 3",
-      "day": "Mon",
-      "time": "12:00",
-      "location": "Oshogbo on Mon at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "BUS 401 - BUA",
-      "group": "Business Administration - Year 4",
+      "students": 63,
+      "course": "PHY 101",
+      "group": "Mechatronics Engineering - Year 1",
       "day": "Mon",
       "time": "14:00",
       "location": "Oshogbo on Mon at 14:00"
@@ -3575,9 +3488,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Oshogbo",
       "capacity": 40,
-      "students": 50,
-      "course": "BUS 401 - BUA",
-      "group": "Business Administration - Year 4",
+      "students": 63,
+      "course": "PHY 101",
+      "group": "Mechatronics Engineering - Year 1",
       "day": "Mon",
       "time": "15:00",
       "location": "Oshogbo on Mon at 15:00"
@@ -3587,30 +3500,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 401 - BUA",
-      "group": "Business Administration - Year 4",
-      "day": "Mon",
-      "time": "16:00",
-      "location": "Oshogbo on Mon at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "BUA 204",
-      "group": "Business Administration - Year 2",
-      "day": "Tue",
-      "time": "9:00",
-      "location": "Oshogbo on Tue at 9:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "BUA 204",
-      "group": "Business Administration - Year 2",
+      "course": "ISM 221",
+      "group": "ISMS - Year 2",
       "day": "Tue",
       "time": "10:00",
       "location": "Oshogbo on Tue at 10:00"
@@ -3620,8 +3511,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "BUA 204",
-      "group": "Business Administration - Year 2",
+      "course": "ISM 221",
+      "group": "ISMS - Year 2",
       "day": "Tue",
       "time": "11:00",
       "location": "Oshogbo on Tue at 11:00"
@@ -3631,30 +3522,19 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "STC 109",
-      "group": "Strategic Communication - Year 1",
+      "course": "PAU-ISM 109",
+      "group": "ISMS - Year 1",
       "day": "Tue",
-      "time": "12:00",
-      "location": "Oshogbo on Tue at 12:00"
+      "time": "14:00",
+      "location": "Oshogbo on Tue at 14:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "STC 109",
-      "group": "Strategic Communication - Year 1",
-      "day": "Tue",
-      "time": "13:00",
-      "location": "Oshogbo on Tue at 13:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 52,
-      "course": "ENT 211 - CSC",
-      "group": "Computer Science - Year  2/Stream 1",
+      "course": "PAU-ISM 109",
+      "group": "ISMS - Year 1",
       "day": "Tue",
       "time": "15:00",
       "location": "Oshogbo on Tue at 15:00"
@@ -3664,8 +3544,19 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "ISM 214",
-      "group": "ISMS - Year 2",
+      "course": "PAU-ISM 109",
+      "group": "ISMS - Year 1",
+      "day": "Tue",
+      "time": "16:00",
+      "location": "Oshogbo on Tue at 16:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Oshogbo",
+      "capacity": 40,
+      "students": 50,
+      "course": "PAU-ACC 106",
+      "group": "Accounting - Year 1",
       "day": "Wed",
       "time": "9:00",
       "location": "Oshogbo on Wed at 9:00"
@@ -3675,8 +3566,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "ISM 214",
-      "group": "ISMS - Year 2",
+      "course": "PAU-ACC 106",
+      "group": "Accounting - Year 1",
       "day": "Wed",
       "time": "10:00",
       "location": "Oshogbo on Wed at 10:00"
@@ -3686,8 +3577,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 101",
-      "group": "Business Administration - Year 1",
+      "course": "PAU-ACC 106",
+      "group": "Accounting - Year 1",
       "day": "Wed",
       "time": "11:00",
       "location": "Oshogbo on Wed at 11:00"
@@ -3697,19 +3588,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "AMS 101",
-      "group": "Business Administration - Year 1",
-      "day": "Wed",
-      "time": "12:00",
-      "location": "Oshogbo on Wed at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-BUA 103",
-      "group": "Business Administration - Year 1",
+      "course": "ENT 312 - ECO",
+      "group": "Economics - Year 3",
       "day": "Wed",
       "time": "14:00",
       "location": "Oshogbo on Wed at 14:00"
@@ -3719,52 +3599,30 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-BUA 103",
+      "course": "BUA 313",
+      "group": "Business Administration - Year 3",
+      "day": "Thu",
+      "time": "12:00",
+      "location": "Oshogbo on Thu at 12:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Oshogbo",
+      "capacity": 40,
+      "students": 50,
+      "course": "BUA 313",
+      "group": "Business Administration - Year 3",
+      "day": "Thu",
+      "time": "13:00",
+      "location": "Oshogbo on Thu at 13:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Oshogbo",
+      "capacity": 40,
+      "students": 50,
+      "course": "PAU-BUA 105",
       "group": "Business Administration - Year 1",
-      "day": "Wed",
-      "time": "15:00",
-      "location": "Oshogbo on Wed at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ENT 211 -MCM",
-      "group": "Mass Communication - Year 2",
-      "day": "Wed",
-      "time": "16:00",
-      "location": "Oshogbo on Wed at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ECO 203",
-      "group": "Economics - Year 2",
-      "day": "Thu",
-      "time": "9:00",
-      "location": "Oshogbo on Thu at 9:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ECO 203",
-      "group": "Economics - Year 2",
-      "day": "Thu",
-      "time": "10:00",
-      "location": "Oshogbo on Thu at 10:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "GST 212 - BUA",
-      "group": "Business Administration - Year 2",
       "day": "Thu",
       "time": "14:00",
       "location": "Oshogbo on Thu at 14:00"
@@ -3774,8 +3632,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "GST 212 - BUA",
-      "group": "Business Administration - Year 2",
+      "course": "PAU-BUA 105",
+      "group": "Business Administration - Year 1",
       "day": "Thu",
       "time": "15:00",
       "location": "Oshogbo on Thu at 15:00"
@@ -3785,8 +3643,19 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "GST 312 - ACC",
-      "group": "Accounting - Year 3",
+      "course": "ISM 410",
+      "group": "ISMS - Year 4",
+      "day": "Fri",
+      "time": "9:00",
+      "location": "Oshogbo on Fri at 9:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Oshogbo",
+      "capacity": 40,
+      "students": 50,
+      "course": "ISM 410",
+      "group": "ISMS - Year 4",
       "day": "Fri",
       "time": "10:00",
       "location": "Oshogbo on Fri at 10:00"
@@ -3796,19 +3665,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "GST 312 - ACC",
-      "group": "Accounting - Year 3",
-      "day": "Fri",
-      "time": "11:00",
-      "location": "Oshogbo on Fri at 11:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Oshogbo",
-      "capacity": 40,
-      "students": 50,
-      "course": "ECO 415",
-      "group": "Economics - Year 4",
+      "course": "FIN 202",
+      "group": "Finance - Year 2",
       "day": "Fri",
       "time": "15:00",
       "location": "Oshogbo on Fri at 15:00"
@@ -3818,8 +3676,8 @@
       "room": "Oshogbo",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 415",
-      "group": "Economics - Year 4",
+      "course": "FIN 202",
+      "group": "Finance - Year 2",
       "day": "Fri",
       "time": "16:00",
       "location": "Oshogbo on Fri at 16:00"
@@ -3829,8 +3687,19 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 307",
-      "group": "Economics - Year 3",
+      "course": "PAU-ACC-103",
+      "group": "Accounting - Year 1",
+      "day": "Mon",
+      "time": "9:00",
+      "location": "Umuahia on Mon at 9:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Umuahia",
+      "capacity": 40,
+      "students": 50,
+      "course": "PAU-ACC-103",
+      "group": "Accounting - Year 1",
       "day": "Mon",
       "time": "10:00",
       "location": "Umuahia on Mon at 10:00"
@@ -3840,8 +3709,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "ECO 307",
-      "group": "Economics - Year 3",
+      "course": "PAU-ACC-103",
+      "group": "Accounting - Year 1",
       "day": "Mon",
       "time": "11:00",
       "location": "Umuahia on Mon at 11:00"
@@ -3850,31 +3719,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Umuahia",
       "capacity": 40,
-      "students": 50,
-      "course": "ECO 307",
-      "group": "Economics - Year 3",
-      "day": "Mon",
-      "time": "12:00",
-      "location": "Umuahia on Mon at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 63,
-      "course": "PHY 101",
-      "group": "Mechatronics Engineering - Year 1",
-      "day": "Mon",
-      "time": "14:00",
-      "location": "Umuahia on Mon at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 63,
-      "course": "PHY 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "students": 45,
+      "course": "MTH 201",
+      "group": "Computer Science - Year  2/Stream 2",
       "day": "Mon",
       "time": "15:00",
       "location": "Umuahia on Mon at 15:00"
@@ -3883,9 +3730,20 @@
       "type": "Room Capacity Exceeded",
       "room": "Umuahia",
       "capacity": 40,
+      "students": 45,
+      "course": "MTH 201",
+      "group": "Computer Science - Year  2/Stream 2",
+      "day": "Mon",
+      "time": "16:00",
+      "location": "Umuahia on Mon at 16:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Umuahia",
+      "capacity": 40,
       "students": 50,
-      "course": "ACC 401",
-      "group": "Accounting - Year 4",
+      "course": "ECO 306",
+      "group": "Economics - Year 3",
       "day": "Tue",
       "time": "9:00",
       "location": "Umuahia on Tue at 9:00"
@@ -3895,8 +3753,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 401",
-      "group": "Accounting - Year 4",
+      "course": "ECO 306",
+      "group": "Economics - Year 3",
       "day": "Tue",
       "time": "10:00",
       "location": "Umuahia on Tue at 10:00"
@@ -3906,8 +3764,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "ACC 401",
-      "group": "Accounting - Year 4",
+      "course": "ECO 306",
+      "group": "Economics - Year 3",
       "day": "Tue",
       "time": "11:00",
       "location": "Umuahia on Tue at 11:00"
@@ -3917,8 +3775,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 402 - BUA",
-      "group": "Business Administration - Year 4",
+      "course": "ACC 204",
+      "group": "Accounting - Year 2",
       "day": "Tue",
       "time": "13:00",
       "location": "Umuahia on Tue at 13:00"
@@ -3928,8 +3786,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 402 - BUA",
-      "group": "Business Administration - Year 4",
+      "course": "ACC 204",
+      "group": "Accounting - Year 2",
       "day": "Tue",
       "time": "14:00",
       "location": "Umuahia on Tue at 14:00"
@@ -3939,8 +3797,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "BUS 402 - BUA",
-      "group": "Business Administration - Year 4",
+      "course": "ACC 204",
+      "group": "Accounting - Year 2",
       "day": "Tue",
       "time": "15:00",
       "location": "Umuahia on Tue at 15:00"
@@ -3950,8 +3808,19 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ACC-209",
-      "group": "Accounting - Year 2",
+      "course": "ENT 211 - BUA",
+      "group": "Business Administration - Year 2",
+      "day": "Tue",
+      "time": "16:00",
+      "location": "Umuahia on Tue at 16:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Umuahia",
+      "capacity": 40,
+      "students": 50,
+      "course": "ISM 214",
+      "group": "ISMS - Year 2",
       "day": "Wed",
       "time": "9:00",
       "location": "Umuahia on Wed at 9:00"
@@ -3961,8 +3830,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ACC-209",
-      "group": "Accounting - Year 2",
+      "course": "ISM 214",
+      "group": "ISMS - Year 2",
       "day": "Wed",
       "time": "10:00",
       "location": "Umuahia on Wed at 10:00"
@@ -3972,19 +3841,41 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ACC-209",
-      "group": "Accounting - Year 2",
+      "course": "ACC 404",
+      "group": "Accounting - Year 4",
       "day": "Wed",
-      "time": "11:00",
-      "location": "Umuahia on Wed at 11:00"
+      "time": "14:00",
+      "location": "Umuahia on Wed at 14:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "CMS 101 - STC",
-      "group": "Strategic Communication - Year 1",
+      "course": "ACC 404",
+      "group": "Accounting - Year 4",
+      "day": "Wed",
+      "time": "15:00",
+      "location": "Umuahia on Wed at 15:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Umuahia",
+      "capacity": 40,
+      "students": 50,
+      "course": "ACC 404",
+      "group": "Accounting - Year 4",
+      "day": "Wed",
+      "time": "16:00",
+      "location": "Umuahia on Wed at 16:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Umuahia",
+      "capacity": 40,
+      "students": 50,
+      "course": "MCM 211",
+      "group": "Mass Communication - Year 2",
       "day": "Thu",
       "time": "9:00",
       "location": "Umuahia on Thu at 9:00"
@@ -3994,8 +3885,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "CMS 101 - STC",
-      "group": "Strategic Communication - Year 1",
+      "course": "MCM 211",
+      "group": "Mass Communication - Year 2",
       "day": "Thu",
       "time": "10:00",
       "location": "Umuahia on Thu at 10:00"
@@ -4005,8 +3896,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "GST 312 - BUA",
-      "group": "Business Administration - Year 3",
+      "course": "PAU-BUA 292",
+      "group": "Business Administration - Year 2",
       "day": "Thu",
       "time": "11:00",
       "location": "Umuahia on Thu at 11:00"
@@ -4016,8 +3907,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "GST 312 - BUA",
-      "group": "Business Administration - Year 3",
+      "course": "PAU-BUA 292",
+      "group": "Business Administration - Year 2",
       "day": "Thu",
       "time": "12:00",
       "location": "Umuahia on Thu at 12:00"
@@ -4027,63 +3918,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "COM 403",
-      "group": "Mass Communication - Year 4",
-      "day": "Thu",
-      "time": "14:00",
-      "location": "Umuahia on Thu at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 50,
-      "course": "COM 403",
-      "group": "Mass Communication - Year 4",
-      "day": "Thu",
-      "time": "15:00",
-      "location": "Umuahia on Thu at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-ACC-292",
-      "group": "Accounting - Year 2",
-      "day": "Thu",
-      "time": "16:00",
-      "location": "Umuahia on Thu at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-ACC-292",
-      "group": "Accounting - Year 2",
-      "day": "Fri",
-      "time": "9:00",
-      "location": "Umuahia on Fri at 9:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 50,
-      "course": "GST-111",
-      "group": "ISMS - Year 1",
-      "day": "Fri",
-      "time": "10:00",
-      "location": "Umuahia on Fri at 10:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Umuahia",
-      "capacity": 40,
-      "students": 50,
-      "course": "GST-111",
-      "group": "ISMS - Year 1",
+      "course": "FIN 305",
+      "group": "Finance - Year 3",
       "day": "Fri",
       "time": "11:00",
       "location": "Umuahia on Fri at 11:00"
@@ -4093,19 +3929,19 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "MIS 401  - ACC",
-      "group": "Accounting - Year 4",
+      "course": "FIN 305",
+      "group": "Finance - Year 3",
       "day": "Fri",
-      "time": "14:00",
-      "location": "Umuahia on Fri at 14:00"
+      "time": "12:00",
+      "location": "Umuahia on Fri at 12:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "MIS 401  - ACC",
-      "group": "Accounting - Year 4",
+      "course": "ECO 303",
+      "group": "Economics - Year 3",
       "day": "Fri",
       "time": "15:00",
       "location": "Umuahia on Fri at 15:00"
@@ -4115,8 +3951,8 @@
       "room": "Umuahia",
       "capacity": 40,
       "students": 50,
-      "course": "MIS 401  - ACC",
-      "group": "Accounting - Year 4",
+      "course": "ECO 303",
+      "group": "Economics - Year 3",
       "day": "Fri",
       "time": "16:00",
       "location": "Umuahia on Fri at 16:00"
@@ -4126,8 +3962,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
+      "course": "PAU-ECO 315",
+      "group": "Economics - Year 3",
       "day": "Mon",
       "time": "9:00",
       "location": "Abeokuta on Mon at 9:00"
@@ -4137,8 +3973,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
+      "course": "ECO 307",
+      "group": "Economics - Year 3",
       "day": "Mon",
       "time": "10:00",
       "location": "Abeokuta on Mon at 10:00"
@@ -4148,8 +3984,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-STC 118",
-      "group": "Strategic Communication - Year 1",
+      "course": "ECO 307",
+      "group": "Economics - Year 3",
       "day": "Mon",
       "time": "11:00",
       "location": "Abeokuta on Mon at 11:00"
@@ -4159,19 +3995,19 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "ISM 401",
-      "group": "ISMS - Year 4",
+      "course": "ECO 307",
+      "group": "Economics - Year 3",
       "day": "Mon",
-      "time": "14:00",
-      "location": "Abeokuta on Mon at 14:00"
+      "time": "12:00",
+      "location": "Abeokuta on Mon at 12:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Abeokuta",
       "capacity": 40,
-      "students": 50,
-      "course": "ISM 401",
-      "group": "ISMS - Year 4",
+      "students": 58,
+      "course": "PAU-EEE 292",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Mon",
       "time": "15:00",
       "location": "Abeokuta on Mon at 15:00"
@@ -4180,9 +4016,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Abeokuta",
       "capacity": 40,
-      "students": 50,
-      "course": "ISM 401",
-      "group": "ISMS - Year 4",
+      "students": 58,
+      "course": "PAU-EEE 292",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Mon",
       "time": "16:00",
       "location": "Abeokuta on Mon at 16:00"
@@ -4192,19 +4028,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "ISM 311",
-      "group": "ISMS - Year 3",
-      "day": "Tue",
-      "time": "9:00",
-      "location": "Abeokuta on Tue at 9:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "ISM 311",
-      "group": "ISMS - Year 3",
+      "course": "GST 111 - SMSS",
+      "group": "Business Administration - Year 1",
       "day": "Tue",
       "time": "10:00",
       "location": "Abeokuta on Tue at 10:00"
@@ -4214,8 +4039,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "ISM 311",
-      "group": "ISMS - Year 3",
+      "course": "GST 111 - SMSS",
+      "group": "Business Administration - Year 1",
       "day": "Tue",
       "time": "11:00",
       "location": "Abeokuta on Tue at 11:00"
@@ -4225,8 +4050,19 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "GST 111 - SMSS",
-      "group": "Economics - Year 1",
+      "course": "PAU-ECO 292",
+      "group": "Economics - Year 2",
+      "day": "Tue",
+      "time": "12:00",
+      "location": "Abeokuta on Tue at 12:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Abeokuta",
+      "capacity": 40,
+      "students": 50,
+      "course": "PAU-ECO 292",
+      "group": "Economics - Year 2",
       "day": "Tue",
       "time": "13:00",
       "location": "Abeokuta on Tue at 13:00"
@@ -4236,8 +4072,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "GST 111 - SMSS",
-      "group": "Economics - Year 1",
+      "course": "ENT 312 - BUA",
+      "group": "Business Administration - Year 3",
       "day": "Tue",
       "time": "14:00",
       "location": "Abeokuta on Tue at 14:00"
@@ -4247,30 +4083,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 304",
-      "group": "Finance - Year 3",
-      "day": "Tue",
-      "time": "15:00",
-      "location": "Abeokuta on Tue at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "FIN 304",
-      "group": "Finance - Year 3",
-      "day": "Tue",
-      "time": "16:00",
-      "location": "Abeokuta on Tue at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "PAU-ISM 311",
-      "group": "ISMS - Year 3",
+      "course": "PAU-ACC-209",
+      "group": "Accounting - Year 2",
       "day": "Wed",
       "time": "9:00",
       "location": "Abeokuta on Wed at 9:00"
@@ -4280,8 +4094,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ISM 311",
-      "group": "ISMS - Year 3",
+      "course": "PAU-ACC-209",
+      "group": "Accounting - Year 2",
       "day": "Wed",
       "time": "10:00",
       "location": "Abeokuta on Wed at 10:00"
@@ -4291,8 +4105,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ISM 311",
-      "group": "ISMS - Year 3",
+      "course": "PAU-ACC-209",
+      "group": "Accounting - Year 2",
       "day": "Wed",
       "time": "11:00",
       "location": "Abeokuta on Wed at 11:00"
@@ -4302,8 +4116,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "MTH 201",
-      "group": "Software Engineering - Year 2",
+      "course": "GST 312 - ECO",
+      "group": "Economics - Year 3",
       "day": "Wed",
       "time": "15:00",
       "location": "Abeokuta on Wed at 15:00"
@@ -4313,8 +4127,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "MTH 201",
-      "group": "Software Engineering - Year 2",
+      "course": "GST 312 - ECO",
+      "group": "Economics - Year 3",
       "day": "Wed",
       "time": "16:00",
       "location": "Abeokuta on Wed at 16:00"
@@ -4324,30 +4138,19 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 204",
-      "group": "Finance - Year 2",
+      "course": "AMS 102 -ACC",
+      "group": "Accounting - Year 1",
       "day": "Thu",
-      "time": "9:00",
-      "location": "Abeokuta on Thu at 9:00"
+      "time": "11:00",
+      "location": "Abeokuta on Thu at 11:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "FIN 204",
-      "group": "Finance - Year 2",
-      "day": "Thu",
-      "time": "10:00",
-      "location": "Abeokuta on Thu at 10:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "GST 212 - ACC",
-      "group": "Accounting - Year 2",
+      "course": "AMS 102 -ACC",
+      "group": "Accounting - Year 1",
       "day": "Thu",
       "time": "12:00",
       "location": "Abeokuta on Thu at 12:00"
@@ -4357,30 +4160,8 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "GST 212 - ACC",
-      "group": "Accounting - Year 2",
-      "day": "Thu",
-      "time": "13:00",
-      "location": "Abeokuta on Thu at 13:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "BUA 312",
-      "group": "Business Administration - Year 3",
-      "day": "Thu",
-      "time": "14:00",
-      "location": "Abeokuta on Thu at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Abeokuta",
-      "capacity": 40,
-      "students": 50,
-      "course": "BUA 312",
-      "group": "Business Administration - Year 3",
+      "course": "GST 212 - BUA",
+      "group": "Business Administration - Year 2",
       "day": "Thu",
       "time": "15:00",
       "location": "Abeokuta on Thu at 15:00"
@@ -4390,74 +4171,118 @@
       "room": "Abeokuta",
       "capacity": 40,
       "students": 50,
-      "course": "PAU-ECO 107",
-      "group": "Economics - Year 1",
-      "day": "Fri",
-      "time": "11:00",
-      "location": "Abeokuta on Fri at 11:00"
+      "course": "GST 212 - BUA",
+      "group": "Business Administration - Year 2",
+      "day": "Thu",
+      "time": "16:00",
+      "location": "Abeokuta on Thu at 16:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Abeokuta",
       "capacity": 40,
-      "students": 50,
-      "course": "PAU-ECO 107",
-      "group": "Economics - Year 1",
+      "students": 52,
+      "course": "INS 401",
+      "group": "Computer Science - Year  4/Stream 2",
       "day": "Fri",
-      "time": "12:00",
-      "location": "Abeokuta on Fri at 12:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "Strength of Materials",
-      "capacity": 50,
-      "students": 58,
-      "course": "GET 207",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
       "time": "9:00",
-      "location": "Strength of Materials on Mon at 9:00"
+      "location": "Abeokuta on Fri at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
-      "room": "Strength of Materials",
-      "capacity": 50,
-      "students": 58,
-      "course": "GET 207",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
+      "room": "Abeokuta",
+      "capacity": 40,
+      "students": 52,
+      "course": "INS 401",
+      "group": "Computer Science - Year  4/Stream 2",
+      "day": "Fri",
       "time": "10:00",
-      "location": "Strength of Materials on Mon at 10:00"
+      "location": "Abeokuta on Fri at 10:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Abeokuta",
+      "capacity": 40,
+      "students": 45,
+      "course": "PAU-CSC 292",
+      "group": "Computer Science - Year  2/Stream 2",
+      "day": "Fri",
+      "time": "15:00",
+      "location": "Abeokuta on Fri at 15:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Abeokuta",
+      "capacity": 40,
+      "students": 45,
+      "course": "PAU-CSC 292",
+      "group": "Computer Science - Year  2/Stream 2",
+      "day": "Fri",
+      "time": "16:00",
+      "location": "Abeokuta on Fri at 16:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
-      "students": 58,
-      "course": "GET 207",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
+      "students": 63,
+      "course": "MCT 102",
+      "group": "Mechatronics Engineering - Year 1",
+      "day": "Wed",
+      "time": "9:00",
+      "location": "Strength of Materials on Wed at 9:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Strength of Materials",
+      "capacity": 50,
+      "students": 63,
+      "course": "MCT 102",
+      "group": "Mechatronics Engineering - Year 1",
+      "day": "Wed",
+      "time": "10:00",
+      "location": "Strength of Materials on Wed at 10:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Strength of Materials",
+      "capacity": 50,
+      "students": 63,
+      "course": "MCT 102",
+      "group": "Mechatronics Engineering - Year 1",
+      "day": "Wed",
       "time": "11:00",
-      "location": "Strength of Materials on Mon at 11:00"
+      "location": "Strength of Materials on Wed at 11:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
       "students": 60,
-      "course": "CHM 101",
+      "course": "PHY 101",
       "group": "Mechanical Engineering - Year 1",
       "day": "Thu",
-      "time": "13:00",
-      "location": "Strength of Materials on Thu at 13:00"
+      "time": "9:00",
+      "location": "Strength of Materials on Thu at 9:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
       "students": 60,
-      "course": "CHM 101",
+      "course": "PHY 101",
       "group": "Mechanical Engineering - Year 1",
+      "day": "Thu",
+      "time": "10:00",
+      "location": "Strength of Materials on Thu at 10:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "Strength of Materials",
+      "capacity": 50,
+      "students": 52,
+      "course": "PAU-CSC 292",
+      "group": "Computer Science - Year  2/Stream 1",
       "day": "Thu",
       "time": "14:00",
       "location": "Strength of Materials on Thu at 14:00"
@@ -4466,9 +4291,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
-      "students": 60,
-      "course": "PHY 101",
-      "group": "Mechanical Engineering - Year 1",
+      "students": 52,
+      "course": "PAU-CSC 292",
+      "group": "Computer Science - Year  2/Stream 1",
       "day": "Thu",
       "time": "15:00",
       "location": "Strength of Materials on Thu at 15:00"
@@ -4477,9 +4302,9 @@
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
-      "students": 60,
-      "course": "PHY 101",
-      "group": "Mechanical Engineering - Year 1",
+      "students": 52,
+      "course": "ENT 211 - CSC",
+      "group": "Computer Science - Year  2/Stream 1",
       "day": "Thu",
       "time": "16:00",
       "location": "Strength of Materials on Thu at 16:00"
@@ -4488,31 +4313,31 @@
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
-      "students": 63,
-      "course": "CHM 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "students": 60,
+      "course": "PHY 102",
+      "group": "Mechanical Engineering - Year 1",
       "day": "Fri",
-      "time": "10:00",
-      "location": "Strength of Materials on Fri at 10:00"
+      "time": "15:00",
+      "location": "Strength of Materials on Fri at 15:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "Strength of Materials",
       "capacity": 50,
-      "students": 63,
-      "course": "CHM 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "students": 60,
+      "course": "PHY 102",
+      "group": "Mechanical Engineering - Year 1",
       "day": "Fri",
-      "time": "11:00",
-      "location": "Strength of Materials on Fri at 11:00"
+      "time": "16:00",
+      "location": "Strength of Materials on Fri at 16:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
-      "students": 60,
-      "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "students": 58,
+      "course": "GET 205",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Mon",
       "time": "10:00",
       "location": "SST New Classroom (Year 4) on Mon at 10:00"
@@ -4521,9 +4346,9 @@
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
-      "students": 60,
-      "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "students": 58,
+      "course": "GET 205",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Mon",
       "time": "11:00",
       "location": "SST New Classroom (Year 4) on Mon at 11:00"
@@ -4532,9 +4357,9 @@
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
-      "students": 60,
-      "course": "GET 101",
-      "group": "Electrical Engineering - Year 1",
+      "students": 58,
+      "course": "GET 205",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Mon",
       "time": "12:00",
       "location": "SST New Classroom (Year 4) on Mon at 12:00"
@@ -4543,75 +4368,86 @@
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
-      "students": 58,
-      "course": "GET 205",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
-      "time": "14:00",
-      "location": "SST New Classroom (Year 4) on Mon at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "SST New Classroom (Year 4)",
-      "capacity": 50,
-      "students": 58,
-      "course": "GET 205",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
-      "time": "15:00",
-      "location": "SST New Classroom (Year 4) on Mon at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "SST New Classroom (Year 4)",
-      "capacity": 50,
-      "students": 58,
-      "course": "GET 205",
-      "group": "Mechatronics Engineering - Year 2",
-      "day": "Mon",
-      "time": "16:00",
-      "location": "SST New Classroom (Year 4) on Mon at 16:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "SST New Classroom (Year 4)",
-      "capacity": 50,
-      "students": 58,
-      "course": "PAU-CSC 312",
-      "group": "Computer Science - Year  3",
-      "day": "Wed",
-      "time": "14:00",
-      "location": "SST New Classroom (Year 4) on Wed at 14:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "SST New Classroom (Year 4)",
-      "capacity": 50,
-      "students": 58,
-      "course": "PAU-CSC 312",
-      "group": "Computer Science - Year  3",
-      "day": "Wed",
-      "time": "15:00",
-      "location": "SST New Classroom (Year 4) on Wed at 15:00"
-    },
-    {
-      "type": "Room Capacity Exceeded",
-      "room": "SST New Classroom (Year 4)",
-      "capacity": 50,
-      "students": 58,
-      "course": "PAU-CSC 312",
-      "group": "Computer Science - Year  3",
-      "day": "Wed",
-      "time": "16:00",
-      "location": "SST New Classroom (Year 4) on Wed at 16:00"
+      "students": 63,
+      "course": "PHY 102",
+      "group": "Mechatronics Engineering - Year 1",
+      "day": "Tue",
+      "time": "12:00",
+      "location": "SST New Classroom (Year 4) on Tue at 12:00"
     },
     {
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
       "students": 63,
-      "course": "MTH 101",
+      "course": "PHY 102",
       "group": "Mechatronics Engineering - Year 1",
+      "day": "Tue",
+      "time": "13:00",
+      "location": "SST New Classroom (Year 4) on Tue at 13:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 52,
+      "course": "CSC 413",
+      "group": "Computer Science - Year  4/Stream 2",
+      "day": "Wed",
+      "time": "9:00",
+      "location": "SST New Classroom (Year 4) on Wed at 9:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 52,
+      "course": "CSC 413",
+      "group": "Computer Science - Year  4/Stream 2",
+      "day": "Wed",
+      "time": "10:00",
+      "location": "SST New Classroom (Year 4) on Wed at 10:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 52,
+      "course": "CSC 413",
+      "group": "Computer Science - Year  4/Stream 2",
+      "day": "Wed",
+      "time": "11:00",
+      "location": "SST New Classroom (Year 4) on Wed at 11:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 52,
+      "course": "CSC 203",
+      "group": "Computer Science - Year  2/Stream 1",
+      "day": "Thu",
+      "time": "9:00",
+      "location": "SST New Classroom (Year 4) on Thu at 9:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 52,
+      "course": "CSC 203",
+      "group": "Computer Science - Year  2/Stream 1",
+      "day": "Thu",
+      "time": "10:00",
+      "location": "SST New Classroom (Year 4) on Thu at 10:00"
+    },
+    {
+      "type": "Room Capacity Exceeded",
+      "room": "SST New Classroom (Year 4)",
+      "capacity": 50,
+      "students": 58,
+      "course": "GET 203",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Fri",
       "time": "14:00",
       "location": "SST New Classroom (Year 4) on Fri at 14:00"
@@ -4620,9 +4456,9 @@
       "type": "Room Capacity Exceeded",
       "room": "SST New Classroom (Year 4)",
       "capacity": 50,
-      "students": 63,
-      "course": "MTH 101",
-      "group": "Mechatronics Engineering - Year 1",
+      "students": 58,
+      "course": "GET 203",
+      "group": "Mechatronics Engineering - Year 2",
       "day": "Fri",
       "time": "15:00",
       "location": "SST New Classroom (Year 4) on Fri at 15:00"
