@@ -21,7 +21,9 @@ class InputData:
         self.faculties = []
         self.classes = []
         self.nostudentgroup = 0
-        self.hours = 8
+        # Keep API defaults aligned with the non-API scheduler (see input_data.py).
+        # Can be overridden via initialize_input_data_from_json(...).
+        self.hours = 9
         self.days = 5
 
     def addCourse(self, name: str, code: str, credits: int, student_groupsID: List[str], facultyId, required_room_type: str):
@@ -31,14 +33,26 @@ class InputData:
         self.rooms.append(Room(Id, name, capacity, room_type, building))
 
     def addStudentGroup(self, id: str, name: str, no_students: int, courseIDs: str, teacherIDS: str, hours_required: List[int]):
-        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, teacherIDS, hours_required))
+        normalized_teachers = []
+        for t in (teacherIDS or []):
+            try:
+                ts = str(t).strip()
+                if '@' in ts:
+                    ts = ts.lower()
+                normalized_teachers.append(ts)
+            except Exception:
+                normalized_teachers.append(t)
+        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required))
 
     def addFaculty(self, id: str, name: str, department: str, courseID: str, avail_days=None, avail_times=None):
         if avail_days is None:
             avail_days = []
         if avail_times is None:
             avail_times = []
-        self.faculties.append(Faculty(id, name, department, courseID, avail_days, avail_times))
+        normalized_id = str(id).strip()
+        if '@' in normalized_id:
+            normalized_id = normalized_id.lower()
+        self.faculties.append(Faculty(normalized_id, name, department, courseID, avail_days, avail_times))
 
     def getCourse(self, code: str) -> Course:
         for course in self.courses:
@@ -59,8 +73,15 @@ class InputData:
         return None
     
     def getFaculty(self, id: str) -> Faculty:
+        target = str(id).strip()
+        target_norm = target.lower() if '@' in target else target
         for faculty in self.faculties:
-            if faculty.faculty_id == id:
+            fid = getattr(faculty, 'faculty_id', None)
+            if fid is None:
+                continue
+            fid_s = str(fid).strip()
+            fid_norm = fid_s.lower() if '@' in fid_s else fid_s
+            if fid_norm == target_norm:
                 return faculty
         return None
     
@@ -109,6 +130,17 @@ def initialize_input_data_from_json(json_data: Dict[str, Any]) -> InputData:
     This replaces the static file loading approach.
     """
     input_data = InputData()
+
+    # Allow the caller to override calendar configuration.
+    # If not present, we keep the API defaults (aligned with the core scheduler).
+    try:
+        if 'hours' in json_data and json_data['hours'] is not None:
+            input_data.hours = int(json_data['hours'])
+        if 'days' in json_data and json_data['days'] is not None:
+            input_data.days = int(json_data['days'])
+    except (TypeError, ValueError):
+        # Fall back to defaults if invalid values were provided.
+        pass
     
     # Load courses
     for course_data in json_data.get('courses', []):

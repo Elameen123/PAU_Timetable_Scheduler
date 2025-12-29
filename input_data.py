@@ -23,7 +23,7 @@ class inputData():
         self.constraints = []
         self.classes = []
         self.nostudentgroup = len(self.student_groups)
-        self.hours = 8
+        self.hours = 9
         self.days = 5
 
     def addCourse(self, name: str, code: str, credits: int, student_groupsID: List[str], facultyId, required_room_type: str ):
@@ -34,10 +34,22 @@ class inputData():
         self.rooms.append(Room(Id, name, capacity, room_type, building))
 
     def addStudentGroup(self, id: str, name:str, no_students: int, courseIDs: str, teacherIDS: str, hours_required:List[int]):
-        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, teacherIDS, hours_required))
+        normalized_teachers = []
+        for t in (teacherIDS or []):
+            try:
+                ts = str(t).strip()
+                if '@' in ts:
+                    ts = ts.lower()
+                normalized_teachers.append(ts)
+            except Exception:
+                normalized_teachers.append(t)
+        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required))
 
     def addFaculty(self, id:str, name:str, department:str, courseID: str, avail_days: list = [], avail_times: list = []):
-        self.faculties.append(Faculty(id, name, department, courseID, avail_days, avail_times))
+        normalized_id = str(id).strip()
+        if '@' in normalized_id:
+            normalized_id = normalized_id.lower()
+        self.faculties.append(Faculty(normalized_id, name, department, courseID, avail_days, avail_times))
 
     # def addConstraint(self, constraint: Constraint):
     #     self.constraints.append(constraint)
@@ -61,8 +73,15 @@ class inputData():
         return None
     
     def getFaculty(self, id: str) -> Faculty:
+        target = str(id).strip()
+        target_norm = target.lower() if '@' in target else target
         for faculty in self.faculties:
-            if faculty.faculty_id == id:
+            fid = getattr(faculty, 'faculty_id', None)
+            if fid is None:
+                continue
+            fid_s = str(fid).strip()
+            fid_norm = fid_s.lower() if '@' in fid_s else fid_s
+            if fid_norm == target_norm:
                 return faculty
         return None
     

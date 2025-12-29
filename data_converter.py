@@ -45,7 +45,7 @@ class TimetableDataConverter:
                     print(f"⚠️ Timetable {i} has invalid grid format, creating default grid")
                     # Create default 8x6 grid (8 hours, 6 columns: time + 5 days)
                     timetable_grid = []
-                    for hour in range(8):
+                    for hour in range(9):
                         row = [f"{9+hour}:00-{10+hour}:00"]  # Time column
                         for day in range(5):  # 5 days
                             row.append("FREE")
@@ -98,7 +98,7 @@ class TimetableDataConverter:
                         'department': '',
                         'level': ''
                     },
-                    'timetable': [[f"{9+h}:00-{10+h}:00"] + ["FREE"] * 5 for h in range(8)],
+                    'timetable': [[f"{9+h}:00-{10+h}:00"] + ["FREE"] * 5 for h in range(9)],
                     'total_courses': 0,
                     'total_hours_scheduled': 0,
                     'constraint_violations': {},

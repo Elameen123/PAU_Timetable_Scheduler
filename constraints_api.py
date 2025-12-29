@@ -191,8 +191,10 @@ class Constraints:
                                 start_avail_str, end_avail_str = faculty.avail_times.split('-')
                                 start_avail_h = int(start_avail_str.split(':')[0])
                                 end_avail_h = int(end_avail_str.split(':')[0])
-                                
-                                slot_start_h = int(timeslot.start_time.split(':')[0])
+
+                                # TimeSlot.start_time is stored as an integer hour index (0-based) in this project.
+                                # Convert it to the real clock hour using the day start time (9).
+                                slot_start_h = int(timeslot.start_time) + 9
 
                                 # The end hour is exclusive. e.g., 09:00-12:00 means 9, 10, 11 are valid.
                                 if not (start_avail_h <= slot_start_h < end_avail_h):
@@ -488,26 +490,38 @@ class Constraints:
         Evaluate the overall fitness of a chromosome by checking all constraints.
         Lower values indicate better fitness.
         """
-        penalty = 0
-        cost = 0
-        
-        # Check for hard constraint violations (H1-H8)
-        penalty += self.check_room_constraints(chromosome)  # H1: Room capacity and type
-        penalty += self.check_student_group_constraints(chromosome)  # H2: No student overlaps
-        penalty += self.check_lecturer_availability(chromosome)  # H3: No lecturer overlaps
-        penalty += self.check_room_time_conflict(chromosome)  # H4: One event per room-time slot
-        penalty += self.check_building_assignments(chromosome)  # H5: Building assignments
-        penalty += self.check_same_course_same_room_per_day(chromosome)  # H6: Same course same room per day
-        penalty += self.check_break_time_constraint(chromosome)  # H7: No classes during break time
-        penalty += self.check_course_allocation_completeness(chromosome)  # H8: All courses allocated correctly
-        penalty += self.check_lecturer_schedule_constraints(chromosome) # H9: Lecturer schedule constraints
-        
-        # Check for soft constraint violations (S1-S3)
-        cost += self.check_single_event_per_day(chromosome)  # S1
-        cost += self.check_consecutive_timeslots(chromosome)  # S2
-        cost += self.check_spread_events(chromosome)  # S3
+        # Keep API fitness priorities aligned with the core constraints.
+        weights = {
+            'student_group_constraints': 1000.0,
+            'course_allocation_completeness': 800.0,
+            'lecturer_availability': 600.0,
+            'room_time_conflict': 500.0,
 
-        # Fitness is a combination of penalties and costs
+            # Other hard constraints
+            'room_constraints': 120.0,
+            'lecturer_schedule_constraints': 80.0,
+            'break_time_constraint': 60.0,
+            'building_assignments': 40.0,
+            'same_course_same_room_per_day': 40.0,
+        }
+
+        penalty = 0.0
+        cost = 0.0
+
+        penalty += weights['room_constraints'] * self.check_room_constraints(chromosome)
+        penalty += weights['student_group_constraints'] * self.check_student_group_constraints(chromosome)
+        penalty += weights['lecturer_availability'] * self.check_lecturer_availability(chromosome)
+        penalty += weights['room_time_conflict'] * self.check_room_time_conflict(chromosome)
+        penalty += weights['building_assignments'] * self.check_building_assignments(chromosome)
+        penalty += weights['same_course_same_room_per_day'] * self.check_same_course_same_room_per_day(chromosome)
+        penalty += weights['break_time_constraint'] * self.check_break_time_constraint(chromosome)
+        penalty += weights['course_allocation_completeness'] * self.check_course_allocation_completeness(chromosome)
+        penalty += weights['lecturer_schedule_constraints'] * self.check_lecturer_schedule_constraints(chromosome)
+
+        cost += 5.0 * self.check_single_event_per_day(chromosome)
+        cost += 5.0 * self.check_consecutive_timeslots(chromosome)
+        cost += 5.0 * self.check_spread_events(chromosome)
+
         return penalty + cost
         
     def get_all_conflicts(self, chromosome):
@@ -570,7 +584,7 @@ class Constraints:
 
         return conflicts
         
-    def get_constraint_violations(self, chromosome):
+    def get_constraint_violations(self, chromosome, debug: bool = False):
         """
         Get detailed information about constraint violations for debugging.
         """
@@ -590,3 +604,19 @@ class Constraints:
         }
         violations['total'] = sum(violations.values())
         return violations
+
+    def get_detailed_constraint_violations(self, chromosome):
+        """Return detailed constraint violations for UI display.
+
+        The API layer primarily uses the core [constraints.py](constraints.py) implementation.
+        This method is provided for compatibility if any API path instantiates
+        [constraints_api.py](constraints_api.py) directly.
+        """
+        try:
+            # Local import to avoid circular dependencies.
+            from constraints import Constraints as CoreConstraints
+
+            core = CoreConstraints(self.input_data)
+            return core.get_detailed_constraint_violations(chromosome)
+        except Exception:
+            return {}

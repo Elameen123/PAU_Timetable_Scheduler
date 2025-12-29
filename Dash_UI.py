@@ -551,7 +551,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                 # Skip header row if any (usually row 0 is times, but here grid seems to be [Time, Mon, Tue...])
                 # Actually based on other checks, row is [TimeLabel, Mon, Tue, Wed, Thu, Fri]
                 
-                for d_idx in range(5): # 0=Mon, 4=Fri
+                for d_idx in range(input_data.days): # 0=Mon, 4=Fri
                     if d_idx + 1 >= len(row):
                         continue
                         
@@ -853,7 +853,7 @@ def create_app(_ctx: dict | None = None):
             .modal-title { font-size: 18px; font-weight: 600; color: #11214D; margin: 0; }
             .modal-close { background: none; border: none; font-size: 24px; color: #666; cursor: pointer; padding: 5px; border-radius: 50%; transition: all 0.2s ease; }
             .modal-close:hover { background-color: #f5f5f5; color: #333; }
-            .room-search { width: calc(100% - 32px); padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 15px; transition: border-color 0.2s ease; box-sizing: border-box; }
+            .room-search { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 15px; transition: border-color 0.2s ease; box-sizing: border-box; }
             .room-search:focus { outline: none; border-color: #11214D; }
             .room-options { max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; background: white; }
             .room-option { padding: 12px 16px; border: none; border-bottom: 1px solid #f0f0f0; outline: none; cursor: pointer; transition: background-color 0.2s ease; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
@@ -1054,6 +1054,27 @@ def create_app(_ctx: dict | None = None):
             html.Div([
                 html.Div([html.H3('Select Classroom', className='modal-title'), html.Button('×', className='modal-close', id='modal-close-btn')], className='modal-header'),
                 dcc.Input(id='room-search-input', type='text', placeholder='Search classrooms...', className='room-search'),
+                html.Div([
+                    dcc.Checklist(
+                        id='room-availability-filter',
+                        options=[{'label': 'Available only', 'value': 'available'}],
+                        value=[],
+                        inputStyle={'marginRight': '6px'},
+                        labelStyle={'display': 'flex', 'alignItems': 'center', 'fontSize': '13px', 'color': '#11214D', 'fontWeight': '500'}
+                    ),
+                    dcc.Dropdown(
+                        id='room-building-filter',
+                        options=[
+                            {'label': 'All buildings', 'value': 'ALL'},
+                            {'label': 'TYD', 'value': 'TYD'},
+                            {'label': 'SST', 'value': 'SST'},
+                        ],
+                        value='ALL',
+                        clearable=False,
+                        searchable=False,
+                        style={'width': '180px', 'fontSize': '13px'}
+                    )
+                ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'gap': '12px', 'marginBottom': '15px', 'width': '100%', 'boxSizing': 'border-box'}),
                 html.Div(id='room-options-container', className='room-options'),
                 html.Div([
                     html.Button('Cancel', id='room-cancel-btn', style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", "border": "1px solid #ddd", "borderRadius": "5px", "cursor": "pointer"}),
@@ -1891,14 +1912,16 @@ def create_app(_ctx: dict | None = None):
          Output('modal-overlay', 'style'),
          Output('room-delete-btn', 'style')],
         [Input('room-change-data', 'data'),
-         Input('room-search-input', 'value')],
+         Input('room-search-input', 'value'),
+         Input('room-availability-filter', 'value'),
+         Input('room-building-filter', 'value')],
         [State('all-timetables-store', 'data'),
          State('rooms-data-store', 'data'),
          State('student-group-dropdown', 'value'),
          State('manual-cells-store', 'data')],
         prevent_initial_call=True
     )
-    def open_room_modal(room_change_data, search_value, timetables_state, rooms_data, selected_group_idx, manual_cells):
+    def open_room_modal(room_change_data, search_value, availability_filter, building_filter, timetables_state, rooms_data, selected_group_idx, manual_cells):
         if not room_change_data or room_change_data.get('action') != 'show_modal':
             return dash.no_update, dash.no_update, dash.no_update, dash.no_update
         
@@ -1919,15 +1942,33 @@ def create_app(_ctx: dict | None = None):
         
         # Get current room usage for this time slot across all groups
         current_room_usage = get_room_usage_at_timeslot(timetables_state, row_idx, col_idx)
+
+        available_only = bool(availability_filter) and ('available' in availability_filter)
+        building_filter_norm = (str(building_filter).strip().upper() if building_filter else 'ALL')
         
-        # Filter rooms based on search
+        # Filter rooms (building -> availability -> search)
         filtered_rooms = rooms_data
+
+        if building_filter_norm != 'ALL':
+            filtered_rooms = [
+                room for room in filtered_rooms
+                if str(room.get('building', '')).strip().upper() == building_filter_norm
+            ]
+
+        if available_only:
+            filtered_rooms = [
+                room for room in filtered_rooms
+                if room.get('name') and room.get('name') not in current_room_usage
+            ]
+
         if search_value:
-            search_lower = search_value.lower()
-            filtered_rooms = [room for room in rooms_data 
-                             if search_lower in room['name'].lower() or 
-                                search_lower in room.get('building', '').lower() or
-                                search_lower in room.get('room_type', '').lower()]
+            search_lower = str(search_value).lower()
+            filtered_rooms = [
+                room for room in filtered_rooms
+                if search_lower in str(room.get('name', '')).lower()
+                or search_lower in str(room.get('building', '')).lower()
+                or search_lower in str(room.get('room_type', '')).lower()
+            ]
         
         # Create room options
         room_options = []

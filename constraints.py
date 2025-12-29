@@ -1,4 +1,3 @@
-from input_data import input_data
 import random
 
 import re
@@ -26,7 +25,7 @@ class Constraints:
             if isinstance(faculty.avail_times, str) and faculty.avail_times.upper() != 'ALL':
                 if not time_format_regex.match(faculty.avail_times):
                     raise ValueError(
-                        f"FATAL: Invalid 'avail_times' format for faculty '{faculty.name}' (ID: {faculty.id}). "
+                        f"FATAL: Invalid 'avail_times' format for faculty '{faculty.name}' (ID: {getattr(faculty, 'faculty_id', 'UNKNOWN')}). "
                         f"Expected 'HH:MM-HH:MM' or 'ALL', but got '{faculty.avail_times}'. Please correct the input data."
                     )
             
@@ -43,7 +42,7 @@ class Constraints:
             for day in days_to_check:
                 if day.capitalize() not in valid_days:
                     raise ValueError(
-                        f"FATAL: Invalid 'avail_days' value for faculty '{faculty.name}' (ID: {faculty.id}). "
+                        f"FATAL: Invalid 'avail_days' value for faculty '{faculty.name}' (ID: {getattr(faculty, 'faculty_id', 'UNKNOWN')}). "
                         f"Found invalid day '{day}'. Valid days are {valid_days}. Please correct the input data."
                     )
     
@@ -58,7 +57,7 @@ class Constraints:
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
                 # Get the course to check its credits
-                course = input_data.getCourse(student_group.courseIDs[i])
+                course = self.input_data.getCourse(student_group.courseIDs[i])
                 
                 # SPECIAL HANDLING FOR 1-CREDIT COURSES:
                 # If course has 1 credit, it must have 3 hours (with 2 consecutive rule)
@@ -92,7 +91,7 @@ class Constraints:
             for timeslot_idx in range(len(self.timeslots)):
                 class_event = self.events_map.get(chromosome[room_idx][timeslot_idx])
                 if class_event is not None:
-                    course = input_data.getCourse(class_event.course_id)
+                    course = self.input_data.getCourse(class_event.course_id)
                     timeslot = self.timeslots[timeslot_idx]
                     day_abbr = days_map.get(timeslot.day)
                     time = timeslot.start_time + 9
@@ -464,7 +463,7 @@ class Constraints:
                             for event_id in event:
                                 class_event = self.events_map.get(event_id)
                                 if class_event:
-                                    course = input_data.getCourse(class_event.course_id)
+                                    course = self.input_data.getCourse(class_event.course_id)
                                     event_details.append(f"'{course.code}' (Group: '{class_event.student_group.name}')")
                             
                             violation_info = (
@@ -496,10 +495,10 @@ class Constraints:
         break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
         days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
         
-        for day in range(input_data.days):  # For each day
+        for day in range(self.input_data.days):  # For each day
             # Apply break constraint only on Monday (0), Wednesday (2), and Friday (4)
             if day in [0, 2, 4]:
-                break_timeslot = day * input_data.hours + break_hour  # Calculate break timeslot index
+                break_timeslot = day * self.input_data.hours + break_hour  # Calculate break timeslot index
                 day_abbr = days_map.get(day)
                 
                 for room_idx in range(len(self.rooms)):
@@ -510,7 +509,7 @@ class Constraints:
                             room = self.rooms[room_idx]
                             class_event = self.events_map.get(event_id)
                             if class_event:
-                                course = input_data.getCourse(class_event.course_id)
+                                course = self.input_data.getCourse(class_event.course_id)
                                 violation_info = (
                                     f"Break Time Violation: Course '{course.code}' for group "
                                     f"'{class_event.student_group.name}' is scheduled during break time "
@@ -557,7 +556,7 @@ class Constraints:
                         continue
                         
                     room = self.rooms[room_idx]
-                    course = input_data.getCourse(class_event.course_id)
+                    course = self.input_data.getCourse(class_event.course_id)
                     
                     if course:
                         # Computer lab exception: Check if this needs a computer lab
@@ -615,9 +614,9 @@ class Constraints:
                 if event_id is not None:
                     class_event = self.events_map.get(event_id)
                     if class_event:
-                        day_idx = timeslot_idx // input_data.hours
+                        day_idx = timeslot_idx // self.input_data.hours
                         # Use the correct course identifier
-                        course = input_data.getCourse(class_event.course_id)
+                        course = self.input_data.getCourse(class_event.course_id)
                         course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None) if course else class_event.course_id
                         # The key now includes the student group to correctly handle multiple groups taking the same course
                         course_day_key = (course_id, day_idx, class_event.student_group.id)
@@ -635,8 +634,8 @@ class Constraints:
                     day_abbr = days_map.get(day_idx)
                     
                     # Get student group and course details
-                    student_group = input_data.getStudentGroup(student_group_id)
-                    course = input_data.getCourse(course_id)
+                    student_group = self.input_data.getStudentGroup(student_group_id)
+                    course = self.input_data.getCourse(course_id)
                     
                     # Get room names
                     room_names = [self.rooms[r_idx].name for r_idx in rooms_used]
@@ -662,7 +661,7 @@ class Constraints:
         penalty = 0
         
         # Create a dictionary to track events per day for each student group
-        events_per_day = {group.id: [0] * input_data.days for group in self.student_groups}
+        events_per_day = {group.id: [0] * self.input_data.days for group in self.student_groups}
 
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -671,7 +670,7 @@ class Constraints:
                     class_event = self.events_map.get(class_event_idx)
                     if class_event is not None:
                         student_group = class_event.student_group
-                        day_idx = timeslot_idx // input_data.hours  # Calculate which day this timeslot falls on
+                        day_idx = timeslot_idx // self.input_data.hours  # Calculate which day this timeslot falls on
                         
                         # S1: Try to avoid scheduling more than one event per day for each student group
                         events_per_day[student_group.id][day_idx] += 1
@@ -765,14 +764,14 @@ class Constraints:
                     class_event = self.events_map.get(class_event_idx)
                     if class_event is not None:
                         student_group = class_event.student_group
-                        day_idx = timeslot_idx // input_data.hours
+                        day_idx = timeslot_idx // self.input_data.hours
                         
                         # Track which days each student group has events
                         group_event_days[student_group.id].add(day_idx)
 
         # Penalize student groups that have events tightly clustered in the week
         for group_id, event_days in group_event_days.items():
-            if len(event_days) < input_data.days // 2:  # If events are clustered in less than half the week
+            if len(event_days) < self.input_data.days // 2:  # If events are clustered in less than half the week
                 penalty += 0.025  # Small penalty for clustering events
 
         return penalty
@@ -852,25 +851,48 @@ class Constraints:
         Evaluate the overall fitness of a chromosome by checking all constraints.
         Lower values indicate better fitness.
         """
-        penalty = 0
-        cost = 0
-        
-        # Check for hard constraint violations (H1-H10)
-        penalty += self.check_room_constraints(chromosome)  # H1: Room capacity and type
-        penalty += self.check_student_group_constraints(chromosome)  # H2: No student overlaps
-        penalty += self.check_lecturer_availability(chromosome)  # H3: No lecturer overlaps
-        penalty += self.check_room_time_conflict(chromosome)  # H4: One event per room-time slot
-        penalty += self.check_building_assignments(chromosome)  # H5: Building assignments
-        penalty += self.check_same_course_same_room_per_day(chromosome)  # H6: Same course same room per day
-        penalty += self.check_break_time_constraint(chromosome)  # H7: No classes during break time
-        penalty += self.check_course_allocation_completeness(chromosome)  # H8: All courses allocated correctly
-        penalty += self.check_lecturer_schedule_constraints(chromosome) # H9: Lecturer schedule constraints
-        penalty += self.check_lecturer_workload_constraints(chromosome) # H10: Lecturer workload constraints
-        
-        # Check for soft constraint violations (S1-S3)
-        cost += self.check_single_event_per_day(chromosome)  # S1
-        cost += self.check_consecutive_timeslots(chromosome)  # S2
-        cost += self.check_spread_events(chromosome)  # S3
+        # Priority weighting (minimal algorithm change):
+        # 1) Same-student-group overlaps
+        # 2) Missing/extra classes (allocation completeness)
+        # 3) Lecturer clashes
+        # 4) Room clashes (different student groups in same room/time)
+        # 5) Lecturer workload
+        # Everything else remains lower-weight.
+        weights = {
+            'student_group_constraints': 1000.0,
+            'course_allocation_completeness': 800.0,
+            'lecturer_availability': 600.0,
+            'room_time_conflict': 500.0,
+            'lecturer_workload_constraints': 200.0,
+
+            # Other hard constraints
+            'room_constraints': 120.0,
+            'lecturer_schedule_constraints': 80.0,
+            'break_time_constraint': 60.0,
+            'building_assignments': 40.0,
+            'same_course_same_room_per_day': 40.0,
+        }
+
+        penalty = 0.0
+        cost = 0.0
+
+        # Hard constraints (weighted)
+        penalty += weights['room_constraints'] * self.check_room_constraints(chromosome)
+        penalty += weights['student_group_constraints'] * self.check_student_group_constraints(chromosome)
+        penalty += weights['lecturer_availability'] * self.check_lecturer_availability(chromosome)
+        penalty += weights['room_time_conflict'] * self.check_room_time_conflict(chromosome)
+        penalty += weights['building_assignments'] * self.check_building_assignments(chromosome)
+        penalty += weights['same_course_same_room_per_day'] * self.check_same_course_same_room_per_day(chromosome)
+        penalty += weights['break_time_constraint'] * self.check_break_time_constraint(chromosome)
+        penalty += weights['course_allocation_completeness'] * self.check_course_allocation_completeness(chromosome)
+        penalty += weights['lecturer_schedule_constraints'] * self.check_lecturer_schedule_constraints(chromosome)
+        penalty += weights['lecturer_workload_constraints'] * self.check_lecturer_workload_constraints(chromosome)
+
+        # Soft constraints (keep relatively small so they don't dominate feasibility)
+        cost += 5.0 * self.check_single_event_per_day(chromosome)
+        cost += 5.0 * self.check_consecutive_timeslots(chromosome)
+        cost += 5.0 * self.check_spread_events(chromosome)
+        cost += 1.0 * self.extremely_late_classes(chromosome, debug=False)
 
         # Fitness is a combination of penalties and costs
         return penalty + cost
@@ -925,7 +947,7 @@ class Constraints:
                 if event_id is not None:
                     event = self.events_map.get(event_id)
                     room = self.rooms[room_idx]
-                    course = input_data.getCourse(event.course_id)
+                    course = self.input_data.getCourse(event.course_id)
                     if event and course:
                         if room.room_type != course.required_room_type or event.student_group.no_students > room.capacity:
                             conflicts['room'].append({
@@ -1474,3 +1496,149 @@ class Constraints:
                 if event and event.faculty_id == faculty_id:
                     return True  # Clash found
         return False
+    # def no_class_on_friday(self, chromosome, debug=False):
+    #     """
+    #     Constraint: No classes should be scheduled on Fridays.
+    #     Friday corresponds to day index 4.
+    #     """
+    #     penalty = 0
+    #     violations = []
+        
+    #     # Friday is day index 4 (0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri)
+    #     friday_day_index = 4
+        
+    #     for room_idx in range(len(self.rooms)):
+    #         for timeslot_idx in range(len(self.timeslots)):
+    #             # Check if this timeslot is on a Friday
+    #             if self.timeslots[timeslot_idx].day == friday_day_index:
+    #                 # Check if there is an event scheduled
+    #                 event_id = chromosome[room_idx][timeslot_idx]
+    #                 if event_id is not None:
+    #                     penalty += 10 # High penalty for Friday class
+                        
+    #                     if debug:
+    #                         event = self.events_map.get(event_id)
+    #                         if event:
+    #                             course = self.input_data.getCourse(event.course_id)
+    #                             room = self.rooms[room_idx]
+    #                             time = self.timeslots[timeslot_idx].start_time + 9
+    #                             violations.append(f"Friday Class: {course.code} in {room.name} at {time}:00")
+
+    #     if debug and violations:
+    #         print("\n--- Friday Class Violations ---")
+    #         for v in violations:
+    #             print(v)
+    #         print("-------------------------------\n")
+
+    #     return penalty
+    
+    def extremely_late_classes(self, chromosome, debug=False):
+        """Soft/near-hard constraint: avoid scheduling anything at 17:00.
+
+        User requirements:
+        - At most 10 total 17:00 occurrences overall.
+        - At most 10 student groups with any 17:00 occurrence.
+        - If a student group has a 17:00 class, it must be only ONE occurrence.
+        - Light-load groups (low total hours and no 4-credit courses) must NEVER be late.
+
+        Note: This is still enforced via fitness (not a true hard constraint), so if the
+        problem is infeasible under other hard constraints, the optimizer may still place late classes.
+        """
+        penalty = 0
+        total_late = 0
+        
+        # Weights (EXTREME - intended to behave like hard constraints)
+        base_penalty = 250.0           # Cost for ANY late occurrence
+        tyd_penalty_weight = 15000.0   # Much harsher for TYD-style groups
+        light_load_penalty = 100000.0  # Forbidden (heuristic)
+
+        max_total_occurrences = 10
+        max_groups_with_late = 10
+
+        cap_penalty_weight = 50000.0        # per occurrence above max_total_occurrences
+        group_cap_penalty_weight = 50000.0  # per group above max_groups_with_late
+        repeat_weight = 75000.0             # per extra late occurrence within a group
+
+        late_by_group = {}
+        last_hour_index = self.input_data.hours - 1
+        
+        sst_keywords = [
+            'engineering', 'eng', 'computer science', 'software engineering', 'data science',
+            'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
+        ]
+
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                # Check if 17:00
+                if self.timeslots[timeslot_idx].start_time != last_hour_index:
+                    continue
+
+                event_id = chromosome[room_idx][timeslot_idx]
+                if event_id is None:
+                    continue
+
+                total_late += 1
+                event = self.events_map.get(event_id)
+                if not event:
+                    continue
+
+                group = event.student_group
+                group_id = group.id
+                late_by_group[group_id] = late_by_group.get(group_id, 0) + 1
+                
+                # 1. Base Penalty
+                penalty += base_penalty
+
+                # 2. Light-load groups should NEVER be late
+                # Heuristic:
+                # - total required hours for the group is low (<= 18), AND
+                # - group has NO 4-credit courses
+                total_required_hours = 0
+                try:
+                    if hasattr(group, 'hours_required') and group.hours_required:
+                        total_required_hours = sum(int(x) for x in group.hours_required)
+                except Exception:
+                    total_required_hours = 0
+
+                has_4_credit_course = False
+                try:
+                    for cid in getattr(group, 'courseIDs', []) or []:
+                        c = self.input_data.getCourse(cid)
+                        if c and getattr(c, 'credits', 0) >= 4:
+                            has_4_credit_course = True
+                            break
+                except Exception:
+                    has_4_credit_course = False
+
+                is_light_load = (total_required_hours > 0 and total_required_hours <= 18) and (not has_4_credit_course)
+                if is_light_load:
+                    penalty += light_load_penalty
+
+                # 3. TYD vs SST Check
+                group_name = group.name.lower()
+                is_sst = any(k in group_name for k in sst_keywords)
+                if not is_sst:
+                    penalty += tyd_penalty_weight
+
+        late_groups = len(late_by_group)
+
+        # 4. Global caps (strict)
+        if total_late > max_total_occurrences:
+            penalty += (total_late - max_total_occurrences) * cap_penalty_weight
+
+        if late_groups > max_groups_with_late:
+            penalty += (late_groups - max_groups_with_late) * group_cap_penalty_weight
+
+        # 5. Per-group cap (strict): max 1 late occurrence per group
+        repeat_violations = sum(max(0, cnt - 1) for cnt in late_by_group.values())
+        penalty += repeat_weight * repeat_violations
+
+        if debug:
+            # Single summary line as requested
+            print(
+                f"[Constraint] 17:00 late summary | groups={late_groups} (<= {max_groups_with_late}), "
+                f"occurrences={total_late} (<= {max_total_occurrences}), repeat_violations={repeat_violations}, "
+                f"penalty={penalty}"
+            )
+
+        return penalty

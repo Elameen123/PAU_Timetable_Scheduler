@@ -59,8 +59,15 @@ class DifferentialEvolution:
         idx = 0
         for student_group in self.student_groups:
             for i in range(student_group.no_courses):
-                hourcount = 1 
-                while hourcount <= student_group.hours_required[i]:
+                # Match core behavior: 1-credit courses are treated as 3 hours.
+                course = self.input_data.getCourse(student_group.courseIDs[i])
+                if course and getattr(course, 'credits', None) == 1:
+                    required_hours = 3
+                else:
+                    required_hours = student_group.hours_required[i]
+
+                hourcount = 1
+                while hourcount <= required_hours:
                     event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
                     events_list.append(event)
                     event_map[idx] = event
@@ -157,8 +164,17 @@ class DifferentialEvolution:
                                 for timeslot_start in range(day_start, day_end):
                                     if timeslot_start + block_hours > day_end:
                                         continue
-                                    
-                                    if all(self.is_slot_available_for_event(chromosome, room_idx, timeslot_start + i, self.events_list[block_event_indices[i]]) for i in range(block_hours)):
+
+                                    def _ok(i: int) -> bool:
+                                        ts = timeslot_start + i
+                                        ev = self.events_list[block_event_indices[i]]
+                                        return (
+                                            self.is_slot_available_for_event(chromosome, room_idx, ts, ev)
+                                            and self._is_student_group_available(chromosome, student_group_id, ts)
+                                            and self._is_lecturer_available(chromosome, ev.faculty_id, ts)
+                                        )
+
+                                    if all(_ok(i) for i in range(block_hours)):
                                         possible_slots.append((room_idx, timeslot_start))
                     
                     if possible_slots:
@@ -587,8 +603,180 @@ class DifferentialEvolution:
 
         # Final verification and repair of the best solution
         best_solution = self.verify_and_repair_course_allocations(best_solution)
+
+        # Post-algorithm repairs (best-effort, never drop events)
+        best_solution = self.reduce_extremely_late_classes(best_solution, max_total=10, max_per_group=1)
+        best_solution = self.reduce_lecturer_clashes(best_solution, max_passes=5)
+        best_solution = self.verify_and_repair_course_allocations(best_solution)
         
         return best_solution, fitness_history, generation, diversity_history
+
+    def reduce_extremely_late_classes(self, chromosome, max_total=10, max_per_group=1):
+        """Post-processing repair to reduce 17:00 allocations (best effort).
+
+        Tries to MOVE events out of the last hour into earlier empty slots while respecting:
+        - break-time rules
+        - room suitability
+        - lecturer availability window
+        - no student-group overlap
+        - no lecturer overlap
+
+        Leaves events in place if no valid destination exists.
+        """
+        hours = self.input_data.hours
+        last_hour_index = hours - 1
+        days = self.input_data.days
+
+        late_cells = []  # list[(room_idx, timeslot_idx, event_id, event, sg_id)]
+        late_by_group = {}
+
+        for day in range(days):
+            t_idx = day * hours + last_hour_index
+            if t_idx >= len(self.timeslots):
+                continue
+            for r_idx in range(len(self.rooms)):
+                event_id = chromosome[r_idx][t_idx]
+                if event_id is None:
+                    continue
+                event = self.events_map.get(event_id)
+                if not event or not event.student_group:
+                    continue
+                sg_id = event.student_group.id
+                late_cells.append((r_idx, t_idx, event_id, event, sg_id))
+                late_by_group[sg_id] = late_by_group.get(sg_id, 0) + 1
+
+        def should_move(sg_id: str, total_late: int) -> bool:
+            if late_by_group.get(sg_id, 0) > max_per_group:
+                return True
+            return total_late > max_total
+
+        total_late = len(late_cells)
+        if total_late == 0:
+            return chromosome
+
+        changed = True
+        while changed:
+            changed = False
+            total_late = len(late_cells)
+            if total_late <= max_total and all(v <= max_per_group for v in late_by_group.values()):
+                break
+
+            # Prioritize moving groups that exceed per-group cap
+            late_cells.sort(key=lambda x: late_by_group.get(x[4], 0), reverse=True)
+
+            for idx, (src_r, src_t, event_id, event, sg_id) in enumerate(list(late_cells)):
+                if not should_move(sg_id, total_late):
+                    continue
+
+                course = self.input_data.getCourse(event.course_id)
+
+                # Prefer moving earlier within the same day
+                day = src_t // hours
+                day_start = day * hours
+                candidate_t_idxs = [day_start + h for h in range(0, last_hour_index) if (day_start + h) < len(self.timeslots)]
+
+                moved = False
+
+                # Try same room first, then other rooms
+                room_order = [src_r] + [r for r in range(len(self.rooms)) if r != src_r]
+                for dst_r in room_order:
+                    room_obj = self.rooms[dst_r]
+                    if not self.is_room_suitable(room_obj, course):
+                        continue
+                    for dst_t in candidate_t_idxs:
+                        if not self.is_slot_available_for_event(chromosome, dst_r, dst_t, event):
+                            continue
+                        if not self._is_student_group_available(chromosome, sg_id, dst_t):
+                            continue
+                        if event.faculty_id and not self._is_lecturer_available(chromosome, event.faculty_id, dst_t):
+                            continue
+
+                        chromosome[src_r][src_t] = None
+                        chromosome[dst_r][dst_t] = event_id
+                        moved = True
+                        break
+                    if moved:
+                        break
+
+                if moved:
+                    # update tracking
+                    late_by_group[sg_id] = max(0, late_by_group.get(sg_id, 0) - 1)
+                    late_cells.remove((src_r, src_t, event_id, event, sg_id))
+                    changed = True
+                    break
+
+            if not changed:
+                break
+
+        return chromosome
+
+    def reduce_lecturer_clashes(self, chromosome, max_passes=5):
+        """Post-processing repair to reduce lecturer overlaps (best effort).
+
+        For each timeslot where the same lecturer appears more than once across rooms,
+        tries to move the extra events into safe empty slots.
+        """
+        hours = self.input_data.hours
+        last_hour_index = hours - 1
+
+        for _pass in range(max_passes):
+            moved_any = False
+
+            for t_idx in range(len(self.timeslots)):
+                faculty_to_cells = {}
+                for r_idx in range(len(self.rooms)):
+                    event_id = chromosome[r_idx][t_idx]
+                    if event_id is None:
+                        continue
+                    event = self.events_map.get(event_id)
+                    if not event or not event.faculty_id:
+                        continue
+                    faculty_to_cells.setdefault(event.faculty_id, []).append((r_idx, event_id, event))
+
+                for faculty_id, cells in faculty_to_cells.items():
+                    if len(cells) <= 1:
+                        continue
+
+                    # Keep the first; relocate the rest
+                    for (src_r, event_id, event) in cells[1:]:
+                        course = self.input_data.getCourse(event.course_id)
+                        sg_id = event.student_group.id if event.student_group else None
+                        if sg_id is None:
+                            continue
+
+                        # Prefer same room, then any other suitable room
+                        room_order = [src_r] + [r for r in range(len(self.rooms)) if r != src_r]
+
+                        found = False
+                        for dst_r in room_order:
+                            room_obj = self.rooms[dst_r]
+                            if not self.is_room_suitable(room_obj, course):
+                                continue
+
+                            for dst_t in range(len(self.timeslots)):
+                                # Avoid creating new 17:00 placements if possible
+                                if (dst_t % hours) == last_hour_index:
+                                    continue
+
+                                if not self.is_slot_available_for_event(chromosome, dst_r, dst_t, event):
+                                    continue
+                                if not self._is_student_group_available(chromosome, sg_id, dst_t):
+                                    continue
+                                if not self._is_lecturer_available(chromosome, faculty_id, dst_t):
+                                    continue
+
+                                chromosome[src_r][t_idx] = None
+                                chromosome[dst_r][dst_t] = event_id
+                                moved_any = True
+                                found = True
+                                break
+                            if found:
+                                break
+
+            if not moved_any:
+                break
+
+        return chromosome
 
     def print_timetable(self, individual, student_group, days, hours_per_day, day_start_time=9):
         """Print timetable for a specific student group"""

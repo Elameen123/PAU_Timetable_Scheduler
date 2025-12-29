@@ -286,7 +286,8 @@ class TimetableProcessor:
         """Build empty grids per student group so UI can render even if optimization failed."""
         try:
             days = int(getattr(de.input_data, 'days', 5) or 5)
-            hours = int(getattr(de.input_data, 'hours', 6) or 6)
+            # Keep fallback aligned with the core scheduler (hours=9).
+            hours = int(getattr(de.input_data, 'hours', 9) or 9)
             day_start_time = 9
             data = []
             for sg in getattr(de.input_data, 'student_groups', []) or []:
@@ -430,7 +431,8 @@ class TimetableProcessor:
                 # CRITICAL: print_all_timetables requires 4 parameters matching Sept 13 signature
                 if hasattr(de, 'print_all_timetables'):
                     days = getattr(de.input_data, 'days', 5)
-                    hours = getattr(de.input_data, 'hours', 8)
+                    # Keep fallback aligned with the core scheduler (hours=9).
+                    hours = getattr(de.input_data, 'hours', 9)
                     day_start_time = 9
                     print(f"[{job_id}] Generating timetables with days={days}, hours={hours}, start_time={day_start_time}")
                     all_timetables = de.print_all_timetables(best_solution, days, hours, day_start_time)
@@ -504,7 +506,11 @@ class TimetableProcessor:
             "generations_completed": int(final_generation) + 1 if isinstance(final_generation, (int, np.integer)) else 1,
             "fitness_history": fitness_history[-20:] if isinstance(fitness_history, list) else [],
             "summary": make_json_serializable(self.generate_summary_safe(de, best_solution, violations)) if best_solution is not None else {},
+            # Backwards-compatible summary counts
             "constraint_violations": make_json_serializable(violations),
+            # Detailed per-violation payload used by the frontend constraint breakdown menu
+            # (locations, groups, courses, etc.).
+            "constraint_violation_details": make_json_serializable(detailed_violations) if detailed_violations else {},
             "performance_metrics": {
                 "population_size": pop_size,
                 "total_events": len(getattr(de, "events_list", [])),
