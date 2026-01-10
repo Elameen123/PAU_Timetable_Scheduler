@@ -352,7 +352,7 @@ class Constraints:
     def check_lecturer_workload_constraints(self, chromosome, debug=False):
         """
         Checks lecturer workload constraints:
-        1. No more than 4 total hours of teaching per day
+        1. No more than 6 total hours of teaching per day
         2. No more than 3 consecutive hours of teaching per day
         """
         penalty = 0
@@ -403,14 +403,14 @@ class Constraints:
                 unique_courses = list(set(courses))
                 courses_text = ", ".join(unique_courses)
                 
-                # 1. Check total hours per day (max 4) - VERY LOW PENALTY (as requested, barely counts)
+                # 1. Check total hours per day (max 6) - VERY LOW PENALTY (as requested, barely counts)
                 total_hours = len(hours_sorted)
-                if total_hours > 4:
-                    penalty += 0.2 * (total_hours - 4)  # Reduced from 2 to 0.2
+                if total_hours > 6:
+                    penalty += 0.2 * (total_hours - 6)  # Reduced from 2 to 0.2
                     if debug:
                         violation_info = (
                             f"Lecturer Workload Violation: '{lecturer_name}' has {total_hours} hours "
-                            f"on {day_abbr} from courses {courses_text}, exceeding the maximum of 4 hours per day."
+                            f"on {day_abbr} from courses {courses_text}, exceeding the maximum of 6 hours per day."
                         )
                         if violation_info not in violations:
                             violations.append(violation_info)

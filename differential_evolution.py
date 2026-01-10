@@ -1689,7 +1689,7 @@ if __name__ == '__main__':
     # Create DE instance and run optimization
     print("Starting Differential Evolution")
     de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-    best_solution, fitness_history, generation, diversity_history = de.run(1)
+    best_solution, fitness_history, generation, diversity_history = de.run(20)
     print("Differential Evolution completed")
 
     # Get final fitness and detailed breakdown (solution is already repaired inside run())

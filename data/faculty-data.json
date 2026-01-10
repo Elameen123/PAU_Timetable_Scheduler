@@ -2133,17 +2133,11 @@
       "ENT 312 - ISM",
       "ENT 211 - FMM",
       "ENT 312 - FMM",
-      "ENT 211 - CSC",
-      "ENT 211 - EEE",
       "ENT 312 - EEE",
       "ENT 312 - MEE",
-      "ENT 211 - ECO",
       "ENT 312 - ECO",
-      "ENT 211 - BUA",
       "ENT 312 - BUA",
-      "ENT 211 - ACC",
       "ENT 312 - ACC",
-      "ENT 211 - FIN",
       "ENT 312 - FIN"
     ]
   },
@@ -2276,6 +2270,40 @@
     ]
   },
   {
+    "id": "jemeasoba@pau.edu.ng",
+    "name": "Miss Joy Emeasoba",
+    "department": "Electrical & Electronics Engineering",
+    "status": "Full-Time",
+    "avail_days": [
+      "ALL"
+    ],
+    "avail_times": [
+      "ALL"
+    ],
+    "courseID": [
+      "ENT 211 - EEE",
+      "ENT 211 - ECO",
+      "ENT 211 - BUA"
+    ]
+  },
+  {
+    "id": "uchegbuna@gmail.com",
+    "name": "Mr Uche Gbuna",
+    "department": "Computer Science",
+    "status": "Adjunct",
+    "avail_days": [
+      "Thu"
+    ],
+    "avail_times": [
+      "ALL"
+    ],
+    "courseID": [
+      "ENT 211 - CSC",
+      "ENT 211 - ACC",
+      "ENT 211 - FIN"
+    ]
+  },
+  {
     "id": "tbd",
     "name": "tbd",
     "department": "Mass Communication",
@@ -2359,7 +2387,6 @@
     "avail_times": [],
     "courseID": [
       "COS 101",
-      "CSC 301",
       "GET 201",
       "PAU-EEE 313"
     ]
