@@ -14,6 +14,7 @@ from dash import dcc, html, Input, Output, State, clientside_callback, ALL, MATC
 try:
     from input_data import input_data
 except Exception:
+    print(f"Warning: Could not import input_data. Multi-lecturer features may be disabled. Error: {traceback.format_exc()}")
     input_data = None
 
 
@@ -649,6 +650,11 @@ def create_errors_modal_content(constraint_details, timetables_data=None, expand
     
     for display_name, internal_name in constraint_mapping.items():
         violations = constraint_details.get(internal_name, [])
+        
+        # Filter out 'Excessive Daily Hours' from Lecturer Workload Violations as requested
+        if internal_name == 'Lecturer Workload Violations':
+            violations = [v for v in violations if v.get('type') != 'Excessive Daily Hours']
+            
         count = len(violations)
         
         # Determine if this dropdown should be expanded
@@ -1029,6 +1035,8 @@ def create_app(_ctx: dict | None = None):
         dcc.Store(id='missing-class-data', data=None),
         dcc.Store(id='selected-missing-class-store', data=None),
         dcc.Store(id='manual-cells-store', data=manual_cells or []),
+        dcc.Store(id='lecturer-change-data', data=None),
+        dcc.Store(id='lecturer-modal-open', data=None),
         # Hidden store to drive room modal open
         dcc.Store(id='room-modal-open', data=None),
         # hidden sink for console logging
@@ -1037,6 +1045,8 @@ def create_app(_ctx: dict | None = None):
         html.Button(id='swap-trigger', style={'display': 'none'}),
         html.Button(id='room-change-trigger', style={'display': 'none'}),
         html.Button(id='room-modal-open-trigger', style={'display': 'none'}),
+        html.Button(id='lecturer-modal-open-trigger', style={'display': 'none'}),
+        html.Button(id='lecturer-change-trigger', style={'display': 'none'}),
         # missing-classes triggers/stores
         html.Button(id='missing-modal-open-trigger', style={'display': 'none'}),
         dcc.Store(id='add-class-data', data=None),
@@ -1052,7 +1062,7 @@ def create_app(_ctx: dict | None = None):
         html.Div([
             html.Div(className='modal-overlay', id='modal-overlay', style={'display': 'none'}),
             html.Div([
-                html.Div([html.H3('Select Classroom', className='modal-title'), html.Button('×', className='modal-close', id='modal-close-btn')], className='modal-header'),
+                html.Div([html.H3('Select Classroom', className='modal-title', id='room-modal-title'), html.Button('×', className='modal-close', id='modal-close-btn')], className='modal-header'),
                 dcc.Input(id='room-search-input', type='text', placeholder='Search classrooms...', className='room-search'),
                 html.Div([
                     dcc.Checklist(
@@ -1062,18 +1072,21 @@ def create_app(_ctx: dict | None = None):
                         inputStyle={'marginRight': '6px'},
                         labelStyle={'display': 'flex', 'alignItems': 'center', 'fontSize': '13px', 'color': '#11214D', 'fontWeight': '500'}
                     ),
-                    dcc.Dropdown(
-                        id='room-building-filter',
-                        options=[
-                            {'label': 'All buildings', 'value': 'ALL'},
-                            {'label': 'TYD', 'value': 'TYD'},
-                            {'label': 'SST', 'value': 'SST'},
-                        ],
-                        value='ALL',
-                        clearable=False,
-                        searchable=False,
-                        style={'width': '180px', 'fontSize': '13px'}
-                    )
+                    html.Div([
+                        html.Button('Select Lecturer', id='to-lecturer-view-btn', style={"backgroundColor": "#11214D", "color": "white", "padding": "6px 12px", "border": "none", "borderRadius": "5px", "cursor": "pointer", "marginRight": "10px", "display": "none", "fontSize": "13px"}),
+                        dcc.Dropdown(
+                            id='room-building-filter',
+                            options=[
+                                {'label': 'All buildings', 'value': 'ALL'},
+                                {'label': 'TYD', 'value': 'TYD'},
+                                {'label': 'SST', 'value': 'SST'},
+                            ],
+                            value='ALL',
+                            clearable=False,
+                            searchable=False,
+                            style={'width': '180px', 'fontSize': '13px'}
+                        )
+                    ], style={'display': 'flex', 'alignItems': 'center'})
                 ], style={'display': 'flex', 'alignItems': 'center', 'justifyContent': 'space-between', 'gap': '12px', 'marginBottom': '15px', 'width': '100%', 'boxSizing': 'border-box'}),
                 html.Div(id='room-options-container', className='room-options'),
                 html.Div([
@@ -1082,6 +1095,23 @@ def create_app(_ctx: dict | None = None):
                     html.Button('Confirm', id='room-confirm-btn', style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", "border": "none", "borderRadius": "5px", "cursor": "pointer"})
                 ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", "borderTop": "1px solid #f0f0f0"})
             ], className='room-selection-modal', id='room-selection-modal', style={'display': 'none'})
+        ], style={"position": "relative"}),
+
+        # Lecturer selection modal
+        html.Div([
+            html.Div(className='modal-overlay', id='lecturer-modal-overlay', style={'display': 'none'}),
+            html.Div([
+                html.Div([html.H3('Select Classroom and Lecturer', className='modal-title'), html.Button('×', className='modal-close', id='lecturer-modal-close-btn')], className='modal-header'),
+                dcc.Store(id='lecturer-modal-context', data=None),
+                html.Div([
+                    # Reusing room-options-container style for consistency
+                    html.Div(id='lecturer-options-container', className='room-options') 
+                ]),
+                html.Div([
+                    html.Button('Cancel', id='lecturer-cancel-btn', style={"backgroundColor": "#f5f5f5", "color": "#666", "padding": "8px 16px", "border": "1px solid #ddd", "borderRadius": "5px", "cursor": "pointer"}),
+                    html.Button('Select Lecturer', id='lecturer-confirm-btn', style={"backgroundColor": "#11214D", "color": "white", "padding": "8px 16px", "border": "none", "borderRadius": "5px", "cursor": "pointer"})
+                ], style={"textAlign": "right", "marginTop": "20px", "paddingTop": "15px", "borderTop": "1px solid #f0f0f0"})
+            ], className='room-selection-modal', id='lecturer-selection-modal', style={'display': 'none'})
         ], style={"position": "relative"}),
 
         # Missing classes modal
@@ -1153,6 +1183,7 @@ def create_app(_ctx: dict | None = None):
                         html.H4('How to Use the Timetable:', style={"color": "#11214D", "fontWeight": "600", "marginBottom": "10px", "fontSize": "16px"}),
                         html.P('• Click and drag any class cell to swap it with another cell'),
                         html.P('• Double-click any cell to view and change the classroom for that class'),
+                        html.P('• Cells with asterisks (*) mean the course has multiple lecturers. Double click to set the lecturer lecturing for that student group'),
                         html.P('• Use the navigation arrows (‹ ›) to switch between different student groups'),
                         html.P('• Click \'View Errors\' to see constraint violations and conflicts'),
                         html.P('• Click on any error in the \'View Errors\' list to jump to the relevant student group timetable')
@@ -1248,6 +1279,19 @@ def create_app(_ctx: dict | None = None):
         # Runtime detection across groups
         conflicts = _detect_conflicts(all_timetables_data, selected_group_idx)
         
+        # Identify multi-lecturer courses
+        multi_lecturer_courses = set()
+        if input_data:
+            try:
+                for course in input_data.courses:
+                    if isinstance(course.facultyId, list) and len(course.facultyId) > 1:
+                        multi_lecturer_courses.add(course.code.strip())
+                print(f"[Dash] Found {len(multi_lecturer_courses)} multi-lecturer courses")
+            except Exception as e:
+                print(f"[Dash] Error identifying multi-lecturer courses: {e}")
+        else:
+            print("[Dash] input_data not available, skipping multi-lecturer detection")
+
         header_cells = [html.Th('Time', style={"backgroundColor": "#11214D", "color": "white", "padding": "12px 10px", "fontWeight": "600", "fontSize": "13px", "textAlign": "center", "border": "1px solid #0d1a3d"})]
         for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]:
             header_cells.append(html.Th(day, style={"backgroundColor": "#11214D", "color": "white", "padding": "12px 10px", "fontWeight": "600", "fontSize": "13px", "textAlign": "center", "border": "1px solid #0d1a3d"}))
@@ -1267,6 +1311,31 @@ def create_app(_ctx: dict | None = None):
                 manual_key = f"{selected_group_idx}_{r}_{c-1}"
                 is_manual = bool(manual_cells_state) and manual_key in (manual_cells_state or [])
                 
+                # Check multi-lecturer
+                parsed_course, parsed_room, parsed_lecturer = _parse_cell(text)
+                is_multi_lecturer = parsed_course and parsed_course.strip() in multi_lecturer_courses
+                display_content = text
+                
+                extra_props = {}
+                if is_multi_lecturer and parsed_lecturer:
+                     # Reconstruct cell to place asterisk immediately after lecturer name
+                     display_content = html.Div([
+                         html.Div(parsed_course),
+                         html.Div(parsed_room),
+                         html.Div([
+                             html.Span(parsed_lecturer),
+                             html.Span("*", style={'color': '#0000FF', 'fontWeight': 'bold', 'marginLeft': '2px', 'fontSize': '16px', 'verticalAlign': 'super'})
+                         ])
+                     ], style={'display': 'flex', 'flexDirection': 'column', 'alignItems': 'center', 'justifyContent': 'center', 'width': '100%'})
+                     extra_props = {'data-multi-lecturer': 'true', 'title': 'Double click to switch lecturer', 'style': {'cursor': 'context-menu'}}
+                elif is_multi_lecturer:
+                     # Fallback if parsing fails but it's a known multi-lecturer course
+                     display_content = html.Span([
+                        text,
+                        html.Span("*", style={'color': '#0000FF', 'fontWeight': 'bold', 'marginLeft': '2px', 'fontSize': '16px', 'verticalAlign': 'super'})
+                    ])
+                     extra_props = {'data-multi-lecturer': 'true', 'title': 'Double click to switch lecturer', 'style': {'cursor': 'context-menu'}}
+
                 if is_break:
                     cls = 'cell break-time'; draggable = 'false'
                 elif is_manual:
@@ -1294,7 +1363,7 @@ def create_app(_ctx: dict | None = None):
                     draggable = 'true'
                 
                 cell_id = {"type": "cell", "group": selected_group_idx, "row": r, "col": c-1}
-                cells.append(html.Td(html.Div(text, id=cell_id, className=cls, draggable=draggable, n_clicks=0), style={"padding": "0", "border": "1px solid #e0e0e0"}))
+                cells.append(html.Td(html.Div(display_content, id=cell_id, className=cls, draggable=draggable, n_clicks=0, **extra_props), style={"padding": "0", "border": "1px solid #e0e0e0"}))
             body_rows.append(html.Tr(cells))
             
         table = html.Table([html.Thead(html.Tr(header_cells)), html.Tbody(body_rows)], style={"width": "100%", "borderCollapse": "separate", "borderSpacing": "0", "backgroundColor": "white", "borderRadius": "6px", "overflow": "hidden", "fontSize": "12px", "boxShadow": "0 2px 6px rgba(0,0,0,0.08)", "fontFamily": "Poppins, sans-serif"})
@@ -1765,6 +1834,30 @@ def create_app(_ctx: dict | None = None):
                             console.log('Cannot select room for break time');
                             return;
                         }
+
+                        // Check for multi-lecturer cell - Open Lecturer Modal instead
+                        // Note: getAttribute returns string, check 'true'
+                        if (cell.getAttribute('data-multi-lecturer') === 'true') {
+                            console.log('Multi-lecturer cell double-clicked - opening unified selection modal');
+                            
+                            try {
+                                // Add a small delay to ensure it doesn't conflict with other events
+                                setTimeout(function() {
+                                    window.dash_clientside.set_props('room-change-data', {
+                                        data: {
+                                            action: 'show_modal',
+                                            cell_id: JSON.stringify({group: ctx.group, row: ctx.row, col: ctx.col}),
+                                            mode: 'multi_lecturer',
+                                            timestamp: Date.now()
+                                        }
+                                    });
+                                    console.log('✅ Room modal signal (multi-lecturer) sent to callback');
+                                }, 50);
+                            } catch(err) {
+                                console.error('Failed to send signal:', err);
+                            }
+                            return;
+                        }
                         
                         // Store the selected cell
                         window.selectedCell = cell;
@@ -1910,7 +2003,9 @@ def create_app(_ctx: dict | None = None):
         [Output('room-options-container', 'children'),
          Output('room-selection-modal', 'style'),
          Output('modal-overlay', 'style'),
-         Output('room-delete-btn', 'style')],
+         Output('room-delete-btn', 'style'),
+         Output('room-modal-title', 'children'),
+         Output('to-lecturer-view-btn', 'style')],
         [Input('room-change-data', 'data'),
          Input('room-search-input', 'value'),
          Input('room-availability-filter', 'value'),
@@ -1923,10 +2018,30 @@ def create_app(_ctx: dict | None = None):
     )
     def open_room_modal(room_change_data, search_value, availability_filter, building_filter, timetables_state, rooms_data, selected_group_idx, manual_cells):
         if not room_change_data or room_change_data.get('action') != 'show_modal':
-            return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+            return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
         
+        # Determine mode
+        is_multi_lecturer = room_change_data.get('mode') == 'multi_lecturer'
+        
+        # Defaults for title and lecturer button
+        modal_title = "Select Classroom"
+        lecturer_btn_style = {"display": "none"}
+        
+        if is_multi_lecturer:
+            modal_title = "Select Classroom and Lecturer"
+            lecturer_btn_style = {
+                "backgroundColor": "#11214D", 
+                "color": "white", 
+                "padding": "8px 16px", 
+                "border": "none", 
+                "borderRadius": "5px", 
+                "cursor": "pointer", 
+                "marginRight": "10px", 
+                "display": "inline-block"
+            }
+
         if not rooms_data or not timetables_state:
-            return html.Div("No rooms data available"), {"display": "block"}, {"display": "block"}, {"display": "none"}
+            return html.Div("No rooms data available"), {"display": "block"}, {"display": "block"}, {"display": "none"}, modal_title, lecturer_btn_style
         
         # Parse cell information - FROM SEPT 13
         try:
@@ -1938,7 +2053,7 @@ def create_app(_ctx: dict | None = None):
         except Exception as e:
             print(f"Error parsing cell ID: {e}")
             print(f"cell_id_str: {room_change_data.get('cell_id')}")
-            return html.Div("Error parsing cell data"), {"display": "block"}, {"display": "block"}, {"display": "none"}
+            return html.Div("Error parsing cell data"), {"display": "block"}, {"display": "block"}, {"display": "none"}, modal_title, lecturer_btn_style
         
         # Get current room usage for this time slot across all groups
         current_room_usage = get_room_usage_at_timeslot(timetables_state, row_idx, col_idx)
@@ -2086,7 +2201,7 @@ def create_app(_ctx: dict | None = None):
             "display": "inline-block" if show_delete else "none"
         }
         
-        return room_options, {"display": "block"}, {"display": "block"}, delete_btn_style
+        return room_options, {"display": "block"}, {"display": "block"}, delete_btn_style, modal_title, lecturer_btn_style
 
     # Callback to handle room option selection
     @app.callback(
@@ -2452,6 +2567,42 @@ def create_app(_ctx: dict | None = None):
         # Hide modal and overlay
         return {"display": "none"}, {"display": "none"}
 
+    # Callback to handle Undo All Changes
+    @app.callback(
+        [Output("all-timetables-store", "data", allow_duplicate=True),
+         Output("manual-cells-store", "data", allow_duplicate=True)],
+        Input("undo-all-btn", "n_clicks"),
+        prevent_initial_call=True
+    )
+    def undo_all_changes(n_clicks):
+        if not n_clicks:
+            raise dash.exceptions.PreventUpdate
+        
+        # Load fresh data
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        fresh_path = os.path.join(data_dir, 'fresh_timetable_data.json')
+        
+        fresh_timetables = []
+        if os.path.exists(fresh_path):
+             with open(fresh_path, 'r', encoding='utf-8') as f:
+                saved = json.load(f)
+                if isinstance(saved, list):
+                    fresh_timetables = saved
+                elif isinstance(saved, dict) and 'timetables' in saved:
+                    fresh_timetables = saved['timetables']
+        
+        if not fresh_timetables:
+            raise dash.exceptions.PreventUpdate
+
+        # Clear manual cells
+        empty_manual = []
+        
+        # Save to session file to persist the revert
+        save_timetable_to_file(fresh_timetables, empty_manual)
+        
+        return fresh_timetables, empty_manual
+
+
     # Callback to handle download button click and show download modal - FROM SEPT 13
     @app.callback(
         [Output("download-modal-overlay", "style"),
@@ -2652,6 +2803,225 @@ def create_app(_ctx: dict | None = None):
 
         # Close the modal by hiding it and clear the selection
         return updated_timetables, updated_manual_cells, {"display": "none"}, {"display": "none"}, None
+
+    # Callback to transition from Room Modal to Lecturer Modal
+    @app.callback(
+        Output('lecturer-modal-open', 'data', allow_duplicate=True),
+        Input('to-lecturer-view-btn', 'n_clicks'),
+        State('room-change-data', 'data'),
+        prevent_initial_call=True
+    )
+    def switch_to_lecturer_view(n_clicks, room_data):
+        if not n_clicks or not room_data:
+            raise dash.exceptions.PreventUpdate
+        
+        # Pass the same cell ID but trigger the lecturer modal
+        return {
+            'action': 'show_lecturer_modal',
+            'cell_id': room_data['cell_id'],
+            'timestamp': time.time()
+        }
+
+    # Callback to handle cell clicks for checking multi-lecturer double-clicks (driven by clientside signal)
+    @app.callback(
+        [Output('lecturer-selection-modal', 'style'),
+         Output('lecturer-modal-overlay', 'style'),
+         Output('lecturer-options-container', 'children'), 
+         Output('lecturer-modal-context', 'data'),
+         Output('room-selection-modal', 'style', allow_duplicate=True),
+         Output('modal-overlay', 'style', allow_duplicate=True)],
+        Input('lecturer-modal-open', 'data'),
+        [State('all-timetables-store', 'data')],
+        prevent_initial_call=True
+    )
+    def open_lecturer_modal(modal_signal, all_timetables):
+        if not modal_signal or modal_signal.get('action') != 'show_lecturer_modal':
+            raise dash.exceptions.PreventUpdate
+        
+        print(f"[Lecturer Modal] Received signal: {modal_signal}")
+        
+        try:
+            cell_id_str = modal_signal['cell_id']
+            # ID might be a dict string or a simple string depending on how it was set
+            # In our case it is a JSON string of a dict
+            prop_id = json.loads(cell_id_str)
+            group_idx = prop_id['group']
+            row = prop_id['row']
+            col = prop_id['col']
+        except Exception as e:
+             print(f"Error parsing lecturer modal signal: {e}")
+             raise dash.exceptions.PreventUpdate
+
+        if not all_timetables or group_idx >= len(all_timetables):
+             raise dash.exceptions.PreventUpdate
+             
+        rows = all_timetables[group_idx]['timetable']
+        if row >= len(rows) or col+1 >= len(rows[row]):
+             raise dash.exceptions.PreventUpdate
+             
+        cell_content = str(rows[row][col+1] or '').strip()
+        parsed_course, _, _ = _parse_cell(cell_content)
+        
+        print(f"[Lecturer Modal] Parsed course: {parsed_course}")
+        
+        if not parsed_course:
+             raise dash.exceptions.PreventUpdate
+
+        if not input_data:
+             print("[Lecturer Modal] input_data is None!")
+             raise dash.exceptions.PreventUpdate
+        
+        course = input_data.getCourse(parsed_course)
+        # Check if course exists and has multiple faculty
+        # Modified to allow ANY course if manually invoked from the button, but strict check is fine for now
+        # The button is valid only if data-multi-lecturer was true, so this check should pass
+        if not course or not hasattr(course, 'facultyId') or not isinstance(course.facultyId, list) or len(course.facultyId) <= 1:
+             print(f"[Lecturer Modal] Course not found or not multi-lecturer: {course}")
+             raise dash.exceptions.PreventUpdate
+             
+        # It is multi-lecturer. Open modal.
+        lecturers = course.facultyId
+        print(f"[Lecturer Modal] Opening modal with lecturers: {lecturers}")
+        
+        options_elems = []
+        for l_id in lecturers:
+            fac = input_data.getFaculty(l_id)
+            name = fac.name if fac else l_id
+            
+            options_elems.append(html.Div(
+                [html.Span(name, style={'fontWeight': '500'}), html.Span(f" ({l_id})", style={'fontSize': '11px', 'color': '#888'})],
+                className='room-option available',
+                id={'type': 'lecturer-option', 'id': l_id}, 
+                n_clicks=0
+            ))
+            
+        context = {
+            'group_idx': group_idx,
+            'row': row,
+            'col': col,
+            'course_code': parsed_course,
+            'lecturers': lecturers,
+            'selected_lecturer': None
+        }
+        
+        # Open Lecturer Modal AND Close Room Modal
+        return {'display': 'block'}, {'display': 'block'}, options_elems, context, {'display': 'none'}, {'display': 'none'}
+
+
+    @app.callback(
+        [Output('lecturer-selection-modal', 'style', allow_duplicate=True),
+         Output('lecturer-modal-overlay', 'style', allow_duplicate=True),
+         Output('lecturer-modal-open', 'data', allow_duplicate=True)],
+        [Input('lecturer-modal-close-btn', 'n_clicks'), Input('lecturer-cancel-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def close_lecturer_modal(n1, n2):
+        # Reset the open signal so it can be re-triggered
+        return {'display': 'none'}, {'display': 'none'}, None
+
+
+    @app.callback(
+        [Output({'type': 'lecturer-option', 'id': ALL}, 'className'),
+         Output('lecturer-modal-context', 'data', allow_duplicate=True)],
+        Input({'type': 'lecturer-option', 'id': ALL}, 'n_clicks'),
+        State('lecturer-modal-context', 'data'),
+        prevent_initial_call=True
+    )
+    def select_lecturer_option(n_clicks_list, context):
+        ctx = dash.callback_context
+        if not ctx.triggered or not context:
+            raise dash.exceptions.PreventUpdate
+            
+        # Get the ID of the clicked button
+        triggered_prop = ctx.triggered[0]['prop_id']
+        try:
+            # The prop_id is like '{"id":"lecturer-id","type":"lecturer-option"}.n_clicks'
+            # We want to extract the ID part of the JSON
+            prop_id_str = triggered_prop.rsplit('.', 1)[0]
+            prop_id = json.loads(prop_id_str)
+            selected_id = prop_id['id']
+        except Exception as e:
+            print(f"Error parsing clicked lecturer option: {e}")
+            raise dash.exceptions.PreventUpdate
+
+        # Re-derive classNames for all options
+        # outputs_list contains the list of outputs in the order they were defined in Output()
+        # In this case, it's a list of dicts: [{'id': {'id': '...', 'type': '...'}, 'property': 'className'}, ...]
+        outputs_list = ctx.outputs_list[0] 
+        
+        new_classes = []
+        for output_item in outputs_list:
+             # Dash outputs list structure: {'id': {'id': 'some-id', 'type': 'lecturer-option'}, 'property': 'className'}
+             lid = output_item['id']['id']
+             if lid == selected_id:
+                 # Use 'selected' class which should have blue styling (similar to room selection)
+                 new_classes.append('room-option available selected')
+             else:
+                 new_classes.append('room-option available')
+                 
+        context['selected_lecturer'] = selected_id
+        return new_classes, context
+
+
+    @app.callback(
+        [Output('all-timetables-store', 'data', allow_duplicate=True),
+         Output('manual-cells-store', 'data', allow_duplicate=True),
+         Output('lecturer-selection-modal', 'style', allow_duplicate=True),
+         Output('lecturer-modal-overlay', 'style', allow_duplicate=True)],
+        Input('lecturer-confirm-btn', 'n_clicks'),
+        [State('lecturer-modal-context', 'data'),
+         State('all-timetables-store', 'data'),
+         State('manual-cells-store', 'data')],
+        prevent_initial_call=True
+    )
+    def confirm_lecturer_switch(n_clicks, context, all_timetables, manual_cells):
+        if not context or not context.get('selected_lecturer'):
+            raise dash.exceptions.PreventUpdate
+            
+        group_idx = context['group_idx']
+        course_code = context['course_code']
+        new_lecturer_id = context['selected_lecturer']
+        
+        fac = input_data.getFaculty(new_lecturer_id)
+        new_lecturer_name = fac.name if fac else new_lecturer_id
+        
+        updated_timetables = json.loads(json.dumps(all_timetables))
+        group_data = updated_timetables[group_idx]
+        grid = group_data['timetable']
+        
+        manual_state = manual_cells[:] if manual_cells else []
+        
+        changes_made = False
+        import re
+        
+        for r in range(len(grid)):
+            for c in range(1, len(grid[r])):
+                cell_content = str(grid[r][c] or '').strip()
+                if not cell_content or cell_content.upper() in ['FREE', 'BREAK']:
+                    continue
+                
+                p_code, p_room, p_lect = _parse_cell(cell_content)
+                
+                if p_code == course_code:
+                    # Construct new content safely
+                    room_str = p_room if p_room else "Unknown"
+                    new_content = f"{p_code}\n{room_str}\n{new_lecturer_name}"
+                    
+                    grid[r][c] = new_content
+                    
+                    # DO NOT mark as manual cell to avoid blue highlight / delete button
+                    # key = f'{group_idx}_{r}_{c-1}'
+                    # if key not in manual_state:
+                    #     manual_state.append(key)
+                        
+                    changes_made = True
+
+        if changes_made:
+            # Save to file
+            save_timetable_to_file(updated_timetables, manual_state)
+            return updated_timetables, manual_state, {'display': 'none'}, {'display': 'none'}
+        
+        return dash.no_update, dash.no_update, {'display': 'none'}, {'display': 'none'}
 
     # Return the configured Dash app
     return app

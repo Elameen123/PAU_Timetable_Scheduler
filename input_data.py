@@ -98,8 +98,8 @@ class inputData():
         for course_x in student_group.courseIDs:
             for course in input_data.courses:
                 if course_x == course.code:
-                    facultyId = course.primary_faculty_id
-                    self.classes.append(Class(student_group.id, facultyId, course.code))
+                    facultyId = course.facultyId
+                    self.classes.append(Class(student_group, facultyId, course.code))
 
     # def __repr__(self):
     #     return f"inputData(courses={self.courses}, rooms={self.rooms}, student_groups={self.student_groups}, faculties={self.faculties}, constraints={self.constraints}, classes={self.classes})"

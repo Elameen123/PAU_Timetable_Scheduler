@@ -263,7 +263,7 @@ class TimetableExporter:
             group_header_cell.alignment = Alignment(horizontal="left", vertical="center")
             current_row += 1
             
-            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM, BUILDING pattern
+            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM pattern
             headers = [
                 ("Course Code", "A"),
                 ("Course Name", "B"), 
@@ -271,23 +271,18 @@ class TimetableExporter:
                 ("TIME", "D"),
                 ("MONDAY", "E"),
                 ("CLASSROOM", "F"),
-                ("BUILDING", "G"),
-                ("TIME", "H"),
-                ("TUESDAY", "I"),
-                ("CLASSROOM", "J"),
-                ("BUILDING", "K"),
-                ("TIME", "L"),
-                ("WEDNESDAY", "M"),
-                ("CLASSROOM", "N"),
-                ("BUILDING", "O"),
+                ("TIME", "G"),
+                ("TUESDAY", "H"),
+                ("CLASSROOM", "I"),
+                ("TIME", "J"),
+                ("WEDNESDAY", "K"),
+                ("CLASSROOM", "L"),
+                ("TIME", "M"),
+                ("THURSDAY", "N"),
+                ("CLASSROOM", "O"),
                 ("TIME", "P"),
-                ("THURSDAY", "Q"),
-                ("CLASSROOM", "R"),
-                ("BUILDING", "S"),
-                ("TIME", "T"),
-                ("FRIDAY", "U"),
-                ("CLASSROOM", "V"),
-                ("BUILDING", "W")
+                ("FRIDAY", "Q"),
+                ("CLASSROOM", "R")
             ]
             
             # Set headers and apply formatting
@@ -319,16 +314,16 @@ class TimetableExporter:
             for time_idx in range(len(self.time_slots)):
                 time_row = current_row + time_idx
                 
-                # Define column groups for each day (TIME, DAY, CLASSROOM, BUILDING)
+                # Define column groups for each day (TIME, DAY, CLASSROOM)
                 day_column_groups = [
-                    (4, 5, 6, 7),   # Monday: D, E, F, G
-                    (8, 9, 10, 11), # Tuesday: H, I, J, K
-                    (12, 13, 14, 15), # Wednesday: L, M, N, O
-                    (16, 17, 18, 19), # Thursday: P, Q, R, S
-                    (20, 21, 22, 23)  # Friday: T, U, V, W
+                    (4, 5, 6),   # Monday
+                    (7, 8, 9),   # Tuesday
+                    (10, 11, 12), # Wednesday
+                    (13, 14, 15), # Thursday
+                    (16, 17, 18)  # Friday
                 ]
                 
-                for day_idx, (time_col, day_col, classroom_col, building_col) in enumerate(day_column_groups):
+                for day_idx, (time_col, day_col, classroom_col) in enumerate(day_column_groups):
                     # Time column
                     time_cell = ws.cell(row=time_row, column=time_col, value=self.time_slots[time_idx])
                     time_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
@@ -347,8 +342,6 @@ class TimetableExporter:
                         classroom_cell = ws.cell(row=time_row, column=classroom_col, value="")
                         classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
                         
-                        building_cell = ws.cell(row=time_row, column=building_col, value="")
-                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
                     else:
                         # Get class info for this time and day
                         class_info = self.get_class_at_time_day(group_data['timetable'], time_idx, day_idx)
@@ -361,11 +354,6 @@ class TimetableExporter:
                         classroom_cell = ws.cell(row=time_row, column=classroom_col, value=class_info['room'] if class_info else "")
                         classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
                         
-                        # Building column
-                        building = self.get_building_from_room(class_info['room']) if class_info else ""
-                        building_cell = ws.cell(row=time_row, column=building_col, value=building)
-                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
-                    
                     # Apply borders to all timetable cells (from TIME column onwards)
                     border = Border(
                         left=Side(style='thin'),
@@ -376,7 +364,6 @@ class TimetableExporter:
                     time_cell.border = border
                     day_cell.border = border
                     classroom_cell.border = border
-                    building_cell.border = border
             
             # Fill course information (A, B, C columns) - NO BORDERS for these
             course_row = current_row
@@ -517,7 +504,7 @@ class TimetableExporter:
             lecturer_header_cell.alignment = Alignment(horizontal="left", vertical="center")
             current_row += 1
             
-            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM, BUILDING pattern
+            # Create headers - Fixed order: Course Code, Course Name, Units, then TIME, DAY, CLASSROOM pattern
             headers = [
                 ("Course Code", "A"),
                 ("Course Name", "B"), 
@@ -525,23 +512,18 @@ class TimetableExporter:
                 ("TIME", "D"),
                 ("MONDAY", "E"),
                 ("CLASSROOM", "F"),
-                ("BUILDING", "G"),
-                ("TIME", "H"),
-                ("TUESDAY", "I"),
-                ("CLASSROOM", "J"),
-                ("BUILDING", "K"),
-                ("TIME", "L"),
-                ("WEDNESDAY", "M"),
-                ("CLASSROOM", "N"),
-                ("BUILDING", "O"),
+                ("TIME", "G"),
+                ("TUESDAY", "H"),
+                ("CLASSROOM", "I"),
+                ("TIME", "J"),
+                ("WEDNESDAY", "K"),
+                ("CLASSROOM", "L"),
+                ("TIME", "M"),
+                ("THURSDAY", "N"),
+                ("CLASSROOM", "O"),
                 ("TIME", "P"),
-                ("THURSDAY", "Q"),
-                ("CLASSROOM", "R"),
-                ("BUILDING", "S"),
-                ("TIME", "T"),
-                ("FRIDAY", "U"),
-                ("CLASSROOM", "V"),
-                ("BUILDING", "W")
+                ("FRIDAY", "Q"),
+                ("CLASSROOM", "R")
             ]
             
             # Set headers and apply formatting
@@ -586,16 +568,16 @@ class TimetableExporter:
             for time_idx in range(len(self.time_slots)):
                 time_row = current_row + time_idx
                 
-                # Define column groups for each day (TIME, DAY, CLASSROOM, BUILDING)
+                # Define column groups for each day (TIME, DAY, CLASSROOM)
                 day_column_groups = [
-                    (4, 5, 6, 7),   # Monday: D, E, F, G
-                    (8, 9, 10, 11), # Tuesday: H, I, J, K
-                    (12, 13, 14, 15), # Wednesday: L, M, N, O
-                    (16, 17, 18, 19), # Thursday: P, Q, R, S
-                    (20, 21, 22, 23)  # Friday: T, U, V, W
+                    (4, 5, 6),   # Monday
+                    (7, 8, 9),   # Tuesday
+                    (10, 11, 12), # Wednesday
+                    (13, 14, 15), # Thursday
+                    (16, 17, 18)  # Friday
                 ]
                 
-                for day_idx, (time_col, day_col, classroom_col, building_col) in enumerate(day_column_groups):
+                for day_idx, (time_col, day_col, classroom_col) in enumerate(day_column_groups):
                     # Time column
                     time_cell = ws.cell(row=time_row, column=time_col, value=self.time_slots[time_idx])
                     time_cell.fill = PatternFill(start_color="BDEDBD", end_color="BDEDBD", fill_type="solid")
@@ -613,9 +595,7 @@ class TimetableExporter:
                         # Empty classroom and building for break
                         classroom_cell = ws.cell(row=time_row, column=classroom_col, value="")
                         classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
-                        
-                        building_cell = ws.cell(row=time_row, column=building_col, value="")
-                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
+
                     else:
                         # Get class info for this time and day
                         class_info = schedule_grid[time_idx][day_idx]
@@ -627,11 +607,6 @@ class TimetableExporter:
                         # Classroom column
                         classroom_cell = ws.cell(row=time_row, column=classroom_col, value=class_info['room'] if class_info else "")
                         classroom_cell.alignment = Alignment(horizontal="center", vertical="center")
-                        
-                        # Building column
-                        building = self.get_building_from_room(class_info['room']) if class_info else ""
-                        building_cell = ws.cell(row=time_row, column=building_col, value=building)
-                        building_cell.alignment = Alignment(horizontal="center", vertical="center")
                     
                     # Apply borders to all timetable cells (from TIME column onwards)
                     border = Border(
@@ -643,7 +618,6 @@ class TimetableExporter:
                     time_cell.border = border
                     day_cell.border = border
                     classroom_cell.border = border
-                    building_cell.border = border
             
             # Fill course information (A, B, C columns) - NO BORDERS for these
             course_row = current_row

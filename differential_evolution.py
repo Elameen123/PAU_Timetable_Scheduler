@@ -87,7 +87,14 @@ class DifferentialEvolution:
                 # Reset hourcount for each new course to correctly group events
                 hourcount = 1 
                 while hourcount <= required_hours:
-                    event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
+                    tid = student_group.teacherIDS[i]
+                    # Handle multiple lecturers: Default to the first one for initial scheduling
+                    if isinstance(tid, list) and len(tid) > 0:
+                        tid = tid[0]
+                    elif isinstance(tid, list) and len(tid) == 0:
+                        tid = "Unknown"
+                        
+                    event = Class(student_group, tid, student_group.courseIDs[i])
                     events_list.append(event)
                     
                     # Add the event to the index map with the current index
@@ -908,7 +915,66 @@ class DifferentialEvolution:
             self.population[target_idx] = trial_vector
 
 
+    def pre_check_feasibility(self):
+        print("\n🔍 RUNNING PRE-OPTIMIZATION FEASIBILITY CHECK...")
+        
+        # 1. Total Capacity Check
+        total_slots = len(self.rooms) * len(self.timeslots)
+        total_event_hours = sum(1 for _ in self.events_list)
+        print(f"   Total Slots Available: {total_slots}")
+        print(f"   Total Event Hours Required: {total_event_hours}")
+        
+        if total_event_hours > total_slots:
+             print("   ❌ FATAL: More event hours than total available slots! Scheduling is impossible.")
+             # We let it run but it will fail.
+        else:
+             print("   ✅ Total slot capacity is sufficient.")
+
+        # 2. Room Type Capacity Check
+        required_by_type = {}
+        for event in self.events_list:
+             course = self.input_data.getCourse(event.course_id)
+             rtype = course.required_room_type
+             required_by_type[rtype] = required_by_type.get(rtype, 0) + 1
+             
+        available_by_type = {}
+        for room in self.rooms:
+             rtype = room.room_type
+             available_by_type[rtype] = available_by_type.get(rtype, 0) + len(self.timeslots)
+             
+        type_issues = False
+        for rtype, req in required_by_type.items():
+            avail = available_by_type.get(rtype, 0)
+            if req > avail:
+                 print(f"   ❌ FATAL: Not enough '{rtype}' room slots! Required: {req}, Available: {avail}")
+                 type_issues = True
+        
+        if not type_issues:
+             print("   ✅ Room type capacity check passed.")
+
+        # 3. Student Group Overload Check
+        group_issues = False
+        for sg in self.student_groups:
+             total_hours = sum(sg.hours_required)
+             # Adjust for 1-credit courses being 3 hours
+             # This check is approximate as we transformed events already
+             # Let's use events_list count for this group
+             group_events = [e for e in self.events_list if e.student_group.id == sg.id]
+             load = len(group_events)
+             if load > len(self.timeslots):
+                  print(f"   ❌ FATAL: Student Group '{sg.name}' requires {load} hours but only {len(self.timeslots)} slots available!")
+                  group_issues = True
+        
+        if not group_issues:
+             print("   ✅ Student group workload check passed.")
+             
+        print("🔍 FEASIBILITY CHECK COMPLETE\n")
+
+
     def run(self, max_generations):
+        # Run pre-check
+        self.pre_check_feasibility()
+        
         # Population already initialized in __init__, don't reinitialize
         fitness_history = []
         best_solution = self.population[0]
@@ -969,20 +1035,32 @@ class DifferentialEvolution:
 
             print(f"Best solution for generation {generation+1}/{max_generations} has a fitness of: {best_fitness}")
 
-            if best_fitness == self.desired_fitness:
+            if best_fitness <= self.desired_fitness:
                 print(f"Solution with desired fitness of {self.desired_fitness} found at Generation {generation}! 🎉")
                 break  # Stop if the best solution has no constraint violations
             
-            # Early termination if no improvement for 20 generations (reduced from 50)
-            if stagnation_counter >= 20:
-                print(f"Early termination due to stagnation after {stagnation_counter} generations without improvement at generation {generation+1}")
-                print(f"Final fitness achieved: {best_fitness}")
-                break
+            # --- OPTIMIZED TERMINATION LOGIC ---
+            # "fitness less than 200"
+            if best_fitness < 200:
+                # If we breached 200, we are in "good" territory.
+                # If we stagnate here, we can stop early.
+                if stagnation_counter >= 10:
+                    print(f"Termination: Good fitness (<200) achieved and converged. Final: {best_fitness}")
+                    break
             
-            # Additional early termination if no improvement for many generations and fitness is acceptable
-            if stagnation_counter > 50 and best_fitness < 100:
-                print(f"Early termination due to convergence at generation {generation+1}")
-                break
+            # "if after 30 generations its not close or the difference in fitness changes is not much"
+            if generation >= 30:
+                if stagnation_counter >= 5: # Stagnated for 5 generations after gen 30
+                    print(f"Early termination: Result stabilized after 30 generations. Final: {best_fitness}")
+                    break
+                
+                # "Not close": If we are still very high fitness (e.g. > 1000) and moving partially?
+                # The prompt implies stopping if not much progress.
+                
+            # Global stagnation safety
+            if stagnation_counter >= 40:
+                 print(f"Early termination due to prolonged stagnation ({stagnation_counter} gen).")
+                 break
 
         # CRITICAL: Ensure the final best solution has NO missing classes
         # Track fitness before post-algorithm repairs
@@ -1686,14 +1764,14 @@ descriptive_names = {
 }
 
 penalty_info = {
-    'room_constraints': "1 point per violation",
+    'room_constraints': "0.5 points per violation",
     'student_group_constraints': "1 point per violation",
     'lecturer_availability': "1 point per violation",
-    'lecturer_schedule_constraints': "10 points per violation",
+    'lecturer_schedule_constraints': "2 points per violation",
     'lecturer_workload_constraints': "50 points per extra daily hour, 30 points per extra consecutive hour",
     'room_time_conflict': "10 points per conflict",
     'building_assignments': "0.5 points per violation",
-    'same_course_same_room_per_day': "5 points per extra room used",
+    'same_course_same_room_per_day': "2 points per extra room used",
     'break_time_constraint': "100 points per scheduled class",
     'course_allocation_completeness': "2-5 points per missing hour",
     'single_event_per_day': "0.05 points per extra event on same day",

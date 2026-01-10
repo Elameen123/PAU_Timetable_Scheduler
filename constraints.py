@@ -69,7 +69,14 @@ class Constraints:
                 
                 hourcount = 1 
                 while hourcount <= required_hours:
-                    event = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
+                    tid = student_group.teacherIDS[i]
+                    # Handle multiple lecturers: Default to the first one
+                    if isinstance(tid, list) and len(tid) > 0:
+                        tid = tid[0]
+                    elif isinstance(tid, list) and len(tid) == 0:
+                        tid = "Unknown"
+                        
+                    event = Class(student_group, tid, student_group.courseIDs[i])
                     events_list.append(event)
                     
                     # Add the event to the index map with the current index
@@ -396,10 +403,10 @@ class Constraints:
                 unique_courses = list(set(courses))
                 courses_text = ", ".join(unique_courses)
                 
-                # 1. Check total hours per day (max 4) - LOW PENALTY (spread throughout day is OK)
+                # 1. Check total hours per day (max 4) - VERY LOW PENALTY (as requested, barely counts)
                 total_hours = len(hours_sorted)
                 if total_hours > 4:
-                    penalty += 2 * (total_hours - 4)  # Low penalty - having many hours spread out is acceptable
+                    penalty += 0.2 * (total_hours - 4)  # Reduced from 2 to 0.2
                     if debug:
                         violation_info = (
                             f"Lecturer Workload Violation: '{lecturer_name}' has {total_hours} hours "
@@ -1415,6 +1422,10 @@ class Constraints:
     
     def _is_faculty_available_day(self, faculty, day_abbr):
         """Helper method to check if faculty is available on a specific day"""
+        # If no availability is specified, assume available all days
+        if not faculty.avail_days:
+            return True
+
         if isinstance(faculty.avail_days, str):
             if faculty.avail_days.upper() == 'ALL':
                 return True
@@ -1435,6 +1446,10 @@ class Constraints:
     
     def _is_faculty_available_time(self, faculty, slot_hour):
         """Helper method to check if faculty is available at a specific time"""
+        # If no availability is specified, assume available all times
+        if not faculty.avail_times:
+            return True
+
         if isinstance(faculty.avail_times, str):
             if faculty.avail_times.upper() == 'ALL':
                 return True

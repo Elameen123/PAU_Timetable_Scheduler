@@ -119,13 +119,32 @@ for _, r in lect_df.iterrows():
     dept = str(r.get("Department") or "").strip() if "Department" in lect_df.columns else ""
     status = str(r.get("Status") or "").strip() if "Status" in lect_df.columns else ""
     avail_days = []
-    if "Available Days" in lect_df.columns:
-        aval = str(r.get("Available Days") or "").strip()
+    
+    # Fuzzy search for "Available Days" column
+    aval_days_col = None
+    for c in lect_df.columns:
+        sc = str(c).strip().lower()
+        if "avail" in sc and "day" in sc:
+            aval_days_col = c
+            break
+            
+    if aval_days_col:
+        aval = str(r.get(aval_days_col) or "").strip()
         avail_days = [d.strip() for d in re.split(r'[ ,;]+', aval) if d.strip()] if aval else []
+        
     avail_times = []
-    if "Available Times" in lect_df.columns:
-        aval_t = str(r.get("Available Times") or "").strip()
-        avail_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
+    
+    # Fuzzy search for "Available Times" column
+    aval_times_col = None
+    for c in lect_df.columns:
+        sc = str(c).strip().lower()
+        if "avail" in sc and "time" in sc:
+            aval_times_col = c
+            break
+
+    if aval_times_col:
+        aval_t = str(r.get(aval_times_col) or "").strip()
+        avail_times = [t.strip() for t in re.split(r'[ ,;/]+', aval_t) if t.strip()] if aval_t else []
     if raw_email:
         key = raw_email.lower()
         faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}

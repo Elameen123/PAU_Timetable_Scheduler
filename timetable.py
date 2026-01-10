@@ -29,7 +29,10 @@ class Timetable:
             for i in range(student_group.no_courses):
                 self.hourcount = 1 
                 while self.hourcount <= student_group.hours_required[i]:
-                    self.periods_list[self.cnt] = Class(student_group, student_group.teacherIDS[i], student_group.courseIDs[i])
+                    tid = student_group.teacherIDS[i]
+                    if isinstance(tid, list) and len(tid) > 0:
+                        tid = tid[0]
+                    self.periods_list[self.cnt] = Class(student_group, tid, student_group.courseIDs[i])
                     self.hourcount += 1
                     self.cnt += 1
                     periods += 1
