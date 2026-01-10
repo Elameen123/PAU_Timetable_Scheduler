@@ -1049,7 +1049,7 @@ class DifferentialEvolution:
                     break
             
             # "if after 30 generations its not close or the difference in fitness changes is not much"
-            if generation >= 30:
+            if generation >= 100:
                 if stagnation_counter >= 5: # Stagnated for 5 generations after gen 30
                     print(f"Early termination: Result stabilized after 30 generations. Final: {best_fitness}")
                     break
@@ -1058,7 +1058,7 @@ class DifferentialEvolution:
                 # The prompt implies stopping if not much progress.
                 
             # Global stagnation safety
-            if stagnation_counter >= 40:
+            if stagnation_counter >= 100:
                  print(f"Early termination due to prolonged stagnation ({stagnation_counter} gen).")
                  break
 
@@ -1689,7 +1689,7 @@ if __name__ == '__main__':
     # Create DE instance and run optimization
     print("Starting Differential Evolution")
     de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-    best_solution, fitness_history, generation, diversity_history = de.run(20)
+    best_solution, fitness_history, generation, diversity_history = de.run(50)
     print("Differential Evolution completed")
 
     # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -1765,15 +1765,15 @@ descriptive_names = {
 
 penalty_info = {
     'room_constraints': "0.5 points per violation",
-    'student_group_constraints': "1 point per violation",
-    'lecturer_availability': "1 point per violation",
-    'lecturer_schedule_constraints': "2 points per violation",
+    'student_group_constraints': "100 points per violation (HARD)",
+    'lecturer_availability': "100 points per violation (HARD)",
+    'lecturer_schedule_constraints': "50 points per violation (HARD)",
     'lecturer_workload_constraints': "50 points per extra daily hour, 30 points per extra consecutive hour",
     'room_time_conflict': "10 points per conflict",
     'building_assignments': "0.5 points per violation",
     'same_course_same_room_per_day': "2 points per extra room used",
-    'break_time_constraint': "100 points per scheduled class",
-    'course_allocation_completeness': "2-5 points per missing hour",
+    'break_time_constraint': "50 points per scheduled class",
+    'course_allocation_completeness': "100,000 points per missing hour (CRITICAL)",
     'single_event_per_day': "0.05 points per extra event on same day",
     'consecutive_timeslots': "0.05 points per hour of multi-hour course",
     'spread_events': "0.025 points per group with clustered events"

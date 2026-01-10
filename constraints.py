@@ -153,7 +153,7 @@ class Constraints:
                     if class_event is not None:
                         student_group = class_event.student_group
                         if student_group.id in student_group_watch:
-                            penalty += 1
+                            penalty += 100  # Increased from 1 to 100 which is a very high penalty
                             if debug:
                                 # A clash is detected. We have the new event and the one from the watch.
                                 first_event = student_group_watch[student_group.id]
@@ -202,7 +202,7 @@ class Constraints:
                         faculty_id = class_event.faculty_id
                         if faculty_id is not None:
                             if faculty_id in lecturer_watch:
-                                penalty += 1
+                                penalty += 100  # Increased from 1 to 100 which is a very high penalty
                                 if debug:
                                     first_event = lecturer_watch[faculty_id]
                                     second_event = class_event
@@ -277,7 +277,7 @@ class Constraints:
                                 is_available_day = True
 
                         if not is_available_day:
-                            penalty += 2  # Reduced from 10 to 2
+                            penalty += 50  # Increased from 2 to 50
                             if debug:
                                 # Use faculty name if available, otherwise use faculty_id (email)
                                 lecturer_name = faculty.name if faculty.name else faculty.faculty_id
@@ -330,7 +330,7 @@ class Constraints:
                                         continue # Ignore malformed time
                         
                         if not is_available_time:
-                            penalty += 2  # Reduced from 10 to 2
+                            penalty += 50  # Increased from 2 to 50
                             if debug:
                                 # Use faculty name if available, otherwise use faculty_id (email)
                                 lecturer_name = faculty.name if faculty.name else faculty.faculty_id
@@ -821,8 +821,8 @@ class Constraints:
                     difference = abs(expected_hours - actual_hours)
                     
                     if actual_hours < expected_hours:
-                        # Apply moderate penalty for missing courses
-                        penalty += difference * (2 if actual_hours == 0 else 1)  # Reduced penalties
+                        # Apply VERY high penalty for missing courses to banish them entirely
+                        penalty += difference * 100000 
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
@@ -834,7 +834,7 @@ class Constraints:
                             allocation_issues.append(info)
                     else: # actual_hours > expected_hours
                         # Apply penalty for extra classes
-                        penalty += difference * 1  # Reduced from 2 to 1
+                        penalty += difference * 10000
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""

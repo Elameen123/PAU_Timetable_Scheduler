@@ -453,12 +453,26 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
 
         # Check for Missing or Extra Classes
         if input_data:
+            # print("[Dash_UI] Checking for Missing or Extra Classes...")
             for group_data in timetables_data:
                 # Find matching student group in input_data
                 group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
                 
-                student_group = next((g for g in input_data.student_groups if g.name == group_name), None)
+                # Careful lookup - handle case sensitivity or stripping
+                student_group = None
+                for g in input_data.student_groups:
+                    if g.name == group_name:
+                        student_group = g
+                        break
+                # Fallback lookup if exact match fails
                 if not student_group:
+                    for g in input_data.student_groups:
+                        if str(g.name).strip().lower() == str(group_name).strip().lower():
+                            student_group = g
+                            break
+
+                if not student_group:
+                    print(f"[Dash_UI] Warning: Could not find student group '{group_name}' in input_data for missing/extra check.")
                     continue
                 
                 # Count scheduled hours for each course
@@ -472,15 +486,18 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             continue
                         
                         course_code, _, _ = _parse_cell(cell)
+                        # Normalize course code
                         if course_code:
-                            scheduled_counts[course_code] = scheduled_counts.get(course_code, 0) + 1
+                            code_key = str(course_code).strip()
+                            scheduled_counts[code_key] = scheduled_counts.get(code_key, 0) + 1
                 
                 # Compare with requirements
                 for i, course_id in enumerate(student_group.courseIDs):
                     course = input_data.getCourse(course_id)
                     if not course: 
                         continue
-                        
+                     
+                    current_course_code = course.code.strip()   
                     # Special handling for 1-credit courses -> 3 hours
                     # Use hours_required from student group data
                     if i < len(student_group.hours_required):
@@ -493,7 +510,13 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                         # Fallback if index out of bounds
                         expected = 3 if course.credits == 1 else course.credits
                     
-                    actual = scheduled_counts.get(course.code, 0)
+                    # Fuzzy match for course code in scheduled counts (e.g. "PHY101" vs "PHY 101")
+                    actual = 0
+                    for sched_code, count in scheduled_counts.items():
+                        if sched_code == current_course_code:
+                            actual += count
+                        elif sched_code.replace(' ', '') == current_course_code.replace(' ', ''):
+                             actual += count
                     
                     if actual != expected:
                         issue_type = "Missing" if actual < expected else "Extra"
@@ -505,6 +528,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'issue': issue_type,
                             'location': f"{course.code} for {group_name}"
                         })
+        else:
+             print("[Dash_UI] Warning: input_data not available, skipping Missing/Extra Class check.")
 
         # Check for Classes During Break Time
         # Break is at 13:00 (index 4) on Mon (0), Wed (2), Fri (4)
@@ -578,6 +603,190 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'day': days_map.get(d_idx),
                             'rooms': list(rooms),
                             'location': f"{course_code} on {days_map.get(d_idx)}"
+                        })
+
+        # --- NEW: Check for Lecturer Schedule Conflicts (Availability) ---
+        if input_data:
+            # Build lecturer schedule map for consecutive check as well
+            # lecturer -> day -> list of time indices where they teach
+            lecturer_schedules = {}
+
+            # Iterate all timetables to build a master schedule for every lecturer
+            for group_data in timetables_data:
+                group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
+                timetable_grid = group_data.get('timetable', [])
+                
+                # Check each time slot
+                for r_idx, row in enumerate(timetable_grid):
+                    # Skip if not a valid data row (assuming row 0 is header in some cases, but logic above used row iteration)
+                    # Actually, logic above used: for time_slot in range(max_rows) ... row = rows[time_slot] ... day+1
+                    # But here we are iterating directly. Let's stick to the grid structure.
+                    # Based on _parse_cell usage above, the grid is [Time, Mon, Tue...]
+                    
+                    time_label = str(row[0]).strip() if row and len(row) > 0 else f"{r_idx+9}:00"
+                    
+                    for d_idx in range(input_data.days):
+                        if d_idx + 1 >= len(row):
+                            continue
+                        cell = row[d_idx + 1]
+                        if not cell or str(cell).strip().upper() in ['FREE', 'BREAK']:
+                            continue
+                        
+                        course_code, _, lecturer_name = _parse_cell(cell)
+                        if not lecturer_name:
+                            continue
+
+                        # Add to schedule for consecutive check
+                        if lecturer_name not in lecturer_schedules:
+                            lecturer_schedules[lecturer_name] = {d: [] for d in range(input_data.days)}
+                        lecturer_schedules[lecturer_name][d_idx].append({'time_idx': r_idx, 'time_label': time_label, 'course': course_code, 'group': group_name})
+
+                        # Find faculty object
+                        faculty = next((f for f in input_data.faculties 
+                                      if f.name.lower() == lecturer_name.lower() or 
+                                         f.faculty_id.lower() == lecturer_name.lower()), None)
+                        
+                        if faculty:
+                            # Check availability
+                            # 1. Day availability
+                            day_name = days_map.get(d_idx, '')
+                            is_day_avail = False
+                            avail_days = faculty.avail_days or []
+                            
+                            # Handle "All" case
+                            if isinstance(avail_days, str) and avail_days.lower() == "all":
+                                is_day_avail = True
+                            elif isinstance(avail_days, list) and any(str(d).lower() == "all" for d in avail_days):
+                                is_day_avail = True
+                            else:
+                                for avail_day in avail_days:
+                                    if str(avail_day).lower().startswith(day_name.lower()):
+                                        is_day_avail = True
+                                        break
+                            
+                            # If avail_days is empty or "All", assume available? 
+                            # Usually if list is empty, they might be avail all? Or none?
+                            # Backend constraint: if not day_abbr in faculty.avail_days -> penalty.
+                            if avail_days and not is_day_avail:
+                                violations['Lecturer Schedule Conflicts (Day/Time)'].append({
+                                    'lecturer': lecturer_name,
+                                    'day': day_name,
+                                    'time': time_label,
+                                    'course': course_code,
+                                    'group': group_name,
+                                    'available_days': str(avail_days),
+                                    'available_times': str(faculty.avail_times),
+                                    'issue': f"Not available on {day_name}",
+                                    'location': f"{lecturer_name} on {day_name}"
+                                })
+
+                            # 2. Time availability
+                            # avail_times is list of strings e.g. "09:00", "10:00".
+                            # time_label should match.
+                            if faculty.avail_times:
+                                # Simple check: is this time in their available times? 
+                                # We need partial match or exact match.
+                                # Backend uses: if time not in faculty.avail_times -> penalty.
+                                # time is int (9, 10...)
+                                avail_times = faculty.avail_times
+                                is_time_avail = False
+                                
+                                # Handle "All"
+                                if isinstance(avail_times, str) and avail_times.lower() == "all":
+                                    is_time_avail = True
+                                elif isinstance(avail_times, list) and any(str(t).lower() == "all" for t in avail_times):
+                                    is_time_avail = True
+                                else:
+                                    try:
+                                        # parse time_label "09:00" -> 9
+                                        hour = int(time_label.split(':')[0])
+                                        for t in avail_times:
+                                            # Check specific time or range (e.g. 09:00-12:00)
+                                            t_str = str(t).strip()
+                                            if '-' in t_str:
+                                                try:
+                                                    start, end = t_str.split('-')
+                                                    start_h = int(start.split(':')[0])
+                                                    end_h = int(end.split(':')[0])
+                                                    if start_h <= hour < end_h:
+                                                        is_time_avail = True
+                                                        break
+                                                except:
+                                                    pass
+                                            elif str(t) == str(hour) or str(t) == time_label or str(t) in time_label:
+                                                is_time_avail = True
+                                                break
+                                    except:
+                                        pass
+                                    
+                                if not is_time_avail:
+                                    violations['Lecturer Schedule Conflicts (Day/Time)'].append({
+                                        'lecturer': lecturer_name,
+                                        'day': day_name,
+                                        'time': time_label,
+                                        'course': course_code,
+                                        'group': group_name,
+                                        'available_days': str(avail_days),
+                                        'available_times': str(avail_times),
+                                        'issue': f"Not available at {time_label}",
+                                        'location': f"{lecturer_name} at {time_label}"
+                                    })
+
+            # --- NEW: Check for Consecutive Slot Violations and Workload ---
+            for lecturer, schedule in lecturer_schedules.items():
+                for d_idx, classes in schedule.items():
+                    if not classes:
+                        continue
+                    
+                    # 1. Check Max Hours Per Day (Workload) - Max 6 hours
+                    if len(classes) > 6:
+                        # Assuming 1 slot = 1 hour usually
+                        violations['Lecturer Workload Violations'].append({
+                            'lecturer': lecturer,
+                            'day': days_map.get(d_idx),
+                            'hours': len(classes),
+                            'location': f"{lecturer} on {days_map.get(d_idx)} ({len(classes)} hours)"
+                        })
+
+                    # Sort by time index for consecutive check
+                    classes.sort(key=lambda x: x['time_idx'])
+                    
+                    # 2. Check consecutiveness - Max 3 consecutive
+                    consecutive_count = 0
+                    last_time_idx = -2
+                    
+                    current_sequence = []
+                    
+                    for cls in classes:
+                        t_idx = cls['time_idx']
+                        if t_idx == last_time_idx + 1:
+                            consecutive_count += 1
+                            current_sequence.append(cls)
+                        else:
+                            # Reset
+                            if consecutive_count > 3:
+                                # Report violation for the previous sequence
+                                course_list = ", ".join([c['course'] for c in current_sequence])
+                                violations['Consecutive Slot Violations'].append({
+                                    'lecturer': lecturer,
+                                    'day': days_map.get(d_idx),
+                                    'count': consecutive_count,
+                                    'courses': course_list,
+                                    'location': f"{lecturer} on {days_map.get(d_idx)} ({consecutive_count} consecutive)"
+                                })
+                            consecutive_count = 1
+                            current_sequence = [cls]
+                        last_time_idx = t_idx
+                    
+                    # Check end of day
+                    if consecutive_count > 3:
+                        course_list = ", ".join([c['course'] for c in current_sequence])
+                        violations['Consecutive Slot Violations'].append({
+                            'lecturer': lecturer,
+                            'day': days_map.get(d_idx),
+                            'count': consecutive_count,
+                            'courses': course_list,
+                            'location': f"{lecturer} on {days_map.get(d_idx)} ({consecutive_count} consecutive)"
                         })
 
         return violations
@@ -1498,9 +1707,9 @@ def create_app(_ctx: dict | None = None):
             # CRITICAL: Preserve constraints from original DE algorithm that don't change with swaps
             # These are calculated based on course allocations, not cell positions
             constraints_to_preserve = [
-                'Lecturer Schedule Conflicts (Day/Time)',
-                'Lecturer Workload Violations',
-                'Consecutive Slot Violations'
+                #'Lecturer Schedule Conflicts (Day/Time)', # Now calculated dynamically
+                #'Lecturer Workload Violations', # Now calculated dynamically
+                #'Consecutive Slot Violations' # Now calculated dynamically
                 # 'Same Course in Multiple Rooms on Same Day' - Removed to allow dynamic updates
                 # 'Same Student Group Overlaps' - Removed to allow dynamic updates
             ]
