@@ -740,11 +740,14 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                     
                     # 1. Check Max Hours Per Day (Workload) - Max 6 hours
                     if len(classes) > 6:
-                        # Assuming 1 slot = 1 hour usually
+                        course_names = ", ".join([c['course'] for c in classes])
                         violations['Lecturer Workload Violations'].append({
+                            'type': 'Excessive Daily Hours',
                             'lecturer': lecturer,
                             'day': days_map.get(d_idx),
-                            'hours': len(classes),
+                            'hours_scheduled': len(classes),
+                            'max_allowed': 6,
+                            'courses': course_names,
                             'location': f"{lecturer} on {days_map.get(d_idx)} ({len(classes)} hours)"
                         })
 
@@ -767,11 +770,15 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             if consecutive_count > 3:
                                 # Report violation for the previous sequence
                                 course_list = ", ".join([c['course'] for c in current_sequence])
-                                violations['Consecutive Slot Violations'].append({
+                                times_list = [c['time_label'] for c in current_sequence]
+                                violations['Lecturer Workload Violations'].append({
+                                    'type': 'Excessive Consecutive Hours',
                                     'lecturer': lecturer,
                                     'day': days_map.get(d_idx),
-                                    'count': consecutive_count,
+                                    'consecutive_hours': consecutive_count,
+                                    'max_allowed': 3,
                                     'courses': course_list,
+                                    'hours_times': times_list,
                                     'location': f"{lecturer} on {days_map.get(d_idx)} ({consecutive_count} consecutive)"
                                 })
                             consecutive_count = 1
@@ -781,11 +788,15 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                     # Check end of day
                     if consecutive_count > 3:
                         course_list = ", ".join([c['course'] for c in current_sequence])
-                        violations['Consecutive Slot Violations'].append({
+                        times_list = [c['time_label'] for c in current_sequence]
+                        violations['Lecturer Workload Violations'].append({
+                            'type': 'Excessive Consecutive Hours',
                             'lecturer': lecturer,
                             'day': days_map.get(d_idx),
-                            'count': consecutive_count,
+                            'consecutive_hours': consecutive_count,
+                            'max_allowed': 3,
                             'courses': course_list,
+                            'hours_times': times_list,
                             'location': f"{lecturer} on {days_map.get(d_idx)} ({consecutive_count} consecutive)"
                         })
 
@@ -917,7 +928,12 @@ def create_errors_modal_content(constraint_details, timetables_data=None, expand
                         item_text = f"Lecturer '{violation['lecturer']}' has clashing courses {', '.join(violation['courses'])} on {violation['location']}"
                         
                 elif internal_name == 'Lecturer Schedule Conflicts (Day/Time)':
-                    item_text = f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {violation['location']} but available: {violation['available_days']} at {violation['available_times']}"
+                    # Use specific fields to avoid redundant name checks in location string
+                    loc_display = violation.get('location', '')
+                    if 'day' in violation and 'time' in violation:
+                        loc_display = f"{violation['day']} at {violation['time']}"
+                    
+                    item_text = f"Lecturer '{violation['lecturer']}' scheduled for {violation['course']} for group {violation['group']} on {loc_display} but available: {violation['available_days']} at {violation['available_times']}"
                     if violation.get('group') in group_map:
                         target_group_idx = group_map[violation['group']]
                         
@@ -949,8 +965,14 @@ def create_errors_modal_content(constraint_details, timetables_data=None, expand
                 elif internal_name == 'Room Capacity/Type Conflicts':
                     if violation['type'] == 'Room Type Mismatch':
                         item_text = f"Room type mismatch at {violation['location']}: {violation['course']} for group {violation['group']} requires {violation['required_type']} but scheduled in {violation['room']} ({violation['room_type']})"
+                    elif violation['type'] == 'Wrong Building (TYD in SST)':
+                         item_text = f"Wrong Building Constraint: Group '{violation['group']}' (Non-SST) is scheduled in SST room '{violation['room']}' on {violation['day']} at {violation['time']}"
                     else:
-                        item_text = f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})"
+                        # Default to capacity exceeded if keys exist, otherwise generic message
+                        if 'students' in violation and 'capacity' in violation:
+                            item_text = f"Room capacity exceeded at {violation['room']} by group {violation['group']} on {violation['day']} at {violation['time']}: {violation['students']} students in {violation['room']} (capacity: {violation['capacity']})"
+                        else:
+                            item_text = f"{violation['type']} at {violation.get('location', 'Unknown')}"
                     if violation.get('group') in group_map:
                         target_group_idx = group_map[violation['group']]
                         
@@ -1709,7 +1731,7 @@ def create_app(_ctx: dict | None = None):
             constraints_to_preserve = [
                 #'Lecturer Schedule Conflicts (Day/Time)', # Now calculated dynamically
                 #'Lecturer Workload Violations', # Now calculated dynamically
-                #'Consecutive Slot Violations' # Now calculated dynamically
+                'Consecutive Slot Violations', # Preserved (Course violations), Lecturer violations moved to Workload
                 # 'Same Course in Multiple Rooms on Same Day' - Removed to allow dynamic updates
                 # 'Same Student Group Overlaps' - Removed to allow dynamic updates
             ]

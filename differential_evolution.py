@@ -716,8 +716,51 @@ class DifferentialEvolution:
                                 if moved:
                                     break
                     
+                    # Strategy 3: SWAP with an existing event if valid
+                    if not moved:
+                        # Find occupied slots where THIS event would be valid (no clash)
+                        swap_candidates = []
+                        for alt_r_idx, room in enumerate(self.rooms):
+                            if self.is_room_suitable(room, course):
+                                for alt_t_idx in range(len(self.timeslots)):
+                                    # Skip current slot (which is already None)
+                                    if (alt_r_idx, alt_t_idx) == (r_idx, t_idx): continue
+                                    
+                                    # Target must be occupied
+                                    target_event_id = chromosome[alt_r_idx, alt_t_idx]
+                                    if target_event_id is None: continue
+                                    
+                                    # Check if THIS event is valid there
+                                    if (self.is_slot_available_for_event(chromosome, alt_r_idx, alt_t_idx, event) and
+                                        self._is_student_group_available(chromosome, event.student_group.id, alt_t_idx) and
+                                        self._is_lecturer_available(chromosome, event.faculty_id, alt_t_idx)):
+                                        swap_candidates.append((alt_r_idx, alt_t_idx))
+                        
+                        if swap_candidates:
+                            # Perform swap
+                            target_r, target_t = random.choice(swap_candidates)
+                            displaced_id = chromosome[target_r, target_t]
+                            
+                            chromosome[target_r, target_t] = event_id
+                            # The displaced event is now gone from the grid (since original slot was set to None)
+                            # We can try to place it in the original slot if valid, or just let repair handle it
+                            
+                            # Optimized: Try to put displaced event in the original slot if valid
+                            displaced_event = self.events_map.get(displaced_id)
+                            if displaced_event:
+                                if (self.is_room_suitable(self.rooms[r_idx], self.input_data.getCourse(displaced_event.course_id)) and
+                                    self.is_slot_available_for_event(chromosome, r_idx, t_idx, displaced_event) and
+                                    self._is_student_group_available(chromosome, displaced_event.student_group.id, t_idx) and
+                                    self._is_lecturer_available(chromosome, displaced_event.faculty_id, t_idx)):
+                                    chromosome[r_idx, t_idx] = displaced_id
+                                else:
+                                    # Just let it be missing, repair will catch it
+                                    pass
+                            moved = True
+
                     # If we couldn't move it anywhere, it becomes a missing class
                     # This will be handled by the repair function later
+
             
             if not clashes_found:
                 break
@@ -1600,6 +1643,25 @@ class DifferentialEvolution:
                             if placed:
                                 break
                 
+                # Strategy 4: NUCLEAR OPTION - If still not placed, ignore ALL soft constraints (break time, lecturer avail)
+                if not placed:
+                    found_nuclear = False
+                    # Just find ANY room that fits the type and capacity
+                    for r_idx, room in enumerate(self.rooms):
+                        if self.is_room_suitable(room, course):
+                            # Try to pick a slot that minimizes damage (e.g. valid day)
+                            # But if necessary, just pick the first one
+                            for t_idx in range(len(self.timeslots)):
+                                displaced_event_id = chromosome[r_idx, t_idx]
+                                chromosome[r_idx, t_idx] = event_id
+                                if displaced_event_id is not None:
+                                    self._try_quick_reschedule(chromosome, displaced_event_id)
+                                found_nuclear = True
+                                break
+                        if found_nuclear:
+                            break
+
+                
                 # If STILL not placed, something is very wrong - but we continue
 
         return chromosome
@@ -1689,7 +1751,7 @@ if __name__ == '__main__':
     # Create DE instance and run optimization
     print("Starting Differential Evolution")
     de = DifferentialEvolution(input_data, 50, 0.4, 0.9)
-    best_solution, fitness_history, generation, diversity_history = de.run(50)
+    best_solution, fitness_history, generation, diversity_history = de.run(10)
     print("Differential Evolution completed")
 
     # Get final fitness and detailed breakdown (solution is already repaired inside run())
@@ -1770,7 +1832,7 @@ penalty_info = {
     'lecturer_schedule_constraints': "50 points per violation (HARD)",
     'lecturer_workload_constraints': "50 points per extra daily hour, 30 points per extra consecutive hour",
     'room_time_conflict': "10 points per conflict",
-    'building_assignments': "0.5 points per violation",
+    'building_assignments': "100 points per violation (CRITICAL: TYD group in SST)",
     'same_course_same_room_per_day': "2 points per extra room used",
     'break_time_constraint': "50 points per scheduled class",
     'course_allocation_completeness': "100,000 points per missing hour (CRITICAL)",
@@ -1790,11 +1852,11 @@ hard_constraint_order = [
     'same_course_same_room_per_day',
     'room_constraints',
     'room_time_conflict',
-    'break_time_constraint'
+    'break_time_constraint',
+    'building_assignments'
 ]
 
 soft_constraint_order = [
-    'building_assignments',
     'single_event_per_day',
     'spread_events'
 ]

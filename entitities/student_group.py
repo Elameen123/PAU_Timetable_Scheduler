@@ -23,3 +23,39 @@ class StudentGroup:
             return Size.MEDIUM
         else:
             return Size.LARGE
+
+    @property
+    def is_sst(self):
+        """
+        Determines if the student group belongs to the School of Science and Technology (SST).
+        Used for building constraints (SST students are preferred in SST building, others in TYD).
+        """
+        # SST Department Prefixes
+        sst_prefixes = {
+            'EEE',   # Electrical Engineering
+            'MEE',   # Mechanical Engineering
+            'CSC',   # Computer Science
+            'SEN',   # Software Engineering
+            'MCT',   # Mechatronics
+            'DTS'    # Data Science
+        }
+        
+        # Keywords that strongly indicate SST
+        sst_keywords = [
+            'engineering', 'computer science', 'data science', 
+            'mechatronics', 'software', 'technology', 'mechanical', 'electrical'
+        ]
+        
+        # 1. Check ID Prefix
+        if self.id:
+            prefix = self.id.split(' ')[0].upper()
+            if prefix in sst_prefixes:
+                return True
+                
+        # 2. Check Name Keywords
+        if self.name:
+            name_lower = self.name.lower()
+            if any(k in name_lower for k in sst_keywords):
+                return True
+                
+        return False

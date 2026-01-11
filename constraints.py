@@ -127,6 +127,19 @@ class Constraints:
                             if violation_info not in violations:
                                 violations.append(violation_info)
 
+                    # H1c: Building constraints - TYD students (MGT/SMC/etc) cannot be in SST building
+                    # Use central is_sst property for scalability
+                    
+                    if not class_event.student_group.is_sst and room.building == 'SST':
+                        penalty += 500  # High penalty (Hard Constraint)
+                        if debug:
+                            violation_info = (
+                                f"Wrong Building: TYD Group '{class_event.student_group.name}' "
+                                f"is scheduled in SST room '{room.name}' on {day_abbr} at {time}:00."
+                            )
+                            if violation_info not in violations:
+                                violations.append(violation_info)
+
         if debug and violations:
             print("\n--- Room Constraint Violations Detected ---")
             for violation in sorted(violations):
@@ -153,7 +166,7 @@ class Constraints:
                     if class_event is not None:
                         student_group = class_event.student_group
                         if student_group.id in student_group_watch:
-                            penalty += 100  # Increased from 1 to 100 which is a very high penalty
+                            penalty += 500  # Increased from 100 to 500 (Significant penalty)
                             if debug:
                                 # A clash is detected. We have the new event and the one from the watch.
                                 first_event = student_group_watch[student_group.id]
@@ -202,7 +215,7 @@ class Constraints:
                         faculty_id = class_event.faculty_id
                         if faculty_id is not None:
                             if faculty_id in lecturer_watch:
-                                penalty += 100  # Increased from 1 to 100 which is a very high penalty
+                                penalty += 500  # Increased from 100 to 500 (Significant penalty)
                                 if debug:
                                     first_event = lecturer_watch[faculty_id]
                                     second_event = class_event
@@ -592,15 +605,22 @@ class Constraints:
                             elif 'TYD' in room_id:
                                 room_building = 'TYD'
                         
-                        # Apply LENIENT building assignment rules (reduced penalties)
-                        if class_event.student_group.id in engineering_groups:
-                            # Engineering groups prefer SST but small penalty for TYD
-                            if not needs_computer_lab and room_building != 'SST':
-                                penalty += 0.5  # Very small penalty (reduced from 2)
+                        # Apply RULES based on User Request:
+                        # 1. SST studentgroups can use both SST and TYD (Maybe prefer SST, but allowed in TYD)
+                        # 2. TYD studentgroups CANNOT use SST classes (High Penalty)
+
+                        is_sst_group = class_event.student_group.id in engineering_groups
+                        is_sst_room = (room_building == 'SST')
+
+                        if is_sst_group:
+                            # Engineering groups prefer SST but ALLOWED in TYD (checking "not SST" implies in TYD or Unknown)
+                            # User said "SST students can use TYD classes" -> So technically 0 penalty or very low.
+                            # We'll keep it 0 as per user request "SST students can use TYD classes".
+                            pass 
                         else:
-                            # Non-engineering groups prefer TYD but small penalty for SST
-                            if not needs_computer_lab and room_building == 'SST':
-                                penalty += 0.5  # Very small penalty (reduced from 20)
+                            # Non-engineering (TYD) groups MUST NOT be in SST
+                            if not needs_computer_lab and is_sst_room:
+                                penalty += 100  # HIGH penalty (Strict Prohibition)
         
         return penalty
                         
@@ -723,7 +743,7 @@ class Constraints:
             if course.credits == 2:
                 # H: 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
-                    penalty += 0.02 * course.credits # Reduced penalty
+                    penalty += 50.0  # Increased from 0.02 * course.credits to 50.0 to enforce strict consecutiveness
                     if debug:
                         violation_info = (
                             f"2-hour course '{course.name}' ({course.code}) for group "
@@ -734,15 +754,20 @@ class Constraints:
             
             elif course.credits == 3:
                 # H: 3-credit courses MUST have at least a 2-hour block
-                if len(timeslots) == 3:
-                    is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
-                                    (timeslots[2] - timeslots[1] == 1)
-                    if not is_block_of_2:
-                        penalty += 0.02 * course.credits # Reduced penalty
+                if len(timeslots) >= 3:
+                     # Check if there is AT LEAST ONE consecutive block
+                    has_consecutive = False
+                    for i in range(len(timeslots) - 1):
+                         if timeslots[i+1] - timeslots[i] == 1:
+                             has_consecutive = True
+                             break
+                    
+                    if not has_consecutive:
+                        penalty += 50.0 # Increased from 0.02 * course.credits
                         if debug:
                             violation_info = (
                                 f"3-hour course '{course.name}' ({course.code}) for group "
-                                f"'{student_group.name}' has all 3 hours scheduled at different times with no 2-hour consecutive block."
+                                f"'{student_group.name}' has all hours scheduled at different times with no 2-hour consecutive block."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
@@ -822,7 +847,7 @@ class Constraints:
                     
                     if actual_hours < expected_hours:
                         # Apply VERY high penalty for missing courses to banish them entirely
-                        penalty += difference * 100000 
+                        penalty += difference * 5000 
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
@@ -834,7 +859,8 @@ class Constraints:
                             allocation_issues.append(info)
                     else: # actual_hours > expected_hours
                         # Apply penalty for extra classes
-                        penalty += difference * 10000
+                        penalty += difference * 500
+
                         if debug:
                             course_name = course.name if course else "Unknown Course"
                             credit_info = f" (1-credit → 3 hours)" if course and course.credits == 1 else ""
@@ -866,18 +892,18 @@ class Constraints:
         # 5) Lecturer workload
         # Everything else remains lower-weight.
         weights = {
-            'student_group_constraints': 1000.0,
-            'course_allocation_completeness': 800.0,
-            'lecturer_availability': 600.0,
-            'room_time_conflict': 500.0,
-            'lecturer_workload_constraints': 200.0,
+            'student_group_constraints': 1.0,  # Penalties are handled internally (100 pts)
+            'course_allocation_completeness': 1.0, # Penalties are handled internally (100,000 pts)
+            'lecturer_availability': 1.0, # Penalties are handled internally (100 pts)
+            'room_time_conflict': 1.0, 
+            'lecturer_workload_constraints': 1.0, # Penalties are handled internally (30-50 pts)
 
             # Other hard constraints
-            'room_constraints': 120.0,
-            'lecturer_schedule_constraints': 80.0,
-            'break_time_constraint': 60.0,
-            'building_assignments': 40.0,
-            'same_course_same_room_per_day': 40.0,
+            'room_constraints': 1.0,
+            'lecturer_schedule_constraints': 1.0, # Penalties are handled internally (50 pts)
+            'break_time_constraint': 1.0, # Penalties are handled internally (50 pts)
+            'building_assignments': 1.0, # Penalties are handled internally (100 pts for strict, 0.5 for others)
+            'same_course_same_room_per_day': 1.0,
         }
 
         penalty = 0.0
@@ -981,7 +1007,8 @@ class Constraints:
             'lecturer_workload_constraints': self.check_lecturer_workload_constraints(chromosome, debug=debug),
             'single_event_per_day': self.check_single_event_per_day(chromosome),
             'consecutive_timeslots': self.check_consecutive_timeslots(chromosome, debug=debug),
-            'spread_events': self.check_spread_events(chromosome)
+            'spread_events': self.check_spread_events(chromosome),
+            'extremely_late_classes': self.extremely_late_classes(chromosome, debug=debug)
         }
         violations['total'] = sum(violations.values())
         return violations
@@ -1389,6 +1416,18 @@ class Constraints:
                                 'time': f"{time}:00",
                                 'location': f"{room.name} on {day_abbr} at {time}:00"
                             })
+
+                        # Check building for TYD students
+                        if not class_event.student_group.is_sst and room.building == 'SST':
+                            room_capacity_conflicts.append({
+                                'type': 'Wrong Building (TYD in SST)',
+                                'room': room.name,
+                                'building': room.building,
+                                'group': class_event.student_group.name,
+                                'day': day_abbr,
+                                'time': f"{time}:00",
+                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                            })
         
         detailed_violations['Room Capacity/Type Conflicts'] = room_capacity_conflicts
         
@@ -1417,6 +1456,35 @@ class Constraints:
                             })
         
         detailed_violations['Classes During Break Time'] = break_time_violations
+
+        # 11. Late Classes (17:00)
+        late_class_violations = []
+        last_hour_index = self.input_data.hours - 1
+
+        for room_idx in range(len(self.rooms)):
+            for timeslot_idx in range(len(self.timeslots)):
+                # If 17:00
+                if self.timeslots[timeslot_idx].start_time == last_hour_index:
+                    event_id = chromosome[room_idx][timeslot_idx]
+                    if event_id is not None:
+                        event = self.events_map.get(event_id)
+                        if event:
+                            day_abbr = days_map.get(self.timeslots[timeslot_idx].day)
+                            group_name = event.student_group.name
+                            course = self.input_data.getCourse(event.course_id)
+                            
+                            warning_type = "Late Class"
+                            if not event.student_group.is_sst:
+                                warning_type = "Late Class (TYD Group - High Penalty)"
+                            
+                            late_class_violations.append({
+                                'type': warning_type,
+                                'course': course.code,
+                                'group': group_name,
+                                'location': f"{course.code} for {group_name} on {day_abbr} at 17:00"
+                            })
+
+        detailed_violations['Late Classes'] = late_class_violations
         
         return detailed_violations
     
@@ -1563,24 +1631,21 @@ class Constraints:
         total_late = 0
         
         # Weights (EXTREME - intended to behave like hard constraints)
-        base_penalty = 250.0           # Cost for ANY late occurrence
-        tyd_penalty_weight = 15000.0   # Much harsher for TYD-style groups
-        light_load_penalty = 100000.0  # Forbidden (heuristic)
+        base_penalty = 10.0           # Reduced from 250.0
+        tyd_penalty_weight = 50.0     # Reduced from 15000.0
+        light_load_penalty = 500.0    # Reduced from 100000.0
 
         max_total_occurrences = 10
         max_groups_with_late = 10
 
-        cap_penalty_weight = 50000.0        # per occurrence above max_total_occurrences
-        group_cap_penalty_weight = 50000.0  # per group above max_groups_with_late
-        repeat_weight = 75000.0             # per extra late occurrence within a group
+        cap_penalty_weight = 500.0        # Reduced from 50000.0
+        group_cap_penalty_weight = 500.0  # Reduced from 50000.0
+        repeat_weight = 500.0             # Reduced from 75000.0
 
         late_by_group = {}
         last_hour_index = self.input_data.hours - 1
         
-        sst_keywords = [
-            'engineering', 'eng', 'computer science', 'software engineering', 'data science',
-            'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
-        ]
+        # sst_keywords moved to StudentGroup.is_sst property
 
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -1630,9 +1695,7 @@ class Constraints:
                     penalty += light_load_penalty
 
                 # 3. TYD vs SST Check
-                group_name = group.name.lower()
-                is_sst = any(k in group_name for k in sst_keywords)
-                if not is_sst:
+                if not group.is_sst:
                     penalty += tyd_penalty_weight
 
         late_groups = len(late_by_group)
