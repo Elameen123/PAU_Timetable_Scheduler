@@ -129,8 +129,9 @@ class Constraints:
 
                     # H1c: Building constraints - TYD students (MGT/SMC/etc) cannot be in SST building
                     # Use central is_sst property for scalability
+                    room_building = str(room.building).upper().strip() if hasattr(room, 'building') and room.building else ""
                     
-                    if not class_event.student_group.is_sst and room.building == 'SST':
+                    if not class_event.student_group.is_sst and room_building == 'SST':
                         penalty += 500  # High penalty (Hard Constraint)
                         if debug:
                             violation_info = (
@@ -1418,7 +1419,9 @@ class Constraints:
                             })
 
                         # Check building for TYD students
-                        if not class_event.student_group.is_sst and room.building == 'SST':
+                        room_building = str(room.building).upper().strip() if hasattr(room, 'building') and room.building else ""
+                        
+                        if not class_event.student_group.is_sst and room_building == 'SST':
                             room_capacity_conflicts.append({
                                 'type': 'Wrong Building (TYD in SST)',
                                 'room': room.name,

@@ -349,6 +349,35 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
         room_lookup = {r['name']: r for r in (rooms_data or []) if isinstance(r, dict) and r.get('name')}
         days_map = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri'}
 
+        def _is_sst_group(group_id: str | None, group_name: str | None) -> bool:
+            """Best-effort SST classification for UI-side validation."""
+            try:
+                if input_data is not None and group_id:
+                    g = input_data.getStudentGroup(group_id)
+                    if g is not None and hasattr(g, 'is_sst'):
+                        return bool(g.is_sst)
+            except Exception:
+                pass
+
+            # Fallback heuristic (mirrors StudentGroup.is_sst)
+            sst_prefixes = {'EEE', 'MEE', 'CSC', 'SEN', 'MCT', 'DTS'}
+            sst_keywords = [
+                'engineering', 'computer science', 'data science',
+                'mechatronics', 'software', 'technology', 'mechanical', 'electrical'
+            ]
+            try:
+                if group_id:
+                    prefix = str(group_id).split(' ')[0].upper()
+                    if prefix in sst_prefixes:
+                        return True
+                if group_name:
+                    name_lower = str(group_name).lower()
+                    if any(k in name_lower for k in sst_keywords):
+                        return True
+            except Exception:
+                return False
+            return False
+
         # Determine grid size dynamically
         max_rows = 0
         max_days = 0
@@ -390,7 +419,9 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                         continue
 
                     course, room, lecturer = _parse_cell(cell)
-                    group_name = timetable['student_group']['name'] if isinstance(timetable['student_group'], dict) else getattr(timetable['student_group'], 'name', '')
+                    sg_obj = timetable.get('student_group')
+                    group_name = sg_obj['name'] if isinstance(sg_obj, dict) else getattr(sg_obj, 'name', str(sg_obj) if sg_obj else '')
+                    group_id = sg_obj.get('id') if isinstance(sg_obj, dict) else getattr(sg_obj, 'id', None)
 
                     if room:
                         room_usage.setdefault(room, []).append(group_name)
@@ -412,6 +443,47 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                     'time': time_label or f"{time_slot+9}:00",
                                     'students': getattr(grp, 'no_students', 0),
                                     'capacity': cap
+                                })
+                    except Exception:
+                        pass
+
+                    # Room type + building checks (kept in the same "Room Capacity/Type Conflicts" bucket)
+                    try:
+                        if room and room in room_lookup and input_data is not None:
+                            room_info = room_lookup.get(room) or {}
+                            room_type = str(room_info.get('room_type', '')).strip()
+                            room_building = str(room_info.get('building', '')).strip().upper()
+
+                            # Room type mismatch
+                            if course:
+                                cobj = input_data.getCourse(course)
+                            else:
+                                cobj = None
+                            if cobj is not None:
+                                required_type = str(getattr(cobj, 'required_room_type', '')).strip()
+                                if required_type and room_type and room_type != required_type:
+                                    violations['Room Capacity/Type Conflicts'].append({
+                                        'type': 'Room Type Mismatch',
+                                        'room': room,
+                                        'room_type': room_type,
+                                        'required_type': required_type,
+                                        'course': getattr(cobj, 'code', course) or course,
+                                        'group': group_name,
+                                        'day': days_map.get(day, str(day)),
+                                        'time': time_label or f"{time_slot+9}:00",
+                                        'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                                    })
+
+                            # Wrong building (TYD in SST)
+                            if room_building == 'SST' and not _is_sst_group(group_id, group_name):
+                                violations['Room Capacity/Type Conflicts'].append({
+                                    'type': 'Wrong Building (TYD in SST)',
+                                    'room': room,
+                                    'building': 'SST',
+                                    'group': group_name,
+                                    'day': days_map.get(day, str(day)),
+                                    'time': time_label or f"{time_slot+9}:00",
+                                    'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
                                 })
                     except Exception:
                         pass
@@ -456,7 +528,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
             # print("[Dash_UI] Checking for Missing or Extra Classes...")
             for group_data in timetables_data:
                 # Find matching student group in input_data
-                group_name = group_data['student_group']['name'] if isinstance(group_data['student_group'], dict) else getattr(group_data['student_group'], 'name', str(group_data['student_group']))
+                sg_obj = group_data.get('student_group')
+                group_name = sg_obj['name'] if isinstance(sg_obj, dict) else getattr(sg_obj, 'name', str(sg_obj) if sg_obj else '')
                 
                 # Careful lookup - handle case sensitivity or stripping
                 student_group = None
@@ -1714,16 +1787,22 @@ def create_app(_ctx: dict | None = None):
         Output('constraint-details-store', 'data', allow_duplicate=True),
         [Input('all-timetables-store', 'data')],
         [State('rooms-data-store', 'data'), State('constraint-details-store', 'data')],
-        prevent_initial_call=True
+        prevent_initial_call='initial_duplicate'
     )
     def update_constraints_rt(timetables_data, rooms, current_constraints):
         if not timetables_data:
             raise dash.exceptions.PreventUpdate
-        if not session_state.get('has_swaps'):
-            return dash.no_update
+        # Removed session_state.get('has_swaps') check to allow initial calculation
+        # if not session_state.get('has_swaps'):
+        #     return dash.no_update
         
         # Recompute dynamic constraints (room conflicts, lecturer clashes, etc.)
-        updated = recompute_constraint_violations_simplified(timetables_data, rooms)
+        try:
+            updated = recompute_constraint_violations_simplified(timetables_data, rooms)
+        except Exception as e:
+            print(f"[Dash_UI] Error recomputing constraints: {e}")
+            traceback.print_exc()
+            return dash.no_update
         
         if updated and current_constraints:
             # CRITICAL: Preserve constraints from original DE algorithm that don't change with swaps
