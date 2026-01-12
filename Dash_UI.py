@@ -18,8 +18,43 @@ except Exception:
     input_data = None
 
 
+def _maybe_load_api_input_data():
+    """If app.py saved a transformer-shaped dataset, prefer that to avoid mismatches.
+
+    This keeps Dash's validation (room types, faculty availability, etc.) consistent
+    with the API pipeline that generated `fresh_timetable_data.json`.
+    """
+    try:
+        from input_data_api import initialize_input_data_from_json
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        path = os.path.join(data_dir, 'last_input_data.json')
+        if not os.path.exists(path):
+            return None
+        with open(path, 'r', encoding='utf-8') as f:
+            input_json = json.load(f)
+        return initialize_input_data_from_json(input_json)
+    except Exception:
+        return None
+
+
+# If the API pipeline saved its input dataset, use it for all lookups.
+_api_input_data = _maybe_load_api_input_data()
+if _api_input_data is not None:
+    input_data = _api_input_data
+
+
 def _load_rooms_data():
     try:
+        # Prefer app.py's saved transformer input (keeps room_type/building consistent)
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        last_input = os.path.join(data_dir, 'last_input_data.json')
+        if os.path.exists(last_input):
+            with open(last_input, 'r', encoding='utf-8') as f:
+                input_json = json.load(f)
+            rooms = input_json.get('rooms') or []
+            if isinstance(rooms, list) and rooms:
+                return rooms
+
         path = os.path.join(os.path.dirname(__file__), 'data', 'rooms-data.json')
         if os.path.exists(path):
             with open(path, 'r', encoding='utf-8') as f:
@@ -345,8 +380,17 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
         if not timetables_data:
             return violations
 
-        # Build room lookup by name
-        room_lookup = {r['name']: r for r in (rooms_data or []) if isinstance(r, dict) and r.get('name')}
+        # Build room lookup by name and Id (timetable cells may reference either).
+        room_lookup = {}
+        for r in (rooms_data or []):
+            if not isinstance(r, dict):
+                continue
+            name = str(r.get('name') or '').strip()
+            rid = str(r.get('Id') or r.get('id') or '').strip()
+            if name:
+                room_lookup[name] = r
+            if rid:
+                room_lookup[rid] = r
         days_map = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri'}
 
         def _is_sst_group(group_id: str | None, group_name: str | None) -> bool:
@@ -772,16 +816,24 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                 else:
                                     try:
                                         # parse time_label "09:00" -> 9
-                                        hour = int(time_label.split(':')[0])
+                                        parts = str(time_label).split(':')
+                                        hour = int(parts[0])
+                                        minute = int(parts[1]) if len(parts) > 1 else 0
+                                        slot_min = hour * 60 + minute
                                         for t in avail_times:
                                             # Check specific time or range (e.g. 09:00-12:00)
                                             t_str = str(t).strip()
                                             if '-' in t_str:
                                                 try:
-                                                    start, end = t_str.split('-')
-                                                    start_h = int(start.split(':')[0])
-                                                    end_h = int(end.split(':')[0])
-                                                    if start_h <= hour < end_h:
+                                                    start, end = t_str.split('-', 1)
+                                                    s_parts = start.strip().split(':')
+                                                    e_parts = end.strip().split(':')
+                                                    start_h = int(s_parts[0]); start_m = int(s_parts[1]) if len(s_parts) > 1 else 0
+                                                    end_h = int(e_parts[0]); end_m = int(e_parts[1]) if len(e_parts) > 1 else 0
+                                                    start_min = start_h * 60 + start_m
+                                                    end_min = end_h * 60 + end_m
+                                                    # END-EXCLUSIVE: 9:00-14:00 means hours 9,10,11,12,13 (not 14)
+                                                    if start_min <= slot_min < end_min:
                                                         is_time_avail = True
                                                         break
                                                 except:
@@ -872,6 +924,63 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'hours_times': times_list,
                             'location': f"{lecturer} on {days_map.get(d_idx)} ({consecutive_count} consecutive)"
                         })
+
+        # --- Check for Student Group Consecutive Slot Violations (Mirroring verify_output_app.py) ---
+        if input_data:
+            course_lookup = {c.code: c for c in input_data.courses}
+            
+            for group_data in timetables_data:
+                sg_obj = group_data.get('student_group')
+                group_name = sg_obj['name'] if isinstance(sg_obj, dict) else getattr(sg_obj, 'name', str(sg_obj))
+                
+                # Gather events for this group: course_code -> list of (day_idx, row_idx)
+                group_events = {}
+                rows = group_data.get('timetable', [])
+                
+                for r_idx, row in enumerate(rows):
+                    for d_idx in range(input_data.days):
+                        if d_idx + 1 >= len(row): continue
+                        cell = row[d_idx + 1]
+                        if not cell or str(cell).strip().upper() in ['FREE', 'BREAK']: continue
+                        
+                        course_code, _, _ = _parse_cell(cell)
+                        if course_code:
+                            group_events.setdefault(course_code, []).append((d_idx, r_idx))
+                            
+                # Check constraints
+                for course_code, events in group_events.items():
+                    c_obj = course_lookup.get(course_code)
+                    credits = getattr(c_obj, 'credits', 0) if c_obj else 0
+                    
+                    events.sort() # Sort by day then time
+                    
+                    if credits == 2:
+                        # Expect exactly 2 events. If 2, they must be consecutive.
+                        if len(events) == 2:
+                            d1, t1 = events[0]
+                            d2, t2 = events[1]
+                            if not (d1 == d2 and (t2 - t1) == 1):
+                                violations['Consecutive Slot Violations'].append({
+                                    'group': group_name,
+                                    'course': course_code,
+                                    'issue': '2-credit course not consecutive',
+                                    'location': f"{course_code} for {group_name} ({days_map.get(d1)} & {days_map.get(d2)})"
+                                })
+                                
+                    if credits == 3 and len(events) >= 3:
+                        # Must have at least one 2-hr block
+                        has_block = False
+                        for i in range(len(events) - 1):
+                            if events[i][0] == events[i+1][0] and (events[i+1][1] - events[i][1]) == 1:
+                                has_block = True
+                                break
+                        if not has_block:
+                            violations['Consecutive Slot Violations'].append({
+                                'group': group_name,
+                                'course': course_code,
+                                'issue': '3-credit course missing 2-hr block',
+                                'location': f"{course_code} for {group_name}"
+                            })
 
         return violations
     except Exception as e:
@@ -1021,7 +1130,15 @@ def create_errors_modal_content(constraint_details, timetables_data=None, expand
                         item_text = f"Lecturer workload violation for {violation['lecturer']} on {violation['day']}: {violation.get('violation', 'Unknown violation')}"
                         
                 elif internal_name == 'Consecutive Slot Violations':
-                    item_text = f"{violation['reason']}: Course '{violation['course']}' ({violation.get('course_name', '')}) for group '{violation['group']}' at times {', '.join(violation['times'])}"
+                    # Support both old backend format (reason, times) and new dynamic format (issue, location)
+                    reason = violation.get('reason', violation.get('issue', 'Consecutive slot violation'))
+                    times_val = violation.get('times', [])
+                    if not times_val and 'location' in violation:
+                         times_str = violation['location']
+                    else:
+                         times_str = ', '.join(times_val) if isinstance(times_val, list) else str(times_val)
+                    
+                    item_text = f"{reason}: Course '{violation.get('course', '')}' ({violation.get('course_name', '')}) for group '{violation.get('group', '')}' at {times_str}"
                     if violation.get('group') in group_map:
                         target_group_idx = group_map[violation['group']]
                         
@@ -1087,16 +1204,30 @@ def create_app(_ctx: dict | None = None):
     # global-like state for this app instance
     session_state = {'has_swaps': False}
 
-    # Load backend constraint details from DE algorithm (includes Missing or Extra Classes)
+    # Load backend constraint details from DE algorithm (includes Missing or Extra Classes).
+    # IMPORTANT: this file can be stale if the timetable JSON was generated by a different run
+    # (e.g., running differential_evolution.py directly). To ensure the UI is accurate from
+    # first render, we overlay a fresh recomputation for "dynamic" constraints.
     backend_summary = _load_constraint_details()
-    
-    # Use backend_summary as initial_constraints if available, otherwise compute simplified
-    if isinstance(backend_summary, dict) and backend_summary:
-        initial_constraints = dict(backend_summary)
-    else:
-        # Fallback to simplified if constraint_violations.json doesn't exist
-        simplified = recompute_constraint_violations_simplified(timetables, rooms_data) or {}
-        initial_constraints = dict(simplified)
+
+    recomputed = {}
+    try:
+        recomputed = recompute_constraint_violations_simplified(timetables, rooms_data) or {}
+    except Exception as e:
+        print(f"[Dash_UI] Warning: initial constraint recompute failed: {e}")
+        traceback.print_exc()
+        recomputed = {}
+
+    initial_constraints = dict(backend_summary) if isinstance(backend_summary, dict) and backend_summary else {}
+    # Overlay recomputed dynamic constraints so counts match the currently loaded timetable.
+    # This prevents the constraint dropdown from showing stale numbers until the user swaps a cell.
+    if recomputed:
+        for k, v in recomputed.items():
+            initial_constraints[k] = v
+
+    # If we still have nothing, keep it as an empty dict.
+    if not isinstance(initial_constraints, dict):
+        initial_constraints = {}
 
     # IMPORTANT: No path prefixes here; app is mounted under /interactive by the parent Flask app
     app = dash.Dash(
@@ -1792,9 +1923,10 @@ def create_app(_ctx: dict | None = None):
     def update_constraints_rt(timetables_data, rooms, current_constraints):
         if not timetables_data:
             raise dash.exceptions.PreventUpdate
-        # Removed session_state.get('has_swaps') check to allow initial calculation
-        # if not session_state.get('has_swaps'):
-        #     return dash.no_update
+        # Only recompute after the user makes swaps/edits.
+        # On initial load we want to display the backend-produced constraint_violations.json verbatim.
+        if not session_state.get('has_swaps'):
+            return dash.no_update
         
         # Recompute dynamic constraints (room conflicts, lecturer clashes, etc.)
         try:
@@ -1810,7 +1942,7 @@ def create_app(_ctx: dict | None = None):
             constraints_to_preserve = [
                 #'Lecturer Schedule Conflicts (Day/Time)', # Now calculated dynamically
                 #'Lecturer Workload Violations', # Now calculated dynamically
-                'Consecutive Slot Violations', # Preserved (Course violations), Lecturer violations moved to Workload
+                #'Consecutive Slot Violations', # Now calculated dynamically (Course violations)
                 # 'Same Course in Multiple Rooms on Same Day' - Removed to allow dynamic updates
                 # 'Same Student Group Overlaps' - Removed to allow dynamic updates
             ]

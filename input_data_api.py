@@ -45,10 +45,11 @@ class InputData:
         self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required))
 
     def addFaculty(self, id: str, name: str, department: str, courseID: str, avail_days=None, avail_times=None):
-        if avail_days is None:
-            avail_days = []
-        if avail_times is None:
-            avail_times = []
+        # If not provided, default to ALL (matches the static JSON dataset and core scheduler).
+        if not avail_days:
+            avail_days = ["ALL"]
+        if not avail_times:
+            avail_times = ["ALL"]
         normalized_id = str(id).strip()
         if '@' in normalized_id:
             normalized_id = normalized_id.lower()

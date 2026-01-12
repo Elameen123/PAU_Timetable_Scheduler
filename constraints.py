@@ -17,7 +17,8 @@ class Constraints:
         Validates the format of avail_days and avail_times for all faculty members.
         Raises a ValueError if any format is incorrect.
         """
-        time_format_regex = re.compile(r'^\d{2}:\d{2}-\d{2}:\d{2}$')
+        # Accept both 1-digit and 2-digit hour formats (e.g., "9:00-14:00" and "09:00-14:00").
+        time_format_regex = re.compile(r'^\d{1,2}:\d{2}-\d{1,2}:\d{2}$')
         valid_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "All"]
 
         for faculty in self.input_data.faculties:
@@ -304,44 +305,9 @@ class Constraints:
                             continue # Skip time check if day is already wrong
 
                         # 2. Check available times
-                        is_available_time = False
-                        avail_times = faculty.avail_times
-
-                        if not avail_times:
-                            is_available_time = True
-                        elif isinstance(avail_times, str) and avail_times.upper() == "ALL":
-                            is_available_time = True
-                        elif isinstance(avail_times, list) and any(str(t).strip().upper() == 'ALL' for t in avail_times):
-                            is_available_time = True
-                        else:
-                            # It's a list or string of specific times/ranges
-                            if isinstance(avail_times, str):
-                                avail_times_list = [t.strip() for t in avail_times.split(',')]
-                            else: # is a list
-                                avail_times_list = avail_times
-
-                            for time_spec in avail_times_list:
-                                time_spec_str = str(time_spec).strip()
-                                if '-' in time_spec_str: # It's a range, e.g., "09:00-12:00"
-                                    try:
-                                        start_str, end_str = time_spec_str.split('-')
-                                        start_h = int(start_str.split(':')[0])
-                                        end_h = int(end_str.split(':')[0])
-                                        # The slot is valid if its start time is within the range [start, end).
-                                        # e.g., for "09:00-12:00", slots 9, 10, 11 are valid. Slot 12 is not.
-                                        if start_h <= slot_hour < end_h:
-                                            is_available_time = True
-                                            break
-                                    except (ValueError, IndexError):
-                                        continue # Ignore malformed range
-                                else: # It's a single time, e.g., "09:00"
-                                    try:
-                                        h = int(time_spec_str.split(':')[0])
-                                        if h == slot_hour:
-                                            is_available_time = True
-                                            break
-                                    except (ValueError, IndexError):
-                                        continue # Ignore malformed time
+                        # IMPORTANT: Treat end time as inclusive for allowed start-times.
+                        # This matches the UX expectation that "9:00-14:00" allows a class starting at 14:00.
+                        is_available_time = self._is_faculty_available_time(faculty, slot_hour)
                         
                         if not is_available_time:
                             penalty += 50  # Increased from 2 to 50
@@ -1537,23 +1503,37 @@ class Constraints:
                 return True
             time_specs = [t.strip() for t in avail_times_str.split(',')]
         
+        slot_min = int(slot_hour) * 60
+
+        def parse_hhmm(s: str) -> int | None:
+            m = re.match(r'^\s*(\d{1,2})\s*:\s*(\d{2})\s*$', s)
+            if not m:
+                return None
+            h = int(m.group(1))
+            mi = int(m.group(2))
+            return h * 60 + mi
+
         for time_spec in time_specs:
-            if '-' in time_spec:
+            spec = str(time_spec).strip()
+            if not spec:
+                continue
+            if '-' in spec:
                 try:
-                    start_str, end_str = time_spec.split('-')
-                    start_h = int(start_str.split(':')[0])
-                    end_h = int(end_str.split(':')[0])
-                    if start_h <= slot_hour < end_h:
+                    start_str, end_str = [p.strip() for p in spec.split('-', 1)]
+                    start_min = parse_hhmm(start_str)
+                    end_min = parse_hhmm(end_str)
+                    if start_min is None or end_min is None:
+                        continue
+                    # END-EXCLUSIVE: 9:00-14:00 allows 9,10,11,12,13 (not 14)
+                    # Matches the OG differential_evolution.py placement logic.
+                    if start_min <= slot_min < end_min:
                         return True
-                except (ValueError, IndexError):
+                except Exception:
                     continue
             else:
-                try:
-                    h = int(time_spec.split(':')[0])
-                    if h == slot_hour:
-                        return True
-                except (ValueError, IndexError):
-                    continue
+                m = parse_hhmm(spec)
+                if m is not None and m == slot_min:
+                    return True
         
         return False
 

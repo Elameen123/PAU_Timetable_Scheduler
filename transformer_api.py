@@ -284,6 +284,13 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
         if "Available Times" in lect_df.columns:
             aval_t = str(r.get("Available Times") or "").strip()
             avail_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
+
+        # If the spreadsheet does not specify availability, default to ALL.
+        # Leaving these empty makes the API scheduler treat the lecturer as unavailable.
+        if not avail_days:
+            avail_days = ["ALL"]
+        if not avail_times:
+            avail_times = ["ALL"]
         if raw_email:
             key = raw_email.lower()
             faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}
@@ -379,6 +386,13 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
                     faculty_by_lower[key]["department"] = dept
             else:
                 faculty_by_lower[key] = {"id": lect.strip(), "name": lect.strip(), "department": dept, "status": "", "avail_days": [], "avail_times": [], "courseID": [code]}
+
+    # Ensure any synthetic/auto-created faculty entries have sensible defaults.
+    for f in faculty_by_lower.values():
+        if not f.get("avail_days"):
+            f["avail_days"] = ["ALL"]
+        if not f.get("avail_times"):
+            f["avail_times"] = ["ALL"]
 
     # finalize groups (coerce hours_required to ints)
     for gobj in groups.values():

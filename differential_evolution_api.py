@@ -239,16 +239,20 @@ class DifferentialEvolution:
                 # Check day availability
                 is_day_ok = False
                 if isinstance(faculty.avail_days, str):
-                    if faculty.avail_days.upper() == "ALL":
+                    days_raw = faculty.avail_days.strip()
+                    if not days_raw or days_raw.upper() == "ALL":
                         is_day_ok = True
                     else:
-                        avail_days = [d.strip().capitalize() for d in faculty.avail_days.split(',')]
+                        avail_days = [d.strip().capitalize() for d in days_raw.split(',') if d.strip()]
                         if day_abbr in avail_days:
                             is_day_ok = True
                 elif isinstance(faculty.avail_days, list):
-                    avail_days = [d.strip().capitalize() for d in faculty.avail_days]
-                    if "All" in avail_days or day_abbr in avail_days:
+                    if not faculty.avail_days:
                         is_day_ok = True
+                    else:
+                        avail_days = [str(d).strip().capitalize() for d in faculty.avail_days if str(d).strip()]
+                        if "All" in avail_days or day_abbr in avail_days:
+                            is_day_ok = True
                 
                 if not is_day_ok:
                     return False
@@ -258,18 +262,64 @@ class DifferentialEvolution:
                     try:
                         start_avail_str, end_avail_str = faculty.avail_times.split('-')
                         start_avail_h = int(start_avail_str.split(':')[0])
+                        start_avail_m = int(start_avail_str.split(':')[1]) if ':' in start_avail_str else 0
                         end_avail_h = int(end_avail_str.split(':')[0])
+                        end_avail_m = int(end_avail_str.split(':')[1]) if ':' in end_avail_str else 0
                         
                         timeslot_obj = self.timeslots[timeslot_idx]
                         # TimeSlot.start_time may be 0-based hour index (int) or 'HH:MM' string; support both
                         if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
                             slot_start_h = 9 + int(timeslot_obj.start_time)
+                            slot_start_m = 0
                         else:
-                            slot_start_h = int(str(timeslot_obj.start_time).split(':')[0])
+                            parts = str(timeslot_obj.start_time).split(':')
+                            slot_start_h = int(parts[0])
+                            slot_start_m = int(parts[1]) if len(parts) > 1 else 0
 
-                        if not (start_avail_h <= slot_start_h < end_avail_h):
+                        slot_min = slot_start_h * 60 + slot_start_m
+                        start_min = start_avail_h * 60 + start_avail_m
+                        end_min = end_avail_h * 60 + end_avail_m
+
+                        # END-EXCLUSIVE semantics matching the OG algorithm:
+                        # 9:00-14:00 means hours 9,10,11,12,13 only (not 14).
+                        if not (start_min <= slot_min < end_min):
                             return False
                     except (ValueError, IndexError):
+                        return False
+                elif isinstance(faculty.avail_times, list):
+                    # Handle list format with END-EXCLUSIVE check
+                    is_time_ok = False
+                    if not faculty.avail_times or any(str(t).strip().upper() == 'ALL' for t in faculty.avail_times):
+                        is_time_ok = True
+                    else:
+                        timeslot_obj = self.timeslots[timeslot_idx]
+                        if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
+                            slot_hour = 9 + int(timeslot_obj.start_time)
+                        else:
+                            parts = str(timeslot_obj.start_time).split(':')
+                            slot_hour = int(parts[0])
+                        for time_spec in faculty.avail_times:
+                            time_spec_str = str(time_spec).strip()
+                            if '-' in time_spec_str:
+                                try:
+                                    start_str, end_str = time_spec_str.split('-')
+                                    start_h = int(start_str.split(':')[0])
+                                    end_h = int(end_str.split(':')[0])
+                                    # END-EXCLUSIVE: 9:00-14:00 allows 9,10,11,12,13 (not 14)
+                                    if start_h <= slot_hour < end_h:
+                                        is_time_ok = True
+                                        break
+                                except (ValueError, IndexError):
+                                    continue
+                            else:
+                                try:
+                                    h = int(time_spec_str.split(':')[0])
+                                    if h == slot_hour:
+                                        is_time_ok = True
+                                        break
+                                except (ValueError, IndexError):
+                                    continue
+                    if not is_time_ok:
                         return False
 
         return True
@@ -411,7 +461,8 @@ class DifferentialEvolution:
                             if self.is_room_suitable(room, course):
                                 for t_idx in range(len(self.timeslots)):
                                     if (self.is_slot_available_for_event(mutant_vector, r_idx, t_idx, event_to_move) and
-                                        self._is_student_group_available(mutant_vector, event_to_move.student_group.id, t_idx)):
+                                        self._is_student_group_available(mutant_vector, event_to_move.student_group.id, t_idx) and
+                                        (event_to_move.faculty_id is None or self._is_lecturer_available(mutant_vector, event_to_move.faculty_id, t_idx))):
                                         possible_slots.append((r_idx, t_idx))
                         
                         if possible_slots:
@@ -829,91 +880,136 @@ class DifferentialEvolution:
         Verify that all courses appear the correct number of times for each student group
         and repair any missing allocations with minimal disruption.
         """
-        max_repair_passes = 3
-        
-        for repair_pass in range(max_repair_passes):
+        max_repair_passes = 6
+
+        n_rooms = len(self.rooms)
+        n_timeslots = len(self.timeslots)
+        total_events = len(self.events_list)
+
+        # Helper: build a fast lookup of suitable rooms for a given required room type.
+        rooms_by_type = {}
+        for r_idx, room in enumerate(self.rooms):
+            rooms_by_type.setdefault(getattr(room, 'room_type', None), []).append(r_idx)
+
+        for _ in range(max_repair_passes):
+            # 1) Remove duplicate placements of the *same event*.
+            # Duplicates can fully occupy the timetable, leaving no empty slots for genuinely missing events.
             scheduled_events = set()
-            for room_idx in range(len(self.rooms)):
-                for timeslot_idx in range(len(self.timeslots)):
-                    event_id = chromosome[room_idx][timeslot_idx]
-                    if event_id is not None:
-                        scheduled_events.add(event_id)
-            
-            missing_events = [event_id for event_id in range(len(self.events_list)) if event_id not in scheduled_events]
-            
+            student_group_busy = [set() for _ in range(n_timeslots)]
+            lecturer_busy = [set() for _ in range(n_timeslots)]
+            course_day_room_mapping = {}  # (course_id, day_idx, student_group_id) -> room_idx
+
+            for r_idx in range(n_rooms):
+                for t_idx in range(n_timeslots):
+                    event_id = chromosome[r_idx][t_idx]
+                    if event_id is None:
+                        continue
+                    if event_id in scheduled_events:
+                        chromosome[r_idx][t_idx] = None
+                        continue
+
+                    scheduled_events.add(event_id)
+                    event = self.events_map.get(event_id)
+                    if not event:
+                        continue
+
+                    sg_id = event.student_group.id
+                    student_group_busy[t_idx].add(sg_id)
+                    if event.faculty_id is not None:
+                        lecturer_busy[t_idx].add(event.faculty_id)
+
+                    day_idx = t_idx // self.input_data.hours
+                    course_day_room_mapping[(event.course_id, day_idx, sg_id)] = r_idx
+
+            missing_events = [event_id for event_id in range(total_events) if event_id not in scheduled_events]
             if not missing_events:
                 break
-            
-            flexibility_level = repair_pass
-            
-            course_day_room_mapping = {}
-            for r_idx, t_idx in np.argwhere(chromosome != None):
-                event_id = chromosome[r_idx][t_idx]
-                event = self.events_map.get(event_id)
-                if event:
-                    course = self.input_data.getCourse(event.course_id)
-                    if course:
+
+            # 2) Index empty slots to speed up placement.
+            empty_by_room_day = {}  # (room_idx, day_idx) -> list[t_idx]
+            for r_idx in range(n_rooms):
+                for t_idx in range(n_timeslots):
+                    if chromosome[r_idx][t_idx] is None:
                         day_idx = t_idx // self.input_data.hours
-                        course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
-                        course_day_key = (course_id, day_idx, event.student_group.id)
-                        course_day_room_mapping[course_day_key] = r_idx
+                        empty_by_room_day.setdefault((r_idx, day_idx), []).append(t_idx)
+
+            random.shuffle(missing_events)
 
             for missing_event_id in missing_events:
                 event = self.events_list[missing_event_id]
                 course = self.input_data.getCourse(event.course_id)
-                if not course: 
+                if not course:
                     continue
-                
-                course_id = getattr(course, 'course_id', None) or getattr(course, 'id', None) or getattr(course, 'code', None)
+
+                required_type = getattr(course, 'required_room_type', None)
+                suitable_rooms = rooms_by_type.get(required_type, [])
+                if not suitable_rooms:
+                    continue
+
+                sg_id = event.student_group.id
+                faculty_id = event.faculty_id
                 placed = False
 
-                # Strategy 1: Place in the same room as other instances of the same course on the same day
-                if flexibility_level == 0:
-                    preferred_slots = []
-                    for day_idx in range(self.input_data.days):
-                        course_day_key = (course_id, day_idx, event.student_group.id)
-                        if course_day_key in course_day_room_mapping:
-                            preferred_room = course_day_room_mapping[course_day_key]
-                            day_start, day_end = day_idx * self.input_data.hours, (day_idx + 1) * self.input_data.hours
-                            for timeslot in range(day_start, day_end):
-                                if (self.is_slot_available_for_event(chromosome, preferred_room, timeslot, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot)):
-                                    preferred_slots.append((preferred_room, timeslot))
-                    if preferred_slots:
-                        room_idx, timeslot_idx = random.choice(preferred_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
-                        placed = True
+                def slot_ok(room_idx: int, timeslot_idx: int) -> bool:
+                    if sg_id in student_group_busy[timeslot_idx]:
+                        return False
+                    if faculty_id is not None and faculty_id in lecturer_busy[timeslot_idx]:
+                        return False
+                    return self.is_slot_available_for_event(chromosome, room_idx, timeslot_idx, event)
 
-                # Strategy 2: Find any valid slot that respects all hard constraints
+                # Strategy 1: Prefer same room as the same course for this group on that day.
+                days_order = list(range(self.input_data.days))
+                random.shuffle(days_order)
+                for day_idx in days_order:
+                    preferred_room = course_day_room_mapping.get((event.course_id, day_idx, sg_id))
+                    if preferred_room is None:
+                        continue
+                    if preferred_room not in suitable_rooms:
+                        continue
+                    for t_idx in list(empty_by_room_day.get((preferred_room, day_idx), [])):
+                        if slot_ok(preferred_room, t_idx):
+                            chromosome[preferred_room][t_idx] = missing_event_id
+                            student_group_busy[t_idx].add(sg_id)
+                            if faculty_id is not None:
+                                lecturer_busy[t_idx].add(faculty_id)
+                            scheduled_events.add(missing_event_id)
+                            empty_by_room_day[(preferred_room, day_idx)].remove(t_idx)
+                            course_day_room_mapping[(event.course_id, day_idx, sg_id)] = preferred_room
+                            placed = True
+                            break
+                    if placed:
+                        break
+
+                # Strategy 2: Any suitable room/day empty slot.
                 if not placed:
-                    valid_slots = []
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            for timeslot_idx in range(len(self.timeslots)):
-                                if (self.is_slot_available_for_event(chromosome, room_idx, timeslot_idx, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot_idx)):
-                                    valid_slots.append((room_idx, timeslot_idx))
-                    if valid_slots:
-                        room_idx, timeslot_idx = random.choice(valid_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
-                        placed = True
+                    rooms_order = suitable_rooms[:]
+                    random.shuffle(rooms_order)
+                    for room_idx in rooms_order:
+                        days_order = list(range(self.input_data.days))
+                        random.shuffle(days_order)
+                        for day_idx in days_order:
+                            key = (room_idx, day_idx)
+                            if key not in empty_by_room_day:
+                                continue
+                            for t_idx in list(empty_by_room_day[key]):
+                                if slot_ok(room_idx, t_idx):
+                                    chromosome[room_idx][t_idx] = missing_event_id
+                                    student_group_busy[t_idx].add(sg_id)
+                                    if faculty_id is not None:
+                                        lecturer_busy[t_idx].add(faculty_id)
+                                    scheduled_events.add(missing_event_id)
+                                    empty_by_room_day[key].remove(t_idx)
+                                    course_day_room_mapping[(event.course_id, day_idx, sg_id)] = room_idx
+                                    placed = True
+                                    break
+                            if placed:
+                                break
+                        if placed:
+                            break
 
-                # Strategy 3 (Final Pass): Only place in a valid, empty slot
-                if not placed and flexibility_level >= 2:
-                    valid_empty_slots = []
-                    for room_idx, room in enumerate(self.rooms):
-                        if self.is_room_suitable(room, course):
-                            for timeslot_idx in range(len(self.timeslots)):
-                                if (chromosome[room_idx][timeslot_idx] is None and
-                                    self.is_slot_available_for_event(chromosome, room_idx, timeslot_idx, event) and
-                                    self._is_student_group_available(chromosome, event.student_group.id, timeslot_idx)):
-                                    valid_empty_slots.append((room_idx, timeslot_idx))
-                    
-                    if valid_empty_slots:
-                        room_idx, timeslot_idx = random.choice(valid_empty_slots)
-                        chromosome[room_idx][timeslot_idx] = missing_event_id
-                        placed = True
-                        
+                # If we still can't place it, leave it missing for this pass; a later pass
+                # may open up additional empty slots after more duplicate removals.
+
         return chromosome
 
     def count_course_occurrences(self, chromosome, student_group):

@@ -11,6 +11,7 @@ Fixed issues:
 """
 
 import os
+import json
 import uuid
 import tempfile
 import threading
@@ -29,28 +30,29 @@ from input_data_api import initialize_input_data_from_json
 from differential_evolution_api import DifferentialEvolution
 from export_service import create_export_service, TimetableExportService
 
-# Prefer the OG DifferentialEvolution implementation if available to match OG behavior
+# Keep the API pipeline consistent by default.
+# If you explicitly want to try the OG implementation, set USE_OG_DE=1.
 DifferentialEvolutionClass = DifferentialEvolution
-try:
-    import importlib.util
-    base_dir = os.path.dirname(__file__)
-    # Only consider safe algorithm modules that don't launch Dash or execute top-level runs
-    og_candidates = [
-        os.path.join(base_dir, 'differential_evolution.py'),
-        os.path.join(base_dir, 'differential-evolution.py'),
-    ]
-    for path in og_candidates:
-        if os.path.exists(path):
-            spec = importlib.util.spec_from_file_location('de_og_module', path)
-            if spec and spec.loader:
-                de_og_module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(de_og_module)
-                if hasattr(de_og_module, 'DifferentialEvolution'):
-                    DifferentialEvolutionClass = getattr(de_og_module, 'DifferentialEvolution')
-                    print(f"Using DifferentialEvolution from: {os.path.basename(path)}")
-                    break
-except Exception as e:
-    print(f"Warning: Could not load alternative DifferentialEvolution. Using API version. Error: {e}")
+if os.environ.get('USE_OG_DE', '').strip() in {'1', 'true', 'TRUE', 'yes', 'YES'}:
+    try:
+        import importlib.util
+        base_dir = os.path.dirname(__file__)
+        og_candidates = [
+            os.path.join(base_dir, 'differential_evolution.py'),
+            os.path.join(base_dir, 'differential-evolution.py'),
+        ]
+        for path in og_candidates:
+            if os.path.exists(path):
+                spec = importlib.util.spec_from_file_location('de_og_module', path)
+                if spec and spec.loader:
+                    de_og_module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(de_og_module)
+                    if hasattr(de_og_module, 'DifferentialEvolution'):
+                        DifferentialEvolutionClass = getattr(de_og_module, 'DifferentialEvolution')
+                        print(f"Using OG DifferentialEvolution from: {os.path.basename(path)}")
+                        break
+    except Exception as e:
+        print(f"Warning: Could not load OG DifferentialEvolution. Using API version. Error: {e}")
 
 # --- Config & app setup ---
 FRONTEND_HTML_PATH = Path(__file__).parent / "timetable_generator.html"
@@ -806,6 +808,17 @@ def upload_excel():
             json_data = transform_excel_to_json(file_path)
         except RuntimeError as exc:
             return jsonify({'error': f'Excel parsing error: {str(exc)}'}), 400
+
+        # Persist the transformed input so external verifiers can load the exact dataset.
+        try:
+            dash_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+            os.makedirs(dash_data_dir, exist_ok=True)
+            last_input_path = os.path.join(dash_data_dir, 'last_input_data.json')
+            with open(last_input_path, 'w', encoding='utf-8') as f:
+                json.dump(make_json_serializable(json_data), f, indent=2)
+            print(f"[UPLOAD] Saved last_input_data.json -> {last_input_path}")
+        except Exception as save_err:
+            print(f"[UPLOAD] Warning: could not save last_input_data.json: {save_err}")
 
         try:
             input_data = initialize_input_data_from_json(json_data)
