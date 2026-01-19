@@ -17,18 +17,21 @@ import tempfile
 import threading
 import numpy as np
 import random
+from datetime import datetime
 from pathlib import Path
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from Dash_UI import create_app  # Use the new lightweight Dash UI factory
+# Dash UI is now disabled - all UI handled by React frontend
+# from Dash_UI import create_app  # Use the new lightweight Dash UI factory
 
 # Your project imports (must exist in repo)
 from transformer_api import transform_excel_to_json, validate_excel_structure
 from input_data_api import initialize_input_data_from_json
 from differential_evolution_api import DifferentialEvolution
 from export_service import create_export_service, TimetableExportService
+from constraints import Constraints
 
 # Keep the API pipeline consistent by default.
 # If you explicitly want to try the OG implementation, set USE_OG_DE=1.
@@ -58,9 +61,12 @@ if os.environ.get('USE_OG_DE', '').strip() in {'1', 'true', 'TRUE', 'yes', 'YES'
 FRONTEND_HTML_PATH = Path(__file__).parent / "timetable_generator.html"
 
 app = Flask(__name__)
-# Create the Dash app instance from the new UI module
-# This Dash instance is later mounted under /interactive/
-dash_app = create_app()
+
+# Dash UI is now disabled - all UI handled by React frontend
+# # Create the Dash app instance from the new UI module
+# # This Dash instance is later mounted under /interactive/
+# dash_app = create_app()
+
 # Configure CORS explicitly for local dev and typical headers
 CORS(
     app,
@@ -81,38 +87,20 @@ app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = tempfile.mkdtemp()
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-this-in-prod')
 
-# Allow embedding Dash UI in iframe from the React dev server
+# CORS headers for API responses
 @app.after_request
-def add_frame_headers(resp):
+def add_cors_headers(resp):
     try:
-        # Permit embedding from frontend origins
-        resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
-            + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
-        # Remove X-Frame-Options if set by any middleware/extensions
-        try:
-            del resp.headers['X-Frame-Options']
-        except Exception:
-            pass
+        # Allow cross-origin requests from React dev server and production
+        origin = request.headers.get('Origin')
+        if origin:
+            resp.headers['Access-Control-Allow-Origin'] = origin
+        else:
+            resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Credentials'] = 'false'
     except Exception:
         pass
     return resp
-
-# Also add the same headers to the Dash server so responses under /interactive come with proper CSP
-try:
-    @dash_app.server.after_request
-    def add_dash_frame_headers(resp):
-        try:
-            resp.headers['Content-Security-Policy'] = "frame-ancestors 'self' http://localhost:3000 http://127.0.0.1:3000" \
-                + (" " + os.environ.get('EXTRA_FRAME_ANCESTORS', '') if os.environ.get('EXTRA_FRAME_ANCESTORS') else '')
-            try:
-                del resp.headers['X-Frame-Options']
-            except Exception:
-                pass
-        except Exception:
-            pass
-        return resp
-except Exception as e:
-    print(f"Warning: Could not attach after_request to Dash server: {e}")
 
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
@@ -1112,113 +1100,539 @@ def download_template():
         return jsonify({'error': f'Template download failed: {str(exc)}'}), 500
 
 
+# ============================================================================
+# NEW JSON-ONLY API ENDPOINTS FOR REACT FRONTEND
+# ============================================================================
+
+@app.route('/api/get-rooms-data', methods=['GET'])
+def get_rooms_data():
+    """Get rooms data for room selection modal"""
+    try:
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        rooms_path = os.path.join(data_dir, 'rooms-data.json')
+        
+        if not os.path.exists(rooms_path):
+            return jsonify({'rooms': []}), 200
+            
+        with open(rooms_path, 'r', encoding='utf-8') as f:
+            rooms_data = json.load(f)
+        
+        return jsonify({'rooms': rooms_data}), 200
+    except Exception as exc:
+        print(f"Error loading rooms data: {exc}")
+        return jsonify({'error': f'Failed to load rooms data: {str(exc)}'}), 500
+
+
+@app.route('/api/get-constraint-violations/<upload_id>', methods=['GET'])
+def get_constraint_violations(upload_id):
+    """Get detailed constraint violations for a timetable"""
+    try:
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        violations_path = os.path.join(data_dir, 'constraint_violations.json')
+        
+        if not os.path.exists(violations_path):
+            return jsonify({'violations': {}}), 200
+            
+        with open(violations_path, 'r', encoding='utf-8') as f:
+            violations_data = json.load(f)
+        
+        return jsonify({'violations': violations_data}), 200
+    except Exception as exc:
+        print(f"Error loading constraint violations: {exc}")
+        return jsonify({'error': f'Failed to load constraint violations: {str(exc)}'}), 500
+
+
+@app.route('/api/save-timetable-changes', methods=['POST'])
+def save_timetable_changes():
+    """Save modified timetable data with manual changes"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        timetables = data.get('timetables', [])
+        manual_cells = data.get('manual_cells', [])
+        upload_id = data.get('upload_id')
+        
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        os.makedirs(data_dir, exist_ok=True)
+        
+        # Save current state
+        save_data = {
+            'timetables': timetables,
+            'manual_cells': manual_cells,
+            'upload_id': upload_id,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        save_path = os.path.join(data_dir, 'timetable_data.json')
+        with open(save_path, 'w', encoding='utf-8') as f:
+            json.dump(save_data, f, ensure_ascii=False, indent=2)
+
+        # Recompute constraint violations so the frontend Errors modal stays accurate after manual edits.
+        # IMPORTANT: Use the same constraint engine used during initial generation (constraints.py),
+        # so the UI and verification script can share a single source of truth.
+        try:
+            import re
+            from collections import defaultdict
+
+            def _parse_cell(cell_value: str):
+                if not cell_value:
+                    return None, None
+                s = str(cell_value).strip()
+                if not s or s.upper() in {'BREAK', 'FREE'}:
+                    return None, None
+                if "\n" in s:
+                    parts = [p.strip() for p in s.split("\n") if p.strip()]
+                    if not parts:
+                        return None, None
+                    course_code = parts[0]
+                    room_name = parts[1] if len(parts) > 1 else None
+                    return course_code, room_name
+                m_course = re.search(r"\bCourse\s*:\s*([^,]+)", s, flags=re.IGNORECASE)
+                m_room = re.search(r"\bRoom\s*:\s*(.+)$", s, flags=re.IGNORECASE)
+                course_code = m_course.group(1).strip() if m_course else None
+                room_name = m_room.group(1).strip() if m_room else None
+                return course_code, room_name
+
+            # Load input_data: prefer in-memory per upload_id; fallback to persisted last_input_data.json
+            input_data = None
+            try:
+                if upload_id and upload_id in generated_timetables:
+                    input_data = generated_timetables.get(upload_id, {}).get('input_data')
+            except Exception:
+                input_data = None
+            if input_data is None:
+                try:
+                    last_input_path = os.path.join(data_dir, 'last_input_data.json')
+                    if os.path.exists(last_input_path):
+                        with open(last_input_path, 'r', encoding='utf-8') as lf:
+                            last_input_json = json.load(lf)
+                        input_data = initialize_input_data_from_json(last_input_json)
+                except Exception as load_exc:
+                    print(f"Warning: could not load last_input_data.json for engine constraint recompute: {load_exc}")
+
+            if input_data is None:
+                raise RuntimeError("input_data unavailable; cannot run engine constraint recompute")
+
+            rooms = getattr(input_data, 'rooms', []) or []
+            hours_per_day = int(getattr(input_data, 'hours', 9) or 9)
+            days_per_week = int(getattr(input_data, 'days', 5) or 5)
+            timeslots_count = hours_per_day * days_per_week
+
+            # room name/id -> room_idx
+            room_index = {}
+            for idx, r in enumerate(rooms):
+                name = str(getattr(r, 'name', '') or '').strip()
+                rid = str(getattr(r, 'id', '') or getattr(r, 'Id', '') or '').strip()
+                if name:
+                    room_index[name] = idx
+                if rid:
+                    room_index[rid] = idx
+
+            cons = Constraints(input_data)
+
+            # pool[(group_id, course_code)] = [event_id, event_id, ...]
+            pool = defaultdict(list)
+            for event_id, event in (cons.events_map or {}).items():
+                try:
+                    gid = str(getattr(event.student_group, 'id', '') or '').strip()
+                    course_code = str(getattr(event, 'course_id', '') or '').strip()
+                    if gid and course_code:
+                        pool[(gid, course_code)].append(int(event_id))
+                except Exception:
+                    continue
+            for k in list(pool.keys()):
+                pool[k] = sorted(pool[k])
+
+            chromosome = np.empty((len(rooms), timeslots_count), dtype=object)
+            chromosome[:] = None
+
+            # group name -> group_id (from input_data)
+            group_name_to_id = {}
+            for g in getattr(input_data, 'student_groups', []) or []:
+                gname = str(getattr(g, 'name', '') or '').strip()
+                gid = str(getattr(g, 'id', '') or '').strip()
+                if gname and gid:
+                    group_name_to_id[gname] = gid
+
+            for entry in timetables or []:
+                sg_obj = entry.get('student_group') or {}
+                if isinstance(sg_obj, dict):
+                    group_id = str(sg_obj.get('id') or '').strip()
+                    group_name = str(sg_obj.get('name') or '').strip()
+                else:
+                    group_id = str(getattr(sg_obj, 'id', '') or '').strip()
+                    group_name = str(getattr(sg_obj, 'name', '') or sg_obj or '').strip()
+
+                if not group_id and group_name:
+                    group_id = group_name_to_id.get(group_name, '')
+                if not group_id:
+                    continue
+
+                rows = entry.get('timetable') or []
+                for h_idx, row in enumerate(rows):
+                    if not isinstance(row, list) or len(row) < 2:
+                        continue
+                    if h_idx >= hours_per_day:
+                        continue
+                    for d_idx in range(min(days_per_week, max(0, len(row) - 1))):
+                        cell = row[d_idx + 1]
+                        course_code, room_name = _parse_cell(cell)
+                        if not course_code:
+                            continue
+                        course_code = str(course_code).strip()
+                        room_name = str(room_name or '').strip()
+
+                        room_idx = room_index.get(room_name)
+                        if room_idx is None:
+                            continue
+
+                        timeslot_idx = (d_idx * hours_per_day) + h_idx
+                        if timeslot_idx < 0 or timeslot_idx >= timeslots_count:
+                            continue
+
+                        key = (group_id, course_code)
+                        if not pool.get(key):
+                            continue
+
+                        event_id = pool[key].pop(0)
+                        if chromosome[room_idx, timeslot_idx] is None:
+                            chromosome[room_idx, timeslot_idx] = event_id
+
+            updated_violations = cons.get_detailed_constraint_violations(chromosome) or {}
+            violations_path = os.path.join(data_dir, 'constraint_violations.json')
+            with open(violations_path, 'w', encoding='utf-8') as vf:
+                json.dump(make_json_serializable(updated_violations), vf, ensure_ascii=False, indent=2)
+        except Exception as exc2:
+            print(f"Warning: could not recompute constraint violations after save (engine mode): {exc2}")
+            # Fall back to simplified Dash/UI recompute if available.
+            try:
+                rooms_path = os.path.join(data_dir, 'rooms-data.json')
+                rooms_data = []
+                if os.path.exists(rooms_path):
+                    with open(rooms_path, 'r', encoding='utf-8') as rf:
+                        rooms_data = json.load(rf) or []
+
+                from Dash_UI import recompute_constraint_violations_simplified
+
+                updated_violations = recompute_constraint_violations_simplified(timetables, rooms_data) or {}
+                violations_path = os.path.join(data_dir, 'constraint_violations.json')
+                with open(violations_path, 'w', encoding='utf-8') as vf:
+                    json.dump(updated_violations, vf, ensure_ascii=False, indent=2)
+            except Exception as exc3:
+                print(f"Warning: could not recompute constraint violations after save (fallback dash mode): {exc3}")
+        
+        print(f"Saved timetable changes for upload {upload_id}")
+        return jsonify({'status': 'success', 'message': 'Timetable saved successfully'}), 200
+        
+    except Exception as exc:
+        print(f"Error saving timetable changes: {exc}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({'error': f'Failed to save timetable: {str(exc)}'}), 500
+
+
+@app.route('/api/get-saved-timetable/<upload_id>', methods=['GET'])
+def get_saved_timetable(upload_id):
+    """Get previously saved timetable with manual changes"""
+    try:
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        save_path = os.path.join(data_dir, 'timetable_data.json')
+        
+        if not os.path.exists(save_path):
+            return jsonify({'timetables': None, 'manual_cells': []}), 200
+            
+        with open(save_path, 'r', encoding='utf-8') as f:
+            save_data = json.load(f)
+        
+        # Check if this is the correct upload_id
+        if save_data.get('upload_id') != upload_id:
+            return jsonify({'timetables': None, 'manual_cells': []}), 200
+        
+        return jsonify({
+            'timetables': save_data.get('timetables', []),
+            'manual_cells': save_data.get('manual_cells', []),
+            'timestamp': save_data.get('timestamp')
+        }), 200
+        
+    except Exception as exc:
+        print(f"Error loading saved timetable: {exc}")
+        return jsonify({'error': f'Failed to load saved timetable: {str(exc)}'}), 500
+
+
 @app.route('/', methods=['GET'])
 def index():
     return jsonify({'status': 'ok', 'message': 'Timetable Generator API is running.'}), 200
 
-# Ensure Dash knows it is mounted under /interactive so it generates correct asset URLs
-# IMPORTANT: Since we mount Dash via DispatcherMiddleware at '/interactive', do NOT set
-# requests_pathname_prefix or routes_pathname_prefix here. Dash will respect SCRIPT_NAME
-# from the WSGI mount and generate correct asset URLs automatically.
-try:
-    if hasattr(dash_app, 'config'):
-        dash_app.config.suppress_callback_exceptions = True
-except Exception as e:
-    print(f"Warning: Could not adjust Dash config: {e}")
+# ============================================================================
+# DASH UI ROUTING - DISABLED (Frontend now handles all UI)
+# ============================================================================
+# The Dash UI has been replaced by the React frontend
+# All timetable rendering, drag-drop, and interactions now happen in React
+# Backend only provides JSON data through API endpoints
 
-# Mount Dash UI under /interactive using DispatcherMiddleware (most reliable across Dash versions)
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from flask import redirect
+# # Ensure Dash knows it is mounted under /interactive so it generates correct asset URLs
+# # IMPORTANT: Since we mount Dash via DispatcherMiddleware at '/interactive', do NOT set
+# # requests_pathname_prefix or routes_pathname_prefix here. Dash will respect SCRIPT_NAME
+# # from the WSGI mount and generate correct asset URLs automatically.
+# try:
+#     if hasattr(dash_app, 'config'):
+#         dash_app.config.suppress_callback_exceptions = True
+# except Exception as e:
+#     print(f"Warning: Could not adjust Dash config: {e}")
 
-# Redirect shims in case any absolute URLs get generated without the prefix
-@app.route('/_dash-component-suites/<path:path>')
-def dash_bundle_redirect(path):
-    return redirect(f'/interactive/_dash-component-suites/{path}', code=302)
+# # Mount Dash UI under /interactive using DispatcherMiddleware (most reliable across Dash versions)
+# from werkzeug.middleware.dispatcher import DispatcherMiddleware
+# from flask import redirect
 
-@app.route('/_dash-layout')
-def dash_layout_redirect():
-    return redirect('/interactive/_dash-layout', code=302)
+# # Redirect shims in case any absolute URLs get generated without the prefix
+# @app.route('/_dash-component-suites/<path:path>')
+# def dash_bundle_redirect(path):
+#     return redirect(f'/interactive/_dash-component-suites/{path}', code=302)
 
-@app.route('/_dash-dependencies')
-def dash_deps_redirect():
-    return redirect('/interactive/_dash-dependencies', code=302)
+# @app.route('/_dash-layout')
+# def dash_layout_redirect():
+#     return redirect('/interactive/_dash-layout', code=302)
 
-@app.route('/_dash-update-component', methods=['POST'])
-def dash_update_redirect():
-    # 307 preserves method & body
-    return redirect('/interactive/_dash-update-component', code=307)
+# @app.route('/_dash-dependencies')
+# def dash_deps_redirect():
+#     return redirect('/interactive/_dash-dependencies', code=302)
 
-@app.route('/_favicon.ico')
-def dash_favicon_redirect():
-    return redirect('/interactive/_favicon.ico', code=302)
+# @app.route('/_dash-update-component', methods=['POST'])
+# def dash_update_redirect():
+#     # 307 preserves method & body
+#     return redirect('/interactive/_dash-update-component', code=307)
 
-@app.route('/assets/<path:path>')
-def dash_assets_redirect(path):
-    return redirect(f'/interactive/assets/{path}', code=302)
+# @app.route('/_favicon.ico')
+# def dash_favicon_redirect():
+#     return redirect('/interactive/_favicon.ico', code=302)
 
-# Convenience redirect to ensure trailing slash
-@app.route('/interactive')
-def dash_trailing_redirect():
-    return redirect('/interactive/', code=302)
+# @app.route('/assets/<path:path>')
+# def dash_assets_redirect(path):
+#     return redirect(f'/interactive/assets/{path}', code=302)
 
-# Unconditionally mount the Dash server under /interactive
-try:
-    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {'/interactive': dash_app.server})
-    print("Dash app mounted via DispatcherMiddleware at /interactive/")
-except Exception as e:
-    print(f"Warning: Failed to mount Dash app via DispatcherMiddleware: {e}")
+# # Convenience redirect to ensure trailing slash
+# @app.route('/interactive')
+# def dash_trailing_redirect():
+#     return redirect('/interactive/', code=302)
 
-# If something still fails later in startup, provide a simple fallback page at /interactive
-@app.route('/interactive/', defaults={'path': ''})
-@app.route('/interactive/<path:path>')
-def interactive_fallback(path):
+# # Unconditionally mount the Dash server under /interactive
+# try:
+#     app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {'/interactive': dash_app.server})
+#     print("Dash app mounted via DispatcherMiddleware at /interactive/")
+# except Exception as e:
+#     print(f"Warning: Failed to mount Dash app via DispatcherMiddleware: {e}")
+
+# # If something still fails later in startup, provide a simple fallback page at /interactive
+# @app.route('/interactive/', defaults={'path': ''})
+# @app.route('/interactive/<path:path>')
+# def interactive_fallback(path):
+#     try:
+#         # If the request is for dash internal endpoints, let the mounted app handle them (no fallback)
+#         if path.startswith('_dash') or path.startswith('assets'):
+#             return ('', 404)
+#         data_dir = os.path.join(os.path.dirname(__file__), 'data')
+#         fresh_path = os.path.join(data_dir, 'fresh_timetable_data.json')
+#         saved_path = os.path.join(data_dir, 'timetable_data.json')
+#         content = None
+#         title = None
+#         if os.path.exists(fresh_path):
+#             try:
+#                 with open(fresh_path, 'r', encoding='utf-8') as f:
+#                     content = f.read()
+#                     title = 'Latest fresh_timetable_data.json'
+#             except Exception as read_err:
+#                 content = f"Error reading fresh_timetable_data.json: {read_err}"
+#                 title = 'fresh_timetable_data.json (error)'
+#         if content is None and os.path.exists(saved_path):
+#             try:
+#                 with open(saved_path, 'r', encoding='utf-8') as f:
+#                     content = f.read()
+#                     title = 'Latest timetable_data.json'
+#             except Exception as read_err:
+#                 content = f"Error reading timetable_data.json: {read_err}"
+#                 title = 'timetable_data.json (error)'
+#         if content is None:
+#             content = 'No fresh or saved timetable JSON found. Please generate a timetable using the API.'
+#             title = 'No timetable JSON found'
+#         html = f"""
+#         <!doctype html>
+#         <html>
+#           <head>
+#             <meta charset='utf-8'/>
+#             <title>Interactive Timetable (Fallback)</title>
+#             <style>body{{font-family:Arial,Helvetica,sans-serif;padding:20px}} pre{{white-space:pre-wrap;background:#f6f8fa;padding:12px;border-radius:6px;border:1px solid #e1e4e8}}</style>
+#           </head>
+#           <body>
+#             <h2>Interactive Timetable (Fallback)</h2>
+#             <p>The Dash UI may still be initializing. If this page persists, check backend logs.</p>
+#             <h3>{title}</h3>
+#             <pre>{content}</pre>
+#           </body>
+#         </html>
+#         """
+#         return html, 200
+#     except Exception as e:
+#         return jsonify({'error': f'Fallback page error: {str(e)}'}), 500
+
+# ----------------------------------------------------
+#  New Export Endpoints (SST / TYD / Lecturer)
+# ----------------------------------------------------
+import output_data
+import io
+
+
+def _load_saved_timetables_if_available(upload_id: str):
+    """Prefer the latest saved timetable edits for this upload_id (manual changes)."""
     try:
-        # If the request is for dash internal endpoints, let the mounted app handle them (no fallback)
-        if path.startswith('_dash') or path.startswith('assets'):
-            return ('', 404)
         data_dir = os.path.join(os.path.dirname(__file__), 'data')
-        fresh_path = os.path.join(data_dir, 'fresh_timetable_data.json')
-        saved_path = os.path.join(data_dir, 'timetable_data.json')
-        content = None
-        title = None
-        if os.path.exists(fresh_path):
-            try:
-                with open(fresh_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    title = 'Latest fresh_timetable_data.json'
-            except Exception as read_err:
-                content = f"Error reading fresh_timetable_data.json: {read_err}"
-                title = 'fresh_timetable_data.json (error)'
-        if content is None and os.path.exists(saved_path):
-            try:
-                with open(saved_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    title = 'Latest timetable_data.json'
-            except Exception as read_err:
-                content = f"Error reading timetable_data.json: {read_err}"
-                title = 'timetable_data.json (error)'
-        if content is None:
-            content = 'No fresh or saved timetable JSON found. Please generate a timetable using the API.'
-            title = 'No timetable JSON found'
-        html = f"""
-        <!doctype html>
-        <html>
-          <head>
-            <meta charset='utf-8'/>
-            <title>Interactive Timetable (Fallback)</title>
-            <style>body{{font-family:Arial,Helvetica,sans-serif;padding:20px}} pre{{white-space:pre-wrap;background:#f6f8fa;padding:12px;border-radius:6px;border:1px solid #e1e4e8}}</style>
-          </head>
-          <body>
-            <h2>Interactive Timetable (Fallback)</h2>
-            <p>The Dash UI may still be initializing. If this page persists, check backend logs.</p>
-            <h3>{title}</h3>
-            <pre>{content}</pre>
-          </body>
-        </html>
-        """
-        return html, 200
+        save_path = os.path.join(data_dir, 'timetable_data.json')
+        if not os.path.exists(save_path):
+            return None
+
+        with open(save_path, 'r', encoding='utf-8') as f:
+            save_data = json.load(f)
+
+        if str(save_data.get('upload_id')) != str(upload_id):
+            return None
+
+        timetables = save_data.get('timetables')
+        if isinstance(timetables, list) and len(timetables) > 0:
+            return timetables
+    except Exception as exc:
+        print(f"Warning: could not load saved timetables for export: {exc}")
+    return None
+
+
+def _get_export_timetables(upload_id: str):
+    """Return timetables for export, preferring saved edits over original DE output."""
+    saved = _load_saved_timetables_if_available(upload_id)
+    if saved is not None:
+        return saved
+
+    job = processing_jobs.get(upload_id, {})
+    result = job.get('result', {}) if isinstance(job, dict) else {}
+    # Prefer timetables_raw if present, else timetables.
+    timetables_raw = result.get('timetables_raw')
+    if timetables_raw:
+        return timetables_raw
+    timetables = result.get('timetables')
+    if timetables:
+        return timetables
+    return None
+
+@app.route('/api/export/sst/<upload_id>', methods=['GET'])
+def export_sst_timetables(upload_id):
+    """Export SST timetables for a specific upload ID."""
+    if upload_id not in processing_jobs:
+        return jsonify({'error': 'Invalid upload ID'}), 404
+        
+    job = processing_jobs[upload_id]
+    if job.get('status') != 'completed':
+        return jsonify({'error': 'Timetable processing not complete'}), 400
+        
+    try:
+        export_data = _get_export_timetables(upload_id)
+        if not export_data:
+            return jsonify({'error': 'No timetable data found'}), 500
+
+        excel_bytes, filename = output_data.export_sst_timetables_bytes_from_data(export_data)
+        # Defensive: some code paths may return a nested tuple
+        if isinstance(excel_bytes, tuple) and len(excel_bytes) == 2:
+            excel_bytes, nested_name = excel_bytes
+            if not filename:
+                filename = nested_name
+        if not excel_bytes:
+            return jsonify({'error': filename or 'Export failed'}), 500
+        
+        return send_file(
+            io.BytesIO(excel_bytes),
+            as_attachment=True,
+            download_name=filename or f'SST_Timetables_{upload_id}.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
     except Exception as e:
-        return jsonify({'error': f'Fallback page error: {str(e)}'}), 500
+        print(f"Error exporting SST: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/export/tyd/<upload_id>', methods=['GET'])
+def export_tyd_timetables(upload_id):
+    """Export TYD timetables for a specific upload ID."""
+    if upload_id not in processing_jobs:
+        return jsonify({'error': 'Invalid upload ID'}), 404
+        
+    job = processing_jobs[upload_id]
+    if job.get('status') != 'completed':
+        return jsonify({'error': 'Timetable processing not complete'}), 400
+        
+    try:
+        export_data = _get_export_timetables(upload_id)
+        if not export_data:
+            return jsonify({'error': 'No timetable data found'}), 500
+
+        excel_bytes, filename = output_data.export_tyd_timetables_bytes_from_data(export_data)
+        # Defensive: some code paths may return a nested tuple
+        if isinstance(excel_bytes, tuple) and len(excel_bytes) == 2:
+            excel_bytes, nested_name = excel_bytes
+            if not filename:
+                filename = nested_name
+        if not excel_bytes:
+            return jsonify({'error': filename or 'Export failed'}), 500
+        
+        return send_file(
+            io.BytesIO(excel_bytes),
+            as_attachment=True,
+            download_name=filename or f'TYD_Timetables_{upload_id}.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        print(f"Error exporting TYD: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/export/lecturer/<upload_id>', methods=['GET'])
+def export_lecturer_timetables(upload_id):
+    """Export Lecturer timetables for a specific upload ID."""
+    if upload_id not in processing_jobs:
+        return jsonify({'error': 'Invalid upload ID'}), 404
+        
+    job = processing_jobs[upload_id]
+    if job.get('status') != 'completed':
+        return jsonify({'error': 'Timetable processing not complete'}), 400
+        
+    try:
+        export_data = _get_export_timetables(upload_id)
+        if not export_data:
+            return jsonify({'error': 'No timetable data found'}), 500
+
+        excel_bytes, filename = output_data.export_lecturer_timetables_bytes_from_data(export_data)
+        # Defensive: some code paths may return a nested tuple
+        if isinstance(excel_bytes, tuple) and len(excel_bytes) == 2:
+            excel_bytes, nested_name = excel_bytes
+            if not filename:
+                filename = nested_name
+        if not excel_bytes:
+            return jsonify({'error': filename or 'Export failed'}), 500
+        
+        return send_file(
+            io.BytesIO(excel_bytes),
+            as_attachment=True,
+            download_name=filename or f'Lecturer_Timetables_{upload_id}.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        print(f"Error exporting Lecturer: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+print("✓ Dash UI routing disabled - Frontend now handles all timetable UI")
 
 if __name__ == '__main__':
     print("Starting Timetable Generator API...")

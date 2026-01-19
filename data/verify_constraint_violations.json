@@ -1,0 +1,1646 @@
+{
+  "Same Student Group Overlaps": [],
+  "Different Student Group Overlaps": [],
+  "Lecturer Clashes": [],
+  "Lecturer Schedule Conflicts (Day/Time)": [],
+  "Lecturer Workload Violations": [
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Lawal",
+      "day": "Fri",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Analysis for Business Decision, Quantitative Analysis in Management",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Lawal on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Anthony Onokwai",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Applied (Engineering) Thermodynamics I, Fundamentals of Fluid Mechanics",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Anthony Onokwai on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Engr. Patrick Onwordi",
+      "day": "Wed",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Applied Design, Engineering Graphics and Solid Modeling II",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Engr. Patrick Onwordi on Wed"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Evans",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Basic Mathematics, Econometrics",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Evans on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Dakare",
+      "day": "Tue",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Business Policy & Strategy I, Principles of Management, Small Business Management",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Dakare on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Akudo Ijezie",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Discrete Structures, Elementary Mathematics I (Algebra & Trigonometry)",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Akudo Ijezie on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Enyinnaya",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "E-Commerce, Innovation Management",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Enyinnaya on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Wammanda Usaku",
+      "day": "Tue",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Elements of Film Production, Film Scripting and Directing I",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Wammanda Usaku on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Benjamin Anyaegbuna",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Engineering (Project) Management [PMI], Engineering Project Management",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Benjamin Anyaegbuna on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Jennifer Iloekwe",
+      "day": "Fri",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Final Year Project I, Introduction to Software Packages",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Jennifer Iloekwe on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Rilwan Balogun",
+      "day": "Wed",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "General Physics I, General Practical Physics I",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Rilwan Balogun on Wed"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Fr. Ifeanyi Ogboh",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Christian Theology",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Fr. Ifeanyi Ogboh on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Aifuwa Edosomwan",
+      "day": "Mon",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Human Communication",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Aifuwa Edosomwan on Mon"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Agbonrofo Hope",
+      "day": "Wed",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Microeconomics I, Principles of Economics I",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Agbonrofo Hope on Wed"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Kizito Alakwe",
+      "day": "Wed",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Introduction to Strategic Communication, Theories of Communication",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "14:00",
+        "16:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Dr. Kizito Alakwe on Wed"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Fri",
+      "consecutive_hours": 4,
+      "max_allowed": 3,
+      "courses": "Venture Creation",
+      "hours_times": [
+        "11:00",
+        "12:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00"
+      ],
+      "violation": "1 extra consecutive hours",
+      "location": "Miss Halima Rabiu on Fri"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Adekunle Oyelami",
+      "day": "Thu",
+      "consecutive_hours": 5,
+      "max_allowed": 3,
+      "courses": "Control Systems Engineering, Engineering Mathematics I",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00"
+      ],
+      "violation": "2 extra consecutive hours",
+      "location": "Dr. Adekunle Oyelami on Thu"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Stephen Adubi",
+      "day": "Tue",
+      "consecutive_hours": 5,
+      "max_allowed": 3,
+      "courses": "Data Structures, Database Management II (Elective)",
+      "hours_times": [
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "2 extra consecutive hours",
+      "location": "Dr. Stephen Adubi on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Ms. Nkem Agam",
+      "day": "Tue",
+      "consecutive_hours": 5,
+      "max_allowed": 3,
+      "courses": "Principles of Ethical Storytelling and the Literary Arts, Project Management for Creatives",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00"
+      ],
+      "violation": "2 extra consecutive hours",
+      "location": "Ms. Nkem Agam on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Dr. Jeremiah Bandele",
+      "day": "Tue",
+      "consecutive_hours": 6,
+      "max_allowed": 3,
+      "courses": "Computing & Software Engineering",
+      "hours_times": [
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "3 extra consecutive hours",
+      "location": "Dr. Jeremiah Bandele on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Thu",
+      "consecutive_hours": 6,
+      "max_allowed": 3,
+      "courses": "Elements of Banking, Principles of Finance",
+      "hours_times": [
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00"
+      ],
+      "violation": "3 extra consecutive hours",
+      "location": "oikpesu@pau.edu.ng on Thu"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Mr Uche Gbuna",
+      "day": "Tue",
+      "consecutive_hours": 6,
+      "max_allowed": 3,
+      "courses": "Entrepreneurship and Innovation",
+      "hours_times": [
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "3 extra consecutive hours",
+      "location": "Mr Uche Gbuna on Tue"
+    },
+    {
+      "type": "Excessive Consecutive Hours",
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "consecutive_hours": 8,
+      "max_allowed": 3,
+      "courses": "Entrepreneurship and Innovation, Venture Creation",
+      "hours_times": [
+        "9:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00"
+      ],
+      "violation": "5 extra consecutive hours",
+      "location": "Miss Halima Rabiu on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Jeremiah Bandele",
+      "day": "Mon",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Analogue Electronic Circuits, Computing & Software Engineering",
+      "violation": "1 extra hours",
+      "location": "Dr. Jeremiah Bandele on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Anthony Onokwai",
+      "day": "Mon",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Applied (Engineering) Thermodynamics I, Fundamentals of Fluid Mechanics",
+      "violation": "1 extra hours",
+      "location": "Dr. Anthony Onokwai on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Norbert Edomah",
+      "day": "Thu",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Applied Electricity I",
+      "violation": "1 extra hours",
+      "location": "Prof. Norbert Edomah on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Vincent",
+      "day": "Fri",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Auditing and Assurance I, Bank Lending and Loan Administration",
+      "violation": "2 extra hours",
+      "location": "Prof. Vincent on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "tbd",
+      "day": "Mon",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Bank Lending and Credit Administration, Financial Systems in Nigeria",
+      "violation": "1 extra hours",
+      "location": "tbd on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Dakare",
+      "day": "Tue",
+      "hours_scheduled": 7,
+      "max_allowed": 4,
+      "courses": "Business Policy & Strategy I, Principles of Management, Small Business Management",
+      "violation": "3 extra hours",
+      "location": "Dr. Dakare on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "roji@pau.edu.ng",
+      "day": "Mon",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Communication in English, Indigenous Language Media",
+      "violation": "1 extra hours",
+      "location": "roji@pau.edu.ng on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Dada Ibidapo",
+      "day": "Wed",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Computer Programming I, Human Computer Interface (Elective)",
+      "violation": "1 extra hours",
+      "location": "Dr. Dada Ibidapo on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Jeremiah Bandele",
+      "day": "Tue",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Computing & Software Engineering",
+      "violation": "2 extra hours",
+      "location": "Dr. Jeremiah Bandele on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Adekunle Oyelami",
+      "day": "Thu",
+      "hours_scheduled": 8,
+      "max_allowed": 4,
+      "courses": "Control Systems Engineering, Engineering Mathematics I",
+      "violation": "4 extra hours",
+      "location": "Dr. Adekunle Oyelami on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Mr. Raheed Lateef",
+      "day": "Fri",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Cost Accounting, Taxation II",
+      "violation": "2 extra hours",
+      "location": "Mr. Raheed Lateef on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Stephen Adubi",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Data Structures, Database Management II (Elective)",
+      "violation": "1 extra hours",
+      "location": "Dr. Stephen Adubi on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Clinton Ifegwu",
+      "day": "Fri",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Elementary Mathematics I, General Practical Chemistry I",
+      "violation": "1 extra hours",
+      "location": "Dr. Clinton Ifegwu on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "oikpesu@pau.edu.ng",
+      "day": "Thu",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Elements of Banking, Principles of Finance",
+      "violation": "2 extra hours",
+      "location": "oikpesu@pau.edu.ng on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Benjamin Anyaegbuna",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Engineering (Project) Management [PMI], Engineering Project Management",
+      "violation": "2 extra hours",
+      "location": "Dr. Benjamin Anyaegbuna on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Mr Uche Gbuna",
+      "day": "Tue",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Entrepreneurship and Innovation",
+      "violation": "2 extra hours",
+      "location": "Mr Uche Gbuna on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Tue",
+      "hours_scheduled": 8,
+      "max_allowed": 4,
+      "courses": "Entrepreneurship and Innovation, Venture Creation",
+      "violation": "4 extra hours",
+      "location": "Miss Halima Rabiu on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Jennifer Iloekwe",
+      "day": "Fri",
+      "hours_scheduled": 7,
+      "max_allowed": 4,
+      "courses": "Final Year Project I, Introduction to Software Packages",
+      "violation": "3 extra hours",
+      "location": "Jennifer Iloekwe on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Jennifer Iloekwe",
+      "day": "Tue",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Final Year Project I, Introduction to Software Packages",
+      "violation": "2 extra hours",
+      "location": "Jennifer Iloekwe on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Norbert Edomah",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Final Year Project I, Laboratory Practicals I",
+      "violation": "1 extra hours",
+      "location": "Prof. Norbert Edomah on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Ini Udofia",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Financial Accounting I",
+      "violation": "1 extra hours",
+      "location": "Dr. Ini Udofia on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Prof. Oni",
+      "day": "Thu",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Financial Management, Introduction to Financial Accounting I",
+      "violation": "1 extra hours",
+      "location": "Prof. Oni on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Anthony Onokwai",
+      "day": "Fri",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Fundamentals of Fluid Mechanics, Theory of Machines I",
+      "violation": "1 extra hours",
+      "location": "Dr. Anthony Onokwai on Fri"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Rilwan Balogun",
+      "day": "Wed",
+      "hours_scheduled": 7,
+      "max_allowed": 4,
+      "courses": "General Physics I, General Practical Physics I",
+      "violation": "3 extra hours",
+      "location": "Dr. Rilwan Balogun on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Chiemela Ogbonna",
+      "day": "Thu",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "History of Film and Multimedia, Visual Effect Design and Visualisation",
+      "violation": "1 extra hours",
+      "location": "Dr. Chiemela Ogbonna on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "dmoru@pau.edu.ng",
+      "day": "Thu",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Computer Science",
+      "violation": "2 extra hours",
+      "location": "dmoru@pau.edu.ng on Thu"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "tbd",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Introduction to Control Systems Engineering, Project Management",
+      "violation": "1 extra hours",
+      "location": "tbd on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Aifuwa Edosomwan",
+      "day": "Mon",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Human Communication",
+      "violation": "2 extra hours",
+      "location": "Dr. Aifuwa Edosomwan on Mon"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Kizito Alakwe",
+      "day": "Wed",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Introduction to Strategic Communication, Theories of Communication",
+      "violation": "2 extra hours",
+      "location": "Dr. Kizito Alakwe on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Dr. Unah",
+      "day": "Wed",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Investment Banking, Strategic Financial Management",
+      "violation": "2 extra hours",
+      "location": "Dr. Unah on Wed"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Ms. Nkem Agam",
+      "day": "Tue",
+      "hours_scheduled": 5,
+      "max_allowed": 4,
+      "courses": "Principles of Ethical Storytelling and the Literary Arts, Project Management for Creatives",
+      "violation": "1 extra hours",
+      "location": "Ms. Nkem Agam on Tue"
+    },
+    {
+      "type": "Excessive Daily Hours",
+      "lecturer": "Miss Halima Rabiu",
+      "day": "Fri",
+      "hours_scheduled": 6,
+      "max_allowed": 4,
+      "courses": "Venture Creation",
+      "violation": "2 extra hours",
+      "location": "Miss Halima Rabiu on Fri"
+    }
+  ],
+  "Consecutive Slot Violations": [
+    {
+      "course": "CMS 201 - FMM",
+      "course_name": "History of Nigerian Media",
+      "group": "Film & Media Studies - Year 2",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "CMS 201 - FMM for Film & Media Studies - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "CMS 301 - FMM",
+      "course_name": "Theories of Communication",
+      "group": "Film & Media Studies - Year 3",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "CMS 301 - FMM for Film & Media Studies - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "CMS 303",
+      "course_name": "Data Analysis in Communication Research",
+      "group": "Film & Media Studies - Year 3",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "CMS 303 for Film & Media Studies - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "CSC 419",
+      "course_name": "Advances in Web, Mobile and Blockchain Development  (Elective)",
+      "group": "Computer Science - Year  4/Stream 1",
+      "times": [
+        "11:00",
+        "14:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "CSC 419 for Computer Science - Year  4/Stream 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "CSC 421",
+      "course_name": "Database Management II (Elective)",
+      "group": "Computer Science - Year  4/Stream 1",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "CSC 421 for Computer Science - Year  4/Stream 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ECO 103",
+      "course_name": "Introductory Mathematics I",
+      "group": "Economics - Year 1",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ECO 103 for Economics - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - BUA",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Business Administration - Year 2",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - BUA for Business Administration - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - EEE",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Mechanical Engineering - Year 2",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - EEE for Mechanical Engineering - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "ENT 211 - FIN",
+      "course_name": "Entrepreneurship and Innovation",
+      "group": "Finance - Year 2",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "ENT 211 - FIN for Finance - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "FMM 201",
+      "course_name": "Film Analysis and Criticism",
+      "group": "Film & Media Studies - Year 2",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "FMM 201 for Film & Media Studies - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "GET 201",
+      "course_name": "Applied Electricity I",
+      "group": "Mechanical Engineering - Year 2",
+      "times": [
+        "9:00",
+        "9:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "GET 201 for Mechanical Engineering - Year 2",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "GET 501 - MEE",
+      "course_name": "Engineering (Project) Management [PMI]",
+      "group": "Mechanical Engineering - Year 5",
+      "times": [
+        "12:00",
+        "14:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "GET 501 - MEE for Mechanical Engineering - Year 5",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "GST 112 -SMSS",
+      "course_name": "Nigerian Peoples and Culture",
+      "group": "Accounting - Year 1",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "GST 112 -SMSS for Accounting - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "GST 112 -SMSS",
+      "course_name": "Nigerian Peoples and Culture",
+      "group": "Business Administration - Year 1",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "GST 112 -SMSS for Business Administration - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "GST-111",
+      "course_name": "Communication in English",
+      "group": "Mass Communication - Year 1",
+      "times": [
+        "9:00",
+        "12:00"
+      ],
+      "credits": 2,
+      "location": "GST-111 for Mass Communication - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "IFT 211",
+      "course_name": "Digital Logic Design",
+      "group": "Software Engineering - Year 2",
+      "times": [
+        "10:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "IFT 211 for Software Engineering - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "MCM 101",
+      "course_name": "Foundations of Broadcasting and Film",
+      "group": "Mass Communication - Year 1",
+      "times": [
+        "9:00",
+        "12:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "MCM 101 for Mass Communication - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "MCM 301",
+      "course_name": "Mass Communication and Politics",
+      "group": "Mass Communication - Year 3",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "MCM 301 for Mass Communication - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "MCT 102",
+      "course_name": "Introduction to Mechatronics Engineering",
+      "group": "Mechatronics Engineering - Year 1",
+      "times": [
+        "9:00",
+        "12:00",
+        "9:00"
+      ],
+      "credits": 3,
+      "location": "MCT 102 for Mechatronics Engineering - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "MEE 403",
+      "course_name": "Applied (Engineering) Thermodynamics I",
+      "group": "Mechanical Engineering - Year 4",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "MEE 403 for Mechanical Engineering - Year 4",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "MTH101",
+      "course_name": "Elementary Mathematics I",
+      "group": "Software Engineering - Year 1",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "MTH101 for Software Engineering - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-BUA 207",
+      "course_name": "Marketing Management",
+      "group": "Business Administration - Year 2",
+      "times": [
+        "9:00",
+        "12:00",
+        "12:00"
+      ],
+      "credits": 3,
+      "location": "PAU-BUA 207 for Business Administration - Year 2",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "PAU-CSC 111",
+      "course_name": "Introduction to Software Packages",
+      "group": "Software Engineering - Year 1",
+      "times": [
+        "12:00",
+        "16:00",
+        "12:00"
+      ],
+      "credits": 3,
+      "location": "PAU-CSC 111 for Software Engineering - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "PAU-CSC 317",
+      "course_name": "Introduction to Numerical Analysis",
+      "group": "Software Engineering - Year 3",
+      "times": [
+        "16:00",
+        "14:00"
+      ],
+      "credits": 2,
+      "location": "PAU-CSC 317 for Software Engineering - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-ECO 292",
+      "course_name": "The Nature of Human Beings",
+      "group": "Economics - Year 2",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-ECO 292 for Economics - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-EEE 401",
+      "course_name": "Professional Ethics for Engineers",
+      "group": "Electrical Engineering - Year 4",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-EEE 401 for Electrical Engineering - Year 4",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-EEE 403",
+      "course_name": "Principles of Communication Engineering",
+      "group": "Electrical Engineering - Year 4",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-EEE 403 for Electrical Engineering - Year 4",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-FIN 102",
+      "course_name": "Principles of Economics I",
+      "group": "Finance - Year 1",
+      "times": [
+        "9:00",
+        "12:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "PAU-FIN 102 for Finance - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    },
+    {
+      "course": "PAU-FIN-209",
+      "course_name": "The Nature of Human Beings",
+      "group": "Finance - Year 2",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-FIN-209 for Finance - Year 2",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-MCM 391",
+      "course_name": "English for Academic Writing",
+      "group": "Mass Communication - Year 3",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-MCM 391 for Mass Communication - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PAU-MEE 331",
+      "course_name": "Engineering Graphics and Solid Modelling III",
+      "group": "Mechanical Engineering - Year 3",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PAU-MEE 331 for Mechanical Engineering - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PHY101",
+      "course_name": "General Physics I",
+      "group": "Data Science - Year 1",
+      "times": [
+        "12:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PHY101 for Data Science - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "PHY101",
+      "course_name": "General Physics I",
+      "group": "Software Engineering - Year 1",
+      "times": [
+        "9:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "PHY101 for Software Engineering - Year 1",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "SSC 301",
+      "course_name": "Innovation in the Social Sciences",
+      "group": "Economics - Year 3",
+      "times": [
+        "14:00",
+        "16:00"
+      ],
+      "credits": 2,
+      "location": "SSC 301 for Economics - Year 3",
+      "reason": "2-hour course not scheduled consecutively"
+    },
+    {
+      "course": "STA 111",
+      "course_name": "Descriptive Statistics",
+      "group": "Data Science - Year 1",
+      "times": [
+        "11:00",
+        "13:00",
+        "16:00"
+      ],
+      "credits": 3,
+      "location": "STA 111 for Data Science - Year 1",
+      "reason": "3-hour course has all hours at different times with no 2-hour consecutive block"
+    }
+  ],
+  "Missing or Extra Classes": [],
+  "Same Course in Multiple Rooms on Same Day": [
+    {
+      "course": "BUS 402 - BUA",
+      "group": "Business Administration - Year 4",
+      "day": "Tue",
+      "rooms": [
+        "Port-Harcourt",
+        "Umuahia"
+      ],
+      "location": "BUS 402 - BUA for Business Administration - Year 4 on Tue"
+    },
+    {
+      "course": "CMS 201 - FMM",
+      "group": "Film & Media Studies - Year 2",
+      "day": "Wed",
+      "rooms": [
+        "Lokoja",
+        "Uyo"
+      ],
+      "location": "CMS 201 - FMM for Film & Media Studies - Year 2 on Wed"
+    },
+    {
+      "course": "CMS 301 - FMM",
+      "group": "Film & Media Studies - Year 3",
+      "day": "Wed",
+      "rooms": [
+        "Enugu",
+        "Jos"
+      ],
+      "location": "CMS 301 - FMM for Film & Media Studies - Year 3 on Wed"
+    },
+    {
+      "course": "COM 415",
+      "group": "Mass Communication - Year 4",
+      "day": "Mon",
+      "rooms": [
+        "Ado-Ekiti",
+        "Enugu"
+      ],
+      "location": "COM 415 for Mass Communication - Year 4 on Mon"
+    },
+    {
+      "course": "CSC 413",
+      "group": "Computer Science - Year  4/Stream 1",
+      "day": "Wed",
+      "rooms": [
+        "Asaba",
+        "Classroom 1"
+      ],
+      "location": "CSC 413 for Computer Science - Year  4/Stream 1 on Wed"
+    },
+    {
+      "course": "CSC 421",
+      "group": "Computer Science - Year  4/Stream 1",
+      "day": "Wed",
+      "rooms": [
+        "Ado-Ekiti",
+        "SST New Classroom (Year 4)"
+      ],
+      "location": "CSC 421 for Computer Science - Year  4/Stream 1 on Wed"
+    },
+    {
+      "course": "CSC 497",
+      "group": "Computer Science - Year  4/Stream 1",
+      "day": "Fri",
+      "rooms": [
+        "Bauchi",
+        "SST New Classroom (Year 4)"
+      ],
+      "location": "CSC 497 for Computer Science - Year  4/Stream 1 on Fri"
+    },
+    {
+      "course": "CSC 497",
+      "group": "Computer Science - Year  4/Stream 2",
+      "day": "Tue",
+      "rooms": [
+        "Jalingo",
+        "Umuahia"
+      ],
+      "location": "CSC 497 for Computer Science - Year  4/Stream 2 on Tue"
+    },
+    {
+      "course": "ECO 103",
+      "group": "Economics - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Ado-Ekiti",
+        "Zaria"
+      ],
+      "location": "ECO 103 for Economics - Year 1 on Mon"
+    },
+    {
+      "course": "ENT 211 - EEE",
+      "group": "Mechanical Engineering - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Classroom 3",
+        "Uyo"
+      ],
+      "location": "ENT 211 - EEE for Mechanical Engineering - Year 2 on Mon"
+    },
+    {
+      "course": "ENT 211 - FIN",
+      "group": "Finance - Year 2",
+      "day": "Wed",
+      "rooms": [
+        "Jos",
+        "Maiduguri"
+      ],
+      "location": "ENT 211 - FIN for Finance - Year 2 on Wed"
+    },
+    {
+      "course": "FIN 315",
+      "group": "Finance - Year 3",
+      "day": "Tue",
+      "rooms": [
+        "Jos",
+        "Port-Harcourt"
+      ],
+      "location": "FIN 315 for Finance - Year 3 on Tue"
+    },
+    {
+      "course": "FIN 401 - ACC",
+      "group": "Accounting - Year 4",
+      "day": "Wed",
+      "rooms": [
+        "Asaba",
+        "TYD New classroom"
+      ],
+      "location": "FIN 401 - ACC for Accounting - Year 4 on Wed"
+    },
+    {
+      "course": "GET 201",
+      "group": "Mechanical Engineering - Year 2",
+      "day": "Thu",
+      "rooms": [
+        "Ado-Ekiti",
+        "Enugu"
+      ],
+      "location": "GET 201 for Mechanical Engineering - Year 2 on Thu"
+    },
+    {
+      "course": "GET 207",
+      "group": "Electrical Engineering - Year 2",
+      "day": "Wed",
+      "rooms": [
+        "Ibadan",
+        "SST New Classroom (Year 4)"
+      ],
+      "location": "GET 207 for Electrical Engineering - Year 2 on Wed"
+    },
+    {
+      "course": "GET 211",
+      "group": "Mechatronics Engineering - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Engineering Drawing Studio",
+        "Strength of Materials"
+      ],
+      "location": "GET 211 for Mechatronics Engineering - Year 2 on Mon"
+    },
+    {
+      "course": "GET 211",
+      "group": "Electrical Engineering - Year 2",
+      "day": "Tue",
+      "rooms": [
+        "Umuahia",
+        "Uyo"
+      ],
+      "location": "GET 211 for Electrical Engineering - Year 2 on Tue"
+    },
+    {
+      "course": "GET 501 - MEE",
+      "group": "Mechanical Engineering - Year 5",
+      "day": "Mon",
+      "rooms": [
+        "Abeokuta",
+        "SST New Classroom (Year 4)"
+      ],
+      "location": "GET 501 - MEE for Mechanical Engineering - Year 5 on Mon"
+    },
+    {
+      "course": "GST 112 -SMSS",
+      "group": "Accounting - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Abakaliki",
+        "Umuahia"
+      ],
+      "location": "GST 112 -SMSS for Accounting - Year 1 on Mon"
+    },
+    {
+      "course": "GST 112 -SMSS",
+      "group": "Business Administration - Year 1",
+      "day": "Wed",
+      "rooms": [
+        "Umuahia",
+        "Zaria"
+      ],
+      "location": "GST 112 -SMSS for Business Administration - Year 1 on Wed"
+    },
+    {
+      "course": "GST-111",
+      "group": "Mass Communication - Year 1",
+      "day": "Fri",
+      "rooms": [
+        "Ado-Ekiti",
+        "TYD New classroom"
+      ],
+      "location": "GST-111 for Mass Communication - Year 1 on Fri"
+    },
+    {
+      "course": "IFT 211",
+      "group": "Software Engineering - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Engineering Drawing Studio",
+        "Strength of Materials"
+      ],
+      "location": "IFT 211 for Software Engineering - Year 2 on Mon"
+    },
+    {
+      "course": "ISM 112",
+      "group": "ISMS - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Asaba",
+        "Jalingo"
+      ],
+      "location": "ISM 112 for ISMS - Year 1 on Mon"
+    },
+    {
+      "course": "ISM 407",
+      "group": "ISMS - Year 4",
+      "day": "Mon",
+      "rooms": [
+        "Abakaliki",
+        "Ibadan"
+      ],
+      "location": "ISM 407 for ISMS - Year 4 on Mon"
+    },
+    {
+      "course": "MCM 301",
+      "group": "Mass Communication - Year 3",
+      "day": "Wed",
+      "rooms": [
+        "Asaba",
+        "Uyo"
+      ],
+      "location": "MCM 301 for Mass Communication - Year 3 on Wed"
+    },
+    {
+      "course": "MEE 403",
+      "group": "Mechanical Engineering - Year 4",
+      "day": "Mon",
+      "rooms": [
+        "Classroom 2",
+        "Electrical Power and Machines Lab"
+      ],
+      "location": "MEE 403 for Mechanical Engineering - Year 4 on Mon"
+    },
+    {
+      "course": "MEE 590",
+      "group": "Mechanical Engineering - Year 5",
+      "day": "Tue",
+      "rooms": [
+        "Ibadan",
+        "Uyo"
+      ],
+      "location": "MEE 590 for Mechanical Engineering - Year 5 on Tue"
+    },
+    {
+      "course": "MIS 401  - ACC",
+      "group": "Accounting - Year 4",
+      "day": "Mon",
+      "rooms": [
+        "Bauchi",
+        "Jos"
+      ],
+      "location": "MIS 401  - ACC for Accounting - Year 4 on Mon"
+    },
+    {
+      "course": "MTH101",
+      "group": "Software Engineering - Year 1",
+      "day": "Fri",
+      "rooms": [
+        "Ibadan",
+        "Maiduguri"
+      ],
+      "location": "MTH101 for Software Engineering - Year 1 on Fri"
+    },
+    {
+      "course": "PAU-CSC 111",
+      "group": "Software Engineering - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Classroom 1",
+        "Maiduguri"
+      ],
+      "location": "PAU-CSC 111 for Software Engineering - Year 1 on Mon"
+    },
+    {
+      "course": "PAU-ECO 105",
+      "group": "Economics - Year 1",
+      "day": "Fri",
+      "rooms": [
+        "Art and Graphics Studio",
+        "Maiduguri"
+      ],
+      "location": "PAU-ECO 105 for Economics - Year 1 on Fri"
+    },
+    {
+      "course": "PAU-ECO 292",
+      "group": "Economics - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Enugu",
+        "Uyo"
+      ],
+      "location": "PAU-ECO 292 for Economics - Year 2 on Mon"
+    },
+    {
+      "course": "PAU-FIN 102",
+      "group": "Finance - Year 1",
+      "day": "Mon",
+      "rooms": [
+        "Maiduguri",
+        "Port-Harcourt"
+      ],
+      "location": "PAU-FIN 102 for Finance - Year 1 on Mon"
+    },
+    {
+      "course": "PAU-FIN-209",
+      "group": "Finance - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Bauchi",
+        "Uyo"
+      ],
+      "location": "PAU-FIN-209 for Finance - Year 2 on Mon"
+    },
+    {
+      "course": "PAU-ISM 211",
+      "group": "ISMS - Year 2",
+      "day": "Mon",
+      "rooms": [
+        "Engineering Drawing Studio",
+        "Ibadan"
+      ],
+      "location": "PAU-ISM 211 for ISMS - Year 2 on Mon"
+    },
+    {
+      "course": "PAU-MCM 391",
+      "group": "Mass Communication - Year 3",
+      "day": "Tue",
+      "rooms": [
+        "Enugu",
+        "Oshogbo"
+      ],
+      "location": "PAU-MCM 391 for Mass Communication - Year 3 on Tue"
+    },
+    {
+      "course": "PHY101",
+      "group": "Data Science - Year 1",
+      "day": "Wed",
+      "rooms": [
+        "TYD New classroom",
+        "Uyo"
+      ],
+      "location": "PHY101 for Data Science - Year 1 on Wed"
+    },
+    {
+      "course": "SSC 301",
+      "group": "Economics - Year 3",
+      "day": "Mon",
+      "rooms": [
+        "Abakaliki",
+        "Port-Harcourt"
+      ],
+      "location": "SSC 301 for Economics - Year 3 on Mon"
+    },
+    {
+      "course": "STA 111",
+      "group": "Data Science - Year 1",
+      "day": "Tue",
+      "rooms": [
+        "Ado-Ekiti",
+        "Art and Graphics Studio"
+      ],
+      "location": "STA 111 for Data Science - Year 1 on Tue"
+    }
+  ],
+  "Room Capacity/Type Conflicts": [
+    {
+      "type": "Wrong Building (TYD in SST)",
+      "room": "Engineering Drawing Studio",
+      "building": "SST",
+      "group": "ISMS - Year 2",
+      "day": "Mon",
+      "time": "9:00",
+      "location": "Engineering Drawing Studio on Mon at 9:00"
+    },
+    {
+      "type": "Wrong Building (TYD in SST)",
+      "room": "Strength of Materials",
+      "building": "SST",
+      "group": "Accounting - Year 4",
+      "day": "Thu",
+      "time": "9:00",
+      "location": "Strength of Materials on Thu at 9:00"
+    },
+    {
+      "type": "Wrong Building (TYD in SST)",
+      "room": "SST New Classroom (Year 4)",
+      "building": "SST",
+      "group": "Finance - Year 4",
+      "day": "Tue",
+      "time": "9:00",
+      "location": "SST New Classroom (Year 4) on Tue at 9:00"
+    }
+  ],
+  "Classes During Break Time": [],
+  "Late Classes": [
+    {
+      "type": "Late Class (TYD Group - High Penalty)",
+      "course": "ACC 407",
+      "group": "Accounting - Year 4",
+      "location": "ACC 407 for Accounting - Year 4 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class (TYD Group - High Penalty)",
+      "course": "CMS 201 - MCM",
+      "group": "Mass Communication - Year 2",
+      "location": "CMS 201 - MCM for Mass Communication - Year 2 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "COS 101",
+      "group": "Computer Science - Year  1",
+      "location": "COS 101 for Computer Science - Year  1 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class (TYD Group - High Penalty)",
+      "course": "ECO 412",
+      "group": "Economics - Year 4",
+      "location": "ECO 412 for Economics - Year 4 on Fri at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "ENT 211 - CSC",
+      "group": "Computer Science - Year  2/Stream 1",
+      "location": "ENT 211 - CSC for Computer Science - Year  2/Stream 1 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "ENT 312 - MEE",
+      "group": "Mechanical Engineering - Year 3",
+      "location": "ENT 312 - MEE for Mechanical Engineering - Year 3 on Fri at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "GET 203",
+      "group": "Mechatronics Engineering - Year 2",
+      "location": "GET 203 for Mechatronics Engineering - Year 2 on Fri at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "GST 312 - CSC",
+      "group": "Computer Science - Year  3",
+      "location": "GST 312 - CSC for Computer Science - Year  3 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "PAU-MEE 315",
+      "group": "Mechanical Engineering - Year 3",
+      "location": "PAU-MEE 315 for Mechanical Engineering - Year 3 on Thu at 17:00"
+    },
+    {
+      "type": "Late Class",
+      "course": "PHY 107 - CSC",
+      "group": "Data Science - Year 1",
+      "location": "PHY 107 - CSC for Data Science - Year 1 on Fri at 17:00"
+    }
+  ]
+}

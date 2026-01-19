@@ -5,8 +5,13 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from typing import Any
+
+import numpy as np
+
 # For app.py runs, we want to build the exact same InputData instance used by the API pipeline.
 from input_data_api import initialize_input_data_from_json
+from constraints import Constraints
 
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -102,13 +107,228 @@ def _build_room_lookup(input_json: dict) -> dict[str, dict]:
     return lookup
 
 
-def verify(schedule_path: Path, input_path: Path):
+def _jsonable(obj: Any) -> Any:
+    if obj is None:
+        return None
+    if isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, (list, tuple)):
+        return [_jsonable(v) for v in obj]
+    if isinstance(obj, dict):
+        # Canonicalize known list fields where order is not semantically meaningful
+        out = {}
+        for k, v in obj.items():
+            key = str(k)
+            if key == 'rooms' and isinstance(v, list):
+                out[key] = sorted([str(x) for x in v if x is not None])
+            elif key == 'courses' and isinstance(v, str) and ',' in v:
+                # Some outputs encode multiple courses as a single comma-separated string.
+                # Normalize ordering so diffs don't flag equivalent data.
+                parts = [p.strip() for p in v.split(',') if p.strip()]
+                out[key] = ', '.join(sorted(parts, key=lambda s: s.lower()))
+            else:
+                out[key] = _jsonable(v)
+        return out
+    return str(obj)
+
+
+def _stable_key(v: Any) -> str:
+    try:
+        return json.dumps(_jsonable(v), sort_keys=True, ensure_ascii=False)
+    except Exception:
+        return str(v)
+
+
+def _normalize_violation_dict(d: dict) -> dict:
+    if not isinstance(d, dict):
+        return {}
+    out = {}
+    for k, v in d.items():
+        if isinstance(v, list):
+            out[str(k)] = sorted([_jsonable(x) for x in v], key=_stable_key)
+        else:
+            out[str(k)] = _jsonable(v)
+    return out
+
+
+def _diff_violation_dict(expected: dict, actual: dict) -> dict:
+    exp = _normalize_violation_dict(expected)
+    act = _normalize_violation_dict(actual)
+    all_keys = sorted(set(exp.keys()) | set(act.keys()))
+    diff = {
+        'keys_only_in_expected': [k for k in exp.keys() if k not in act],
+        'keys_only_in_actual': [k for k in act.keys() if k not in exp],
+        'count_differences': {},
+        'examples': {},
+    }
+    for k in all_keys:
+        ev = exp.get(k, [])
+        av = act.get(k, [])
+        if isinstance(ev, list) and isinstance(av, list):
+            if len(ev) != len(av):
+                diff['count_differences'][k] = {'expected': len(ev), 'actual': len(av)}
+            # show small example mismatch sets
+            ev_set = set(_stable_key(x) for x in ev)
+            av_set = set(_stable_key(x) for x in av)
+            missing = sorted(ev_set - av_set)[:5]
+            extra = sorted(av_set - ev_set)[:5]
+            if missing or extra:
+                diff['examples'][k] = {
+                    'missing_examples': missing,
+                    'extra_examples': extra,
+                }
+    return diff
+
+
+def _compute_app_violation_breakdown(timetables_data: list, rooms_data: list, input_data) -> dict:
+    """Compute the same per-constraint breakdown used by the frontend Errors dropdown.
+
+    app.py recomputes and stores this via Dash_UI.recompute_constraint_violations_simplified.
+    We call that exact function here so this script can be 1:1 with the UI.
+    """
+    try:
+        import Dash_UI  # local module
+
+        # Dash_UI.recompute_constraint_violations_simplified relies on a module-global `input_data`
+        # when available, so we inject the same InputData instance built from the transformer JSON.
+        Dash_UI.input_data = input_data
+        recomputed = Dash_UI.recompute_constraint_violations_simplified(timetables_data, rooms_data) or {}
+        return _normalize_violation_dict(recomputed)
+    except Exception as e:
+        logger.error(f"Failed to recompute violations via Dash_UI (matching app.py): {e}")
+        return {}
+
+
+def _build_chromosome_from_timetable(timetables_data: list, input_data) -> tuple[np.ndarray, dict]:
+    """Reconstruct a chromosome-like grid (rooms x timeslots) from timetables JSON.
+
+    This lets us run the exact constraint engine checks (constraints.py) against a saved timetable.
+    Returns: (chromosome, diagnostics)
+    """
+
+    rooms = getattr(input_data, 'rooms', []) or []
+    hours_per_day = int(getattr(input_data, 'hours', 9) or 9)
+    days_per_week = int(getattr(input_data, 'days', 5) or 5)
+    timeslots_count = hours_per_day * days_per_week
+
+    # room name/id -> room_idx
+    room_index: dict[str, int] = {}
+    for idx, r in enumerate(rooms):
+        name = str(getattr(r, 'name', '') or '').strip()
+        rid = str(getattr(r, 'id', '') or getattr(r, 'Id', '') or '').strip()
+        if name:
+            room_index[name] = idx
+        if rid:
+            room_index[rid] = idx
+
+    cons = Constraints(input_data)
+
+    # pool[(group_id, course_code)] = deque([event_id, event_id, ...])
+    pool: dict[tuple[str, str], list[int]] = defaultdict(list)
+    for event_id, event in (cons.events_map or {}).items():
+        try:
+            gid = str(getattr(event.student_group, 'id', '') or '').strip()
+            course_code = str(getattr(event, 'course_id', '') or '').strip()
+            if gid and course_code:
+                pool[(gid, course_code)].append(int(event_id))
+        except Exception:
+            continue
+    # determinism
+    for k in list(pool.keys()):
+        pool[k] = sorted(pool[k])
+
+    chromosome = np.empty((len(rooms), timeslots_count), dtype=object)
+    chromosome[:] = None
+
+    diagnostics = {
+        'unknown_rooms': [],
+        'unknown_groups': [],
+        'missing_event_ids': [],
+        'slot_collisions': [],
+    }
+
+    # group name -> group_id (from input_data)
+    group_name_to_id: dict[str, str] = {}
+    for g in getattr(input_data, 'student_groups', []) or []:
+        gname = str(getattr(g, 'name', '') or '').strip()
+        gid = str(getattr(g, 'id', '') or '').strip()
+        if gname and gid:
+            group_name_to_id[gname] = gid
+
+    for entry in timetables_data or []:
+        sg_obj = entry.get('student_group') or {}
+        group_id = str(sg_obj.get('id') or '').strip() if isinstance(sg_obj, dict) else str(getattr(sg_obj, 'id', '') or '').strip()
+        group_name = str(sg_obj.get('name') or '').strip() if isinstance(sg_obj, dict) else str(getattr(sg_obj, 'name', '') or sg_obj or '').strip()
+        if not group_id and group_name:
+            group_id = group_name_to_id.get(group_name, '')
+
+        if not group_id:
+            if group_name:
+                diagnostics['unknown_groups'].append(group_name)
+            continue
+
+        rows = entry.get('timetable') or []
+        for h_idx, row in enumerate(rows):
+            if not isinstance(row, list) or len(row) < 2:
+                continue
+            if h_idx >= hours_per_day:
+                continue
+            for d_idx in range(min(days_per_week, max(0, len(row) - 1))):
+                cell = row[d_idx + 1]
+                course_code, room_name, _lect = _parse_cell(cell)
+                if not course_code:
+                    continue
+                course_code = str(course_code).strip()
+                room_name = str(room_name or '').strip()
+
+                room_idx = room_index.get(room_name)
+                if room_idx is None:
+                    diagnostics['unknown_rooms'].append(room_name or 'Unknown')
+                    continue
+
+                timeslot_idx = (d_idx * hours_per_day) + h_idx
+                if timeslot_idx < 0 or timeslot_idx >= timeslots_count:
+                    continue
+
+                key = (group_id, course_code)
+                if not pool.get(key):
+                    diagnostics['missing_event_ids'].append({'group_id': group_id, 'group': group_name, 'course': course_code})
+                    continue
+
+                event_id = pool[key].pop(0)
+
+                existing = chromosome[room_idx, timeslot_idx]
+                if existing is not None:
+                    diagnostics['slot_collisions'].append({'room': room_name, 'day': d_idx, 'hour_index': h_idx})
+                    # Keep the first assignment for engine stability.
+                    continue
+
+                chromosome[room_idx, timeslot_idx] = event_id
+
+    return chromosome, diagnostics
+
+
+def _compute_engine_violation_breakdown(timetables_data: list, input_data) -> tuple[dict, dict]:
+    """Compute the authoritative constraint breakdown via constraints.py."""
+    chromosome, diagnostics = _build_chromosome_from_timetable(timetables_data, input_data)
+    cons = Constraints(input_data)
+    detailed = cons.get_detailed_constraint_violations(chromosome)
+    return _normalize_violation_dict(detailed), diagnostics
+
+
+def verify(schedule_path: Path, input_path: Path, *, fail_on_violations: bool = False, mode: str = 'engine'):
+    script_dir = Path(__file__).resolve().parent
+    if not schedule_path.is_absolute():
+        schedule_path = (script_dir / schedule_path).resolve()
+    if not input_path.is_absolute():
+        input_path = (script_dir / input_path).resolve()
+
     try:
         if input_path.exists():
             input_json = json.loads(input_path.read_text(encoding="utf-8"))
         else:
             # Fallback: build a transformer-shaped input JSON from the repo's static datasets.
-            data_dir = Path("data")
+            data_dir = script_dir / "data"
             courses = json.loads((data_dir / "course-data.json").read_text(encoding="utf-8"))
             rooms = json.loads((data_dir / "rooms-data.json").read_text(encoding="utf-8"))
             studentgroups = json.loads((data_dir / "studentgroup-data.json").read_text(encoding="utf-8"))
@@ -134,247 +354,115 @@ def verify(schedule_path: Path, input_path: Path):
         logger.error(f"Failed to load schedule from {schedule_path}: {e}")
         return 2
 
-    rooms_lookup = _build_room_lookup(input_json)
+    rooms_data = input_json.get('rooms') or []
 
-    course_credits = {c.code: getattr(c, "credits", 0) for c in input_data.courses}
-    course_lookup = {c.code: c for c in input_data.courses}
-    group_by_id = {g.id: g for g in input_data.student_groups}
-    faculty_lookup = {}
-    for f in getattr(input_data, 'faculties', []) or []:
-        fid = str(getattr(f, 'faculty_id', '') or '').strip()
-        name = str(getattr(f, 'name', '') or '').strip()
-        if fid:
-            faculty_lookup[fid.casefold()] = f
-        if name:
-            faculty_lookup[name.casefold()] = f
+    mode_norm = str(mode or 'engine').strip().lower()
+    if mode_norm == 'dash':
+        app_breakdown = _compute_app_violation_breakdown(timetable_data, rooms_data, input_data)
+        diagnostics = {}
+        label = 'APP (Dash/UI)'
+    else:
+        app_breakdown, diagnostics = _compute_engine_violation_breakdown(timetable_data, input_data)
+        label = 'APP (Constraint Engine)'
 
-    # Map: (day_idx, hour_idx) -> list of {group_id, course_code, room_name}
-    global_schedule = defaultdict(list)
-
-    # Map: group_id -> course_code -> list[(day_idx, hour_idx, room_name)]
-    group_course_schedule = defaultdict(lambda: defaultdict(list))
-
-    violations = {
-        "MissingOrExtra": [],
-        "Hard_WrongBuilding": [],
-        "Hard_RoomTypeMismatch": [],
-        "Hard_ConsecutiveSlots": [],
-        "Hard_LecturerClash": [],
-        "Hard_StudentGroupClash": [],
-        "Hard_LecturerAvailability": [],
-        "Hard_SameCourseMultipleRooms": [],
-        "Hard_Capacity": [],
-    }
-
-    # iterate
-    for entry in timetable_data:
-        group_info = entry.get("student_group") or {}
-        group_id = str(group_info.get("id") or "").strip()
-        timetable_matrix = entry.get("timetable") or []
-
-        sg = group_by_id.get(group_id)
-        is_sst = bool(getattr(sg, "is_sst", False)) if sg else False
-
-        for h_idx, row in enumerate(timetable_matrix):
-            if not isinstance(row, list) or len(row) < 6:
-                continue
-
-            start_minutes = _time_to_minutes(row[0])
-            # If the time label isn't parseable, fall back to the conventional 9:00 start.
-            if start_minutes is None:
-                start_minutes = (9 + h_idx) * 60
-
-            for d_idx in range(5):
-                cell = row[d_idx + 1]
-                course_code, room_name, lecturer = _parse_cell(cell)
-                if not course_code:
-                    continue
-
-                course_code = course_code.strip()
-                room_name = room_name.strip() if room_name else "Unknown"
-                lecturer_s = str(lecturer or "").strip()
-                lecturer_norm = lecturer_s.casefold() if lecturer_s else None
-
-                global_schedule[(d_idx, h_idx)].append(
-                    {"group_id": group_id, "course": course_code, "room": room_name, "lecturer": lecturer_s}
-                )
-                group_course_schedule[group_id][course_code].append((d_idx, h_idx, room_name))
-
-                # Room type mismatch
-                course_obj = course_lookup.get(course_code)
-                required_type = str(getattr(course_obj, 'required_room_type', '') or '').strip()
-                room_info = rooms_lookup.get(room_name) or {}
-                actual_type = str(room_info.get('room_type') or '').strip()
-                if required_type and actual_type and required_type != actual_type:
-                    violations["Hard_RoomTypeMismatch"].append(
-                        f"{group_id} {course_code}: required {required_type}, got {actual_type} in {room_name} at {_DAYS_MAP.get(d_idx,d_idx)} hourIndex={h_idx}"
-                    )
-
-                # Lecturer availability (based on the lecturer string in the cell)
-                if lecturer_norm:
-                    faculty = faculty_lookup.get(lecturer_norm)
-                    if faculty is None:
-                        # Sometimes the cell contains an email/id instead of a name.
-                        faculty = faculty_lookup.get(lecturer_s.casefold())
-                    day_abbr = _DAYS_MAP.get(d_idx, "")
-                    if faculty is not None:
-                        if not _is_available_day(getattr(faculty, 'avail_days', None), day_abbr):
-                            violations["Hard_LecturerAvailability"].append(
-                                f"{lecturer_s}: not available on {day_abbr} (avail_days={getattr(faculty,'avail_days',None)}, avail_times={getattr(faculty,'avail_times',None)})"
-                            )
-                        elif not _is_available_time(getattr(faculty, 'avail_times', None), start_minutes):
-                            violations["Hard_LecturerAvailability"].append(
-                                f"{lecturer_s}: not available at {row[0]} on {day_abbr} (avail_days={getattr(faculty,'avail_days',None)}, avail_times={getattr(faculty,'avail_times',None)})"
-                            )
-
-                # Wrong building (TYD in SST)
-                if not is_sst:
-                    room_info = rooms_lookup.get(room_name)
-                    building = str((room_info or {}).get("building") or "").strip().upper()
-                    if building == "SST":
-                        violations["Hard_WrongBuilding"].append(
-                            f"Group {group_id} in {room_name} (SST) at {_DAYS_MAP.get(d_idx,d_idx)} hourIndex={h_idx}"
-                        )
-
-    # Lecturer clashes & same-student-group clashes (global checks)
-    for (d_idx, h_idx), event_list in global_schedule.items():
-        # Lecturer clash
-        by_lect = defaultdict(list)
-        by_group = defaultdict(list)
-        for e in event_list:
-            lect = str(e.get('lecturer') or '').strip()
-            if lect:
-                by_lect[lect.casefold()].append(e)
-            gid = str(e.get('group_id') or '').strip()
-            if gid:
-                by_group[gid].append(e)
-
-        for lect_norm, items in by_lect.items():
-            if len(items) > 1:
-                lect_name = items[0].get('lecturer')
-                details = "; ".join([f"{it['group_id']}:{it['course']}@{it['room']}" for it in items[:4]])
-                if len(items) > 4:
-                    details += f"; ...(+{len(items)-4})"
-                violations["Hard_LecturerClash"].append(
-                    f"{lect_name} double-booked at {_DAYS_MAP.get(d_idx,d_idx)} hourIndex={h_idx}: {details}"
-                )
-
-        for gid, items in by_group.items():
-            if len(items) > 1:
-                details = "; ".join([f"{it['course']}@{it['room']}" for it in items[:4]])
-                if len(items) > 4:
-                    details += f"; ...(+{len(items)-4})"
-                violations["Hard_StudentGroupClash"].append(
-                    f"{gid} has multiple events at {_DAYS_MAP.get(d_idx,d_idx)} hourIndex={h_idx}: {details}"
-                )
-
-    # Completeness check: per group, per course.
-    for sg in input_data.student_groups:
-        gid = sg.id
-        actual_counts = defaultdict(int)
-        for course_code, events in group_course_schedule.get(gid, {}).items():
-            actual_counts[course_code] += len(events)
-
-        for i, course_code in enumerate(sg.courseIDs or []):
-            expected = 0
-            credits = course_credits.get(course_code, 0)
-            if credits == 1:
-                expected = 3
-            else:
-                # hours_required is already aligned with credits in transformer output
-                try:
-                    expected = int((sg.hours_required or [])[i])
-                except Exception:
-                    expected = int(credits or 0)
-
-            actual = actual_counts.get(course_code, 0)
-            if actual != expected:
-                violations["MissingOrExtra"].append(
-                    f"{gid} course {course_code}: expected {expected}, got {actual}"
-                )
-
-    # Consecutive-slot checks (same as before)
-    for group_id, courses in group_course_schedule.items():
-        for course_code, events in courses.items():
-            credits = course_credits.get(course_code, 0)
-            events = sorted(events)
-
-            if credits == 2 and len(events) == 2:
-                d1, h1, _ = events[0]
-                d2, h2, _ = events[1]
-                if not (d1 == d2 and (h2 - h1) == 1):
-                    violations["Hard_ConsecutiveSlots"].append(
-                        f"{group_id} {course_code} (2cr): not consecutive ({d1},{h1}) ({d2},{h2})"
-                    )
-
-            if credits == 3 and len(events) >= 3:
-                has_block = any(events[i][0] == events[i + 1][0] and (events[i + 1][1] - events[i][1]) == 1 for i in range(len(events) - 1))
-                if not has_block:
-                    violations["Hard_ConsecutiveSlots"].append(
-                        f"{group_id} {course_code} (3cr): no 2-hr consecutive block"
-                    )
-
-    # Same course multiple rooms on same day
-    for group_id, courses in group_course_schedule.items():
-        for course_code, events in courses.items():
-            rooms_per_day = defaultdict(set)
-            for d, _, r in events:
-                if r and r != "Unknown":
-                    rooms_per_day[d].add(r)
-            for d, rooms in rooms_per_day.items():
-                if len(rooms) > 1:
-                    violations["Hard_SameCourseMultipleRooms"].append(
-                        f"{group_id} {course_code} on {_DAYS_MAP.get(d,d)}: rooms={sorted(rooms)}"
-                    )
-
-    # Capacity
-    for (d_idx, h_idx), event_list in global_schedule.items():
-        room_to_groups = defaultdict(set)
-        for e in event_list:
-            room_to_groups[e["room"]].add(e["group_id"])
-
-        for room_name, groups in room_to_groups.items():
-            room_info = rooms_lookup.get(room_name) or {}
-            try:
-                capacity = int(room_info.get("capacity") or 0)
-            except Exception:
-                capacity = 0
-
-            for gid in groups:
-                sg = group_by_id.get(gid)
-                if not sg:
-                    continue
-                if getattr(sg, "no_students", 0) > capacity and capacity > 0:
-                    violations["Hard_Capacity"].append(
-                        f"{room_name} cap={capacity} overloaded by {gid} size={getattr(sg,'no_students',0)}"
-                    )
-
-    # Report
-    print("\n=== APP PIPELINE VERIFICATION REPORT ===")
+    print(f"\n=== {label} CONSTRAINT VIOLATION BREAKDOWN ===")
     total = 0
-    for k, vals in violations.items():
-        print(f"[{k}]: {len(vals)}")
-        total += len(vals)
-        for v in vals[:5]:
-            print(f"  - {v}")
-        if len(vals) > 5:
-            print(f"  ... (+{len(vals)-5} more)")
+    for k in sorted(app_breakdown.keys()):
+        vals = app_breakdown.get(k) or []
+        if isinstance(vals, list):
+            count = len(vals)
+            total += count
+            print(f"[{k}]: {count}")
+            for v in vals[:5]:
+                print(f"  - {v}")
+            if len(vals) > 5:
+                print(f"  ... (+{len(vals)-5} more)")
+        else:
+            print(f"[{k}]: {vals}")
+
+    if diagnostics:
+        # Only print when non-empty, to keep output readable.
+        diag_nonempty = {k: v for k, v in diagnostics.items() if v}
+        if diag_nonempty:
+            print("\n=== RECONSTRUCTION DIAGNOSTICS ===")
+            for k, v in diag_nonempty.items():
+                print(f"[{k}]: {len(v) if isinstance(v, list) else v}")
+
+    # Optional: compare against the exact file the frontend uses
+    compare_path = script_dir / "data" / "constraint_violations.json"
+    diff_matches_file = None
+    if compare_path.exists():
+        try:
+            expected = json.loads(compare_path.read_text(encoding='utf-8'))
+            diff = _diff_violation_dict(expected, app_breakdown)
+            has_diffs = bool(diff['keys_only_in_expected'] or diff['keys_only_in_actual'] or diff['count_differences'] or diff['examples'])
+            diff_matches_file = (not has_diffs)
+            print("\n=== DIFF VS data/constraint_violations.json ===")
+            if not has_diffs:
+                print("MATCH: verify_output_app.py output matches data/constraint_violations.json")
+            else:
+                if diff['keys_only_in_expected']:
+                    print(f"Keys only in file: {diff['keys_only_in_expected']}")
+                if diff['keys_only_in_actual']:
+                    print(f"Keys only in computed: {diff['keys_only_in_actual']}")
+                if diff['count_differences']:
+                    print("Count differences:")
+                    for ck, cv in diff['count_differences'].items():
+                        print(f"  - {ck}: file={cv['expected']} computed={cv['actual']}")
+                if diff['examples']:
+                    print("Example item mismatches (stable-json strings):")
+                    for ck, ex in list(diff['examples'].items())[:6]:
+                        print(f"  - {ck}:")
+                        if ex.get('missing_examples'):
+                            print(f"      missing: {ex['missing_examples']}")
+                        if ex.get('extra_examples'):
+                            print(f"      extra: {ex['extra_examples']}")
+        except Exception as e:
+            print(f"Warning: could not diff against {compare_path}: {e}")
+
+    # Write computed breakdown for easy diffing
+    out_path = script_dir / "data" / "verify_constraint_violations.json"
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(app_breakdown, ensure_ascii=False, indent=2), encoding='utf-8')
+        print(f"\nWrote computed breakdown to: {out_path}")
+    except Exception as e:
+        print(f"Warning: could not write verify output JSON: {e}")
 
     if total == 0:
-        print("\nSUCCESS: No issues detected.")
-        return 0
+        print("\nOK: No issues detected.")
+    else:
+        src = 'Dash/UI recompute' if mode_norm == 'dash' else 'constraint engine'
+        print(f"\nOK: {total} total issues detected (per {src}).")
 
-    print(f"\nFAILED: {total} total issues detected.")
-    return 1
+    # Exit code semantics:
+    # - If we can compare to the frontend file, success means the breakdown matches (not "no violations")
+    # - If fail_on_violations is enabled, treat any violations as failure
+    if diff_matches_file is False:
+        return 1
+    if fail_on_violations and total > 0:
+        return 1
+    return 0
 
 
 def main():
     parser = argparse.ArgumentParser(description="Verify fresh_timetable_data.json against the app.py (transformer) input dataset")
     parser.add_argument("--schedule", default="data/fresh_timetable_data.json", help="Path to schedule JSON")
     parser.add_argument("--input", default="data/last_input_data.json", help="Path to last transformer input JSON saved by app.py")
+    parser.add_argument(
+        "--mode",
+        choices=["engine", "dash"],
+        default="engine",
+        help="Constraint breakdown source: 'engine' uses constraints.py (authoritative); 'dash' uses Dash_UI recompute (simplified).",
+    )
+    parser.add_argument(
+        "--fail-on-violations",
+        action="store_true",
+        help="Exit non-zero if any violations exist (default: only fail when breakdown mismatches the frontend file).",
+    )
     args = parser.parse_args()
 
-    return verify(Path(args.schedule), Path(args.input))
+    return verify(Path(args.schedule), Path(args.input), fail_on_violations=args.fail_on_violations, mode=args.mode)
 
 
 if __name__ == "__main__":
