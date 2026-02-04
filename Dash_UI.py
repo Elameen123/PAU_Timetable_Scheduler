@@ -484,7 +484,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                     'room': room,
                                     'group': group_name,
                                     'day': days_map.get(day, str(day)),
-                                    'time': time_label or f"{time_slot+9}:00",
+                                    'time': time_label or f"{(time_slot+8):02d}:30",
                                     'students': getattr(grp, 'no_students', 0),
                                     'capacity': cap
                                 })
@@ -514,8 +514,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                         'course': getattr(cobj, 'code', course) or course,
                                         'group': group_name,
                                         'day': days_map.get(day, str(day)),
-                                        'time': time_label or f"{time_slot+9}:00",
-                                        'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                                        'time': time_label or f"{(time_slot+8):02d}:30",
+                                        'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{(time_slot+8):02d}:30'}"
                                     })
 
                             # Wrong building (TYD in SST)
@@ -526,8 +526,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                     'building': 'SST',
                                     'group': group_name,
                                     'day': days_map.get(day, str(day)),
-                                    'time': time_label or f"{time_slot+9}:00",
-                                    'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                                    'time': time_label or f"{(time_slot+8):02d}:30",
+                                    'location': f"{room} on {days_map.get(day, str(day))} at {time_label or f'{(time_slot+8):02d}:30'}"
                                 })
                     except Exception:
                         pass
@@ -539,8 +539,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'room': room_name,
                             'groups': groups,
                             'day': days_map.get(day, str(day)),
-                            'time': time_label or f"{time_slot+9}:00",
-                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                            'time': time_label or f"{(time_slot+8):02d}:30",
+                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{(time_slot+8):02d}:30'}"
                         })
 
                 # Record Same Student Group Overlaps
@@ -551,8 +551,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                             'courses': [u['course'] for u in usages],
                             'rooms': [u['room'] for u in usages],
                             'day': days_map.get(day, str(day)),
-                            'time': time_label or f"{time_slot+9}:00",
-                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                            'time': time_label or f"{(time_slot+8):02d}:30",
+                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{(time_slot+8):02d}:30'}"
                         })
 
                 # Record lecturer clashes
@@ -561,10 +561,10 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                         violations['Lecturer Clashes'].append({
                             'lecturer': lec,
                             'day': days_map.get(day, str(day)),
-                            'time': time_label or f"{time_slot+9}:00",
+                            'time': time_label or f"{(time_slot+8):02d}:30",
                             'courses': [s['course'] for s in sessions],
                             'groups': [s['group'] for s in sessions],
-                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{time_slot+9}:00'}"
+                            'location': f"{days_map.get(day, str(day))} at {time_label or f'{(time_slot+8):02d}:30'}"
                         })
 
         # Check for Missing or Extra Classes
@@ -649,7 +649,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
              print("[Dash_UI] Warning: input_data not available, skipping Missing/Extra Class check.")
 
         # Check for Classes During Break Time
-        # Break is at 13:00 (index 4) on Mon (0), Wed (2), Fri (4)
+        # Break is at 12:30 (index 4) on Mon (0), Wed (2), Fri (4)
         break_slot_idx = 4
         break_days = [0, 2, 4]
         
@@ -676,9 +676,9 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                 violations['Classes During Break Time'].append({
                     'course': course_code,
                     'group': group_name,
-                    'location': f"{days_map.get(day_idx)} at 13:00",
+                    'location': f"{days_map.get(day_idx)} at 12:30",
                     'day': days_map.get(day_idx),
-                    'time': "13:00"
+                    'time': "12:30"
                 })
 
         # Check for Same Course in Multiple Rooms on Same Day
@@ -740,7 +740,13 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                     # But here we are iterating directly. Let's stick to the grid structure.
                     # Based on _parse_cell usage above, the grid is [Time, Mon, Tue...]
                     
-                    time_label = str(row[0]).strip() if row and len(row) > 0 else f"{r_idx+9}:00"
+                    if row and len(row) > 0:
+                        time_label = str(row[0]).strip()
+                    else:
+                        # Fallback time generation if label is missing
+                        # Start at 08:30, increment by 1 hour
+                        hour = 8 + r_idx
+                        time_label = f"{hour:02d}:30"
                     
                     for d_idx in range(input_data.days):
                         if d_idx + 1 >= len(row):
@@ -816,7 +822,9 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                 else:
                                     try:
                                         # parse time_label "09:00" -> 9
-                                        parts = str(time_label).split(':')
+                                        # Also handle "08:30-09:30" by taking the start time
+                                        clean_label = str(time_label).split('-')[0].strip()
+                                        parts = clean_label.split(':')
                                         hour = int(parts[0])
                                         minute = int(parts[1]) if len(parts) > 1 else 0
                                         slot_min = hour * 60 + minute

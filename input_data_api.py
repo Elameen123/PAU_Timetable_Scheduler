@@ -23,7 +23,7 @@ class InputData:
         self.nostudentgroup = 0
         # Keep API defaults aligned with the non-API scheduler (see input_data.py).
         # Can be overridden via initialize_input_data_from_json(...).
-        self.hours = 9
+        self.hours = 10
         self.days = 5
 
     def addCourse(self, name: str, code: str, credits: int, student_groupsID: List[str], facultyId, required_room_type: str):

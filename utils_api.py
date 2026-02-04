@@ -55,7 +55,7 @@ class Utility:
                 print("******************************")
 
 
-def print_timetable(individual, student_group, events_map: Dict, days: int, hours_per_day: int, day_start_time: int = 9):
+def print_timetable(individual, student_group, events_map: Dict, days: int, hours_per_day: int, day_start_time: float = 8.5):
     """
     Print timetable for a specific student group
     
@@ -71,7 +71,7 @@ def print_timetable(individual, student_group, events_map: Dict, days: int, hour
     timetable = [['' for _ in range(days)] for _ in range(hours_per_day)]
     
     # First, fill break time slots
-    break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+    break_hour = 4  # 12:30 is the 5th hour (index 4) starting from 8:30
     if break_hour < hours_per_day:
         for day in range(days):
             timetable[break_hour][day] = "BREAK"

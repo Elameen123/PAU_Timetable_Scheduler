@@ -43,10 +43,10 @@ class TimetableDataConverter:
                 timetable_grid = timetable.get('timetable', [])
                 if not isinstance(timetable_grid, list):
                     print(f"⚠️ Timetable {i} has invalid grid format, creating default grid")
-                    # Create default 8x6 grid (8 hours, 6 columns: time + 5 days)
+                    # Create default 10x6 grid (10 hours, 6 columns: time + 5 days)
                     timetable_grid = []
-                    for hour in range(9):
-                        row = [f"{9+hour}:00-{10+hour}:00"]  # Time column
+                    for hour in range(10):
+                        row = [f"{8+hour:02d}:30-{9+hour:02d}:30"]  # Time column
                         for day in range(5):  # 5 days
                             row.append("FREE")
                         timetable_grid.append(row)
@@ -66,13 +66,13 @@ class TimetableDataConverter:
                         formatted_grid.append(formatted_row)
                     else:
                         # Handle non-list rows - create default row
-                        default_row = [f"{9+row_idx}:00-{10+row_idx}:00"] + ["FREE"] * 5
+                        default_row = [f"{8+row_idx:02d}:30-{9+row_idx:02d}:30"] + ["FREE"] * 5
                         formatted_grid.append(default_row)
                 
                 # FIXED: Ensure minimum grid size
-                while len(formatted_grid) < 8:
+                while len(formatted_grid) < 10:
                     hour = len(formatted_grid)
-                    default_row = [f"{9+hour}:00-{10+hour}:00"] + ["FREE"] * 5
+                    default_row = [f"{8+hour:02d}:30-{9+hour:02d}:30"] + ["FREE"] * 5
                     formatted_grid.append(default_row)
                 
                 converted_timetable = {
@@ -98,7 +98,7 @@ class TimetableDataConverter:
                         'department': '',
                         'level': ''
                     },
-                    'timetable': [[f"{9+h}:00-{10+h}:00"] + ["FREE"] * 5 for h in range(9)],
+                    'timetable': [[f"{8+h:02d}:30-{9+h:02d}:30"] + ["FREE"] * 5 for h in range(10)],
                     'total_courses': 0,
                     'total_hours_scheduled': 0,
                     'constraint_violations': {},

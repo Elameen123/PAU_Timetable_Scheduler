@@ -144,7 +144,60 @@ for _, r in lect_df.iterrows():
 
     if aval_times_col:
         aval_t = str(r.get(aval_times_col) or "").strip()
-        avail_times = [t.strip() for t in re.split(r'[ ,;/]+', aval_t) if t.strip()] if aval_t else []
+        raw_times = [t.strip() for t in re.split(r'[ ,;/]+', aval_t) if t.strip()] if aval_t else []
+        
+        # TRANSFORMATION: Rollback support for whole number times (e.g. 9:00 -> 8:30)
+        avail_times = []
+        for t in raw_times:
+            # Logic: If whole hour (e.g. 9:00, 10), convert start to X-1:30, end to X:30
+            # Ranges like 9:00-17:00 become 8:30-17:30
+            try:
+                if '-' in t:
+                    parts = t.split('-')
+                    start_str, end_str = parts[0].strip(), parts[1].strip()
+                    
+                    # Process Start
+                    if ':' in start_str:
+                        sh, sm = map(int, start_str.split(':'))
+                    else:
+                        sh, sm = int(start_str), 0
+                    
+                    if sm == 0:
+                        s_new = f"{sh-1}:{30}"
+                    else:
+                        s_new = start_str # Keep existing non-zero minutes
+                        
+                    # Process End
+                    if ':' in end_str:
+                        eh, em = map(int, end_str.split(':'))
+                    else:
+                        eh, em = int(end_str), 0
+                        
+                    if em == 0:
+                        e_new = f"{eh}:{30}" # 17:00 -> 17:30
+                    else:
+                        e_new = end_str
+                        
+                    avail_times.append(f"{s_new}-{e_new}")
+                    
+                else:
+                    # Singleton time (assuming it's a start time slot)
+                    # 9:00 -> 8:30
+                    if ':' in t:
+                        h, m = map(int, t.split(':'))
+                    else:
+                        h, m = int(t), 0
+                        
+                    if m == 0:
+                        avail_times.append(f"{h-1}:{30}")
+                    else:
+                        avail_times.append(t)
+            except:
+                # Fallback if parsing fails
+                avail_times.append(t)
+    else:
+        avail_times = []
+
     if raw_email:
         key = raw_email.lower()
         faculty_by_lower[key] = {"id": raw_email, "name": raw_name or raw_email, "department": dept, "status": status, "avail_days": avail_days, "avail_times": avail_times, "courseID": []}

@@ -12,6 +12,12 @@ class Constraints:
         self.courses = input_data.courses
         self.events_list, self.events_map = self.create_events()
 
+    def format_hour(self, h):
+        """Helper to format decimal hour (e.g. 8.5) to string (e.g. '8:30')"""
+        hour = int(h)
+        minute = int((h - hour) * 60)
+        return f"{hour}:{minute:02d}"
+
     def validate_faculty_data(self):
         """
         Validates the format of avail_days and avail_times for all faculty members.
@@ -102,7 +108,7 @@ class Constraints:
                     course = self.input_data.getCourse(class_event.course_id)
                     timeslot = self.timeslots[timeslot_idx]
                     day_abbr = days_map.get(timeslot.day)
-                    time = timeslot.start_time + 9
+                    time = timeslot.start_time + 8.5
                     
                     # H1a: Room type constraints
                     if room.room_type != course.required_room_type:
@@ -111,7 +117,7 @@ class Constraints:
                             violation_info = (
                                 f"Room Type Mismatch: Course '{course.code}' requires '{course.required_room_type}' "
                                 f"but is scheduled in '{room.name}' (type: '{room.room_type}') "
-                                f"on {day_abbr} at {time}:00 for group '{class_event.student_group.name}'."
+                                f"on {day_abbr} at {self.format_hour(time)} for group '{class_event.student_group.name}'."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
@@ -123,7 +129,7 @@ class Constraints:
                             violation_info = (
                                 f"Room Capacity Exceeded: Group '{class_event.student_group.name}' "
                                 f"({class_event.student_group.no_students} students) cannot fit in room '{room.name}' "
-                                f"(capacity: {room.capacity}) on {day_abbr} at {time}:00 for course '{course.code}'."
+                                f"(capacity: {room.capacity}) on {day_abbr} at {self.format_hour(time)} for course '{course.code}'."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
@@ -137,7 +143,7 @@ class Constraints:
                         if debug:
                             violation_info = (
                                 f"Wrong Building: TYD Group '{class_event.student_group.name}' "
-                                f"is scheduled in SST room '{room.name}' on {day_abbr} at {time}:00."
+                                f"is scheduled in SST room '{room.name}' on {day_abbr} at {self.format_hour(time)}."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
@@ -179,10 +185,10 @@ class Constraints:
                                 
                                 timeslot = self.timeslots[i]
                                 day_abbr = days_map.get(timeslot.day)
-                                time = timeslot.start_time + 9
+                                time = timeslot.start_time + 8.5
                                 
                                 clash_info = (
-                                    f"Student Group Clash: '{student_group.name}' on {day_abbr} at {time}:00. "
+                                    f"Student Group Clash: '{student_group.name}' on {day_abbr} at {self.format_hour(time)}. "
                                     f"Clashing Courses: '{first_course.code}' and '{second_course.code}'."
                                 )
                                 if clash_info not in clashes:
@@ -228,13 +234,13 @@ class Constraints:
                                     
                                     timeslot = self.timeslots[i]
                                     day_abbr = days_map.get(timeslot.day)
-                                    time = timeslot.start_time + 9
+                                    time = timeslot.start_time + 8.5
                                     
                                     # Use faculty name if available, otherwise use faculty_id (email)
                                     lecturer_name = faculty.name if faculty and faculty.name else faculty_id
                                     
                                     clash_info = (
-                                        f"Lecturer Clash: '{lecturer_name}' on {day_abbr} at {time}:00. "
+                                        f"Lecturer Clash: '{lecturer_name}' on {day_abbr} at {self.format_hour(time)}. "
                                         f"Clashing Courses: '{first_course.name}' for group '{first_event.student_group.name}' and "
                                         f"'{second_course.name}' for group '{second_event.student_group.name}'."
                                     )
@@ -274,7 +280,7 @@ class Constraints:
                         day_abbr = days_map.get(day_idx)
                         
                         # The actual hour of the day (e.g., 9, 10, 11)
-                        slot_hour = timeslot.start_time + 9
+                        slot_hour = timeslot.start_time + 8.5
 
                         # 1. Check available days
                         is_available_day = False
@@ -315,7 +321,7 @@ class Constraints:
                                 # Use faculty name if available, otherwise use faculty_id (email)
                                 lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
-                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled at {slot_hour}:00 on {day_abbr}, "
+                                    f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled at {self.format_hour(slot_hour)} on {day_abbr}, "
                                     f"but is only available during: {faculty.avail_times}."
                                 )
                                 if violation_info not in violations:
@@ -444,7 +450,7 @@ class Constraints:
                         if debug:
                             timeslot = self.timeslots[timeslot_idx]
                             day_abbr = days_map.get(timeslot.day)
-                            time = timeslot.start_time + 9
+                            time = timeslot.start_time + 8.5
                             
                             event_details = []
                             for event_id in event:
@@ -455,7 +461,7 @@ class Constraints:
                             
                             violation_info = (
                                 f"Room Time Conflict: Multiple events in room '{room.name}' "
-                                f"on {day_abbr} at {time}:00. Conflicting events: {', '.join(event_details)}."
+                                f"on {day_abbr} at {self.format_hour(time)}. Conflicting events: {', '.join(event_details)}."
                             )
                             if violation_info not in violations:
                                 violations.append(violation_info)
@@ -1005,14 +1011,14 @@ class Constraints:
                             
                             timeslot = self.timeslots[i]
                             day_abbr = days_map.get(timeslot.day)
-                            time = timeslot.start_time + 9
+                            time = timeslot.start_time + 8.5
                             
                             student_group_clashes.append({
                                 'group': student_group.name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
+                                'time': self.format_hour(time),
                                 'courses': [first_course.code, second_course.code],
-                                'location': f"{day_abbr} at {time}:00"
+                                'location': f"{day_abbr} at {self.format_hour(time)}"
                             })
                         else:
                             student_group_watch[student_group.id] = class_event
@@ -1028,7 +1034,7 @@ class Constraints:
                 if event is not None and isinstance(event, list) and len(event) > 1:
                     timeslot = self.timeslots[timeslot_idx]
                     day_abbr = days_map.get(timeslot.day)
-                    time = timeslot.start_time + 9
+                    time = timeslot.start_time + 8.5
                     
                     event_details = []
                     for event_id in event:
@@ -1040,9 +1046,9 @@ class Constraints:
                     room_conflicts.append({
                         'room': room.name,
                         'day': day_abbr,
-                        'time': f"{time}:00",
+                        'time': self.format_hour(time),
                         'events': event_details,
-                        'location': f"{room.name} on {day_abbr} at {time}:00"
+                        'location': f"{room.name} on {day_abbr} at {self.format_hour(time)}"
                     })
         
         detailed_violations['Different Student Group Overlaps'] = room_conflicts
@@ -1065,7 +1071,7 @@ class Constraints:
                             
                             timeslot = self.timeslots[i]
                             day_abbr = days_map.get(timeslot.day)
-                            time = timeslot.start_time + 9
+                            time = timeslot.start_time + 8.5
                             
                             # Use faculty name if available, otherwise use faculty_id (email)
                             lecturer_name = faculty.name if faculty and faculty.name else faculty_id
@@ -1073,10 +1079,10 @@ class Constraints:
                             lecturer_clashes.append({
                                 'lecturer': lecturer_name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
+                                'time': self.format_hour(time),
                                 'courses': [first_course.code, second_course.code],
                                 'groups': [first_event.student_group.name, class_event.student_group.name],
-                                'location': f"{day_abbr} at {time}:00"
+                                'location': f"{day_abbr} at {self.format_hour(time)}"
                             })
                         else:
                             lecturer_watch[faculty_id] = class_event
@@ -1095,7 +1101,7 @@ class Constraints:
                         if faculty:
                             timeslot = self.timeslots[timeslot_idx]
                             day_abbr = days_map.get(timeslot.day, "Unknown")
-                            slot_hour = timeslot.start_time + 9
+                            slot_hour = timeslot.start_time + 8.5
                             
                             # Check day availability
                             is_available_day = self._is_faculty_available_day(faculty, day_abbr)
@@ -1114,12 +1120,12 @@ class Constraints:
                                 lecturer_schedule_conflicts.append({
                                     'lecturer': lecturer_name,
                                     'day': day_abbr,
-                                    'time': f"{slot_hour}:00",
+                                    'time': self.format_hour(slot_hour),
                                     'course': course.code,
                                     'group': class_event.student_group.name,
                                     'available_days': available_days_display,
                                     'available_times': available_times_display,
-                                    'location': f"{day_abbr} at {slot_hour}:00"
+                                    'location': f"{day_abbr} at {self.format_hour(slot_hour)}"
                                 })
         
         detailed_violations['Lecturer Schedule Conflicts (Day/Time)'] = lecturer_schedule_conflicts
@@ -1197,7 +1203,7 @@ class Constraints:
                             consecutive_count = 1
                     
                     if max_consecutive > 3:
-                        hour_labels = [f"{h + 9}:00" for h in hours_sorted]
+                        hour_labels = [self.format_hour(h + 8.5) for h in hours_sorted]
                         lecturer_workload_violations.append({
                             'type': 'Excessive Consecutive Hours',
                             'lecturer': lecturer_name,
@@ -1241,7 +1247,7 @@ class Constraints:
             if course.credits == 2:
                 # 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
-                    times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
+                    times = [self.format_hour(self.timeslots[t].start_time + 8.5) for t in timeslots]
                     consecutive_violations.append({
                         'course': course.code,
                         'course_name': course.name,
@@ -1258,7 +1264,7 @@ class Constraints:
                     is_block_of_2 = (timeslots[1] - timeslots[0] == 1) or \
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
-                        times = [f"{self.timeslots[t].start_time + 9}:00" for t in timeslots]
+                        times = [self.format_hour(self.timeslots[t].start_time + 8.5) for t in timeslots]
                         consecutive_violations.append({
                             'course': course.code,
                             'course_name': course.name,
@@ -1354,7 +1360,7 @@ class Constraints:
                         course = self.input_data.getCourse(class_event.course_id)
                         timeslot = self.timeslots[timeslot_idx]
                         day_abbr = days_map.get(timeslot.day)
-                        time = timeslot.start_time + 9
+                        time = timeslot.start_time + 8.5
                         
                         # Check room type
                         if room.room_type != course.required_room_type:
@@ -1366,8 +1372,8 @@ class Constraints:
                                 'course': course.code,
                                 'group': class_event.student_group.name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
-                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                                'time': self.format_hour(time),
+                                'location': f"{room.name} on {day_abbr} at {self.format_hour(time)}"
                             })
                         
                         # Check room capacity
@@ -1380,8 +1386,8 @@ class Constraints:
                                 'course': course.code,
                                 'group': class_event.student_group.name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
-                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                                'time': self.format_hour(time),
+                                'location': f"{room.name} on {day_abbr} at {self.format_hour(time)}"
                             })
 
                         # Check building for TYD students
@@ -1394,15 +1400,15 @@ class Constraints:
                                 'building': room.building,
                                 'group': class_event.student_group.name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
-                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                                'time': self.format_hour(time),
+                                'location': f"{room.name} on {day_abbr} at {self.format_hour(time)}"
                             })
         
         detailed_violations['Room Capacity/Type Conflicts'] = room_capacity_conflicts
         
         # 10. Classes During Break Time
         break_time_violations = []
-        break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+        break_hour = 4  # 12:30 is the 5th hour (index 4) starting from 8:30
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
                 timeslot = self.timeslots[timeslot_idx]
@@ -1413,15 +1419,15 @@ class Constraints:
                         if class_event is not None:
                             course = self.input_data.getCourse(class_event.course_id)
                             day_abbr = days_map.get(timeslot.day)
-                            time = timeslot.start_time + 9
+                            time = timeslot.start_time + 8.5
                             room = self.rooms[room_idx]
                             break_time_violations.append({
                                 'course': course.code,
                                 'group': class_event.student_group.name,
                                 'room': room.name,
                                 'day': day_abbr,
-                                'time': f"{time}:00",
-                                'location': f"{room.name} on {day_abbr} at {time}:00"
+                                'time': self.format_hour(time),
+                                'location': f"{room.name} on {day_abbr} at {self.format_hour(time)}"
                             })
         
         detailed_violations['Classes During Break Time'] = break_time_violations
@@ -1450,7 +1456,7 @@ class Constraints:
                                 'type': warning_type,
                                 'course': course.code,
                                 'group': group_name,
-                                'location': f"{course.code} for {group_name} on {day_abbr} at 17:00"
+                                'location': f"{course.code} for {group_name} on {day_abbr} at 17:30"
                             })
 
         detailed_violations['Late Classes'] = late_class_violations
@@ -1503,7 +1509,7 @@ class Constraints:
                 return True
             time_specs = [t.strip() for t in avail_times_str.split(',')]
         
-        slot_min = int(slot_hour) * 60
+        slot_min = int(slot_hour * 60)
 
         def parse_hhmm(s: str) -> int | None:
             m = re.match(r'^\s*(\d{1,2})\s*:\s*(\d{2})\s*$', s)
@@ -1599,12 +1605,12 @@ class Constraints:
     #     return penalty
     
     def extremely_late_classes(self, chromosome, debug=False):
-        """Soft/near-hard constraint: avoid scheduling anything at 17:00.
+        """Soft/near-hard constraint: avoid scheduling anything at the last hour (17:30).
 
         User requirements:
-        - At most 10 total 17:00 occurrences overall.
-        - At most 10 student groups with any 17:00 occurrence.
-        - If a student group has a 17:00 class, it must be only ONE occurrence.
+        - At most 10 total late occurrences overall.
+        - At most 10 student groups with any late occurrence.
+        - If a student group has a late class, it must be only ONE occurrence.
         - Light-load groups (low total hours and no 4-credit courses) must NEVER be late.
 
         Note: This is still enforced via fitness (not a true hard constraint), so if the

@@ -20,12 +20,12 @@ class Utility:
             print(f"{teacher.faculty_id} {teacher.name} {teacher.courseID}")
     
 
-def print_timetable(individual, student_group, events_map, days, hours_per_day, day_start_time=9):
+def print_timetable(individual, student_group, events_map, days, hours_per_day, day_start_time=8.5):
     # Create a blank timetable grid for the student group
     timetable = [['' for _ in range(days)] for _ in range(hours_per_day)]
     
     # First, fill break time slots
-    break_hour = 4  # 13:00 is the 5th hour (index 4) starting from 9:00
+    break_hour = 4  # 12:30 is the 5th hour (index 4) starting from 8:30
     if break_hour < hours_per_day:
         for day in range(days):
             timetable[break_hour][day] = "BREAK"
@@ -47,12 +47,13 @@ def print_timetable(individual, student_group, events_map, days, hours_per_day, 
     print("-" * (20 + days * 15))
     
     for hour in range(hours_per_day):
-        time_label = f"{day_start_time + hour}:00"
+        t = day_start_time + hour
+        time_label = f"{int(t)}:{int((t%1)*60):02d}"
         row = [timetable[hour][day] if timetable[hour][day] else "Free" for day in range(days)]
         print(f"{time_label:<15} | " + " | ".join(row))
     print("\n")
 
-def print_all_timetables(individual, events_map, days, hours_per_day, day_start_time=9):
+def print_all_timetables(individual, events_map, days, hours_per_day, day_start_time=8.5):
     # Find all unique student groups in the individual
     student_groups = input_data.student_groups
     

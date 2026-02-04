@@ -283,7 +283,52 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
         avail_times = []
         if "Available Times" in lect_df.columns:
             aval_t = str(r.get("Available Times") or "").strip()
-            avail_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
+            raw_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
+            
+            # TRANSFORMATION: Rollback support for whole number times (e.g. 9:00 -> 8:30)
+            for t in raw_times:
+                try:
+                    if '-' in t:
+                        parts = t.split('-')
+                        start_str, end_str = parts[0].strip(), parts[1].strip()
+                        
+                        # Process Start
+                        if ':' in start_str:
+                            sh, sm = map(int, start_str.split(':'))
+                        else:
+                            sh, sm = int(start_str), 0
+                        
+                        if sm == 0:
+                            s_new = f"{sh-1}:{30}"
+                        else:
+                            s_new = start_str
+                            
+                        # Process End
+                        if ':' in end_str:
+                            eh, em = map(int, end_str.split(':'))
+                        else:
+                            eh, em = int(end_str), 0
+                            
+                        if em == 0:
+                            e_new = f"{eh}:{30}"
+                        else:
+                            e_new = end_str
+                            
+                        avail_times.append(f"{s_new}-{e_new}")
+                        
+                    else:
+                        # Singleton
+                        if ':' in t:
+                            h, m = map(int, t.split(':'))
+                        else:
+                            h, m = int(t), 0
+                            
+                        if m == 0:
+                            avail_times.append(f"{h-1}:{30}")
+                        else:
+                            avail_times.append(t)
+                except:
+                    avail_times.append(t)
 
         # If the spreadsheet does not specify availability, default to ALL.
         # Leaving these empty makes the API scheduler treat the lecturer as unavailable.

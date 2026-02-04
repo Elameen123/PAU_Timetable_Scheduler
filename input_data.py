@@ -23,7 +23,7 @@ class inputData():
         self.constraints = []
         self.classes = []
         self.nostudentgroup = len(self.student_groups)
-        self.hours = 9
+        self.hours = 10
         self.days = 5
 
     def addCourse(self, name: str, code: str, credits: int, student_groupsID: List[str], facultyId, required_room_type: str ):
