@@ -32,7 +32,7 @@ class InputData:
     def addRoom(self, Id: str, name: str, capacity: int, room_type: str, building: str):
         self.rooms.append(Room(Id, name, capacity, room_type, building))
 
-    def addStudentGroup(self, id: str, name: str, no_students: int, courseIDs: str, teacherIDS: str, hours_required: List[int]):
+    def addStudentGroup(self, id: str, name: str, no_students: int, courseIDs: str, teacherIDS: str, hours_required: List[int], building: str = None):
         normalized_teachers = []
         for t in (teacherIDS or []):
             try:
@@ -42,7 +42,7 @@ class InputData:
                 normalized_teachers.append(ts)
             except Exception:
                 normalized_teachers.append(t)
-        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required))
+        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required, building=building))
 
     def addFaculty(self, id: str, name: str, department: str, courseID: str, avail_days=None, avail_times=None):
         # If not provided, default to ALL (matches the static JSON dataset and core scheduler).
@@ -170,6 +170,7 @@ def initialize_input_data_from_json(json_data: Dict[str, Any]) -> InputData:
         input_data.addStudentGroup(
             id=sg_data['id'],
             name=sg_data['name'],
+            building=sg_data.get('building', ''),
             no_students=sg_data['no_students'],
             courseIDs=sg_data['courseIDs'],
             teacherIDS=sg_data['teacherIDS'],

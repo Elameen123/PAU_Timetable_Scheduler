@@ -139,10 +139,30 @@ class TimetableExporter:
         
         return None
 
-    def is_sst_group(self, group_name):
-        """Check if a student group belongs to SST (engineering) based on keywords"""
-        group_name_lower = group_name.lower()
-        return any(keyword in group_name_lower for keyword in self.sst_keywords)
+    def _normalize_building(self, raw_building) -> str:
+        if raw_building is None:
+            return ""
+        b = str(raw_building).strip().upper()
+        if not b:
+            return ""
+        if b == 'SST' or b.startswith('SST'):
+            return 'SST'
+        if b == 'TYD' or b.startswith('TYD'):
+            return 'TYD'
+        return ""
+
+    def is_sst_group(self, group):
+        """Building-first SST check; keyword matching only as fallback when building is invalid."""
+        if isinstance(group, dict):
+            nb = self._normalize_building(group.get('building') or group.get('effective_building'))
+            if nb in {'SST', 'TYD'}:
+                return nb == 'SST'
+            name = str(group.get('name') or '')
+        else:
+            name = str(group or '')
+
+        name_lower = name.lower()
+        return any(keyword in name_lower for keyword in self.sst_keywords)
 
     def extract_main_program_name(self, group_name):
         """Extract the main program name from student group name"""

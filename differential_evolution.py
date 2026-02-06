@@ -53,15 +53,8 @@ class DifferentialEvolution:
         for idx, room in enumerate(self.rooms):
             self.room_building_cache[idx] = self.get_room_building(room)
         
-        # Optimization: Pre-calculate engineering groups to avoid repeated checks
-        self.engineering_groups = set()
-        for student_group in self.student_groups:
-            group_name = student_group.name.lower()
-            if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering', 'data science',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
-            ]):
-                self.engineering_groups.add(student_group.id)
+        # Optimization: Pre-calculate SST groups (explicit building first; keywords as fallback).
+        self.engineering_groups = {sg.id for sg in self.student_groups if getattr(sg, 'is_sst', False)}
         
         self.population = self.initialize_population()  # List to hold all chromosomes
 
@@ -321,7 +314,26 @@ class DifferentialEvolution:
             if faculty:
                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
                 day_abbr = days_map.get(day)
-                slot_hour = self.timeslots[timeslot_idx].start_time + 9
+                timeslot_obj = self.timeslots[timeslot_idx]
+
+                def parse_hhmm(s):
+                    import re
+                    m = re.match(r'^\s*(\d{1,2})\s*:\s*(\d{2})\s*$', str(s))
+                    if not m:
+                        return None
+                    return int(m.group(1)) * 60 + int(m.group(2))
+
+                # 08:30-based slots: index 0 -> 08:30
+                if isinstance(getattr(timeslot_obj, 'start_time', None), (int,)):
+                    slot_min = (8 * 60 + 30) + int(timeslot_obj.start_time) * 60
+                else:
+                    slot_min = parse_hhmm(getattr(timeslot_obj, 'start_time', ''))
+                    if slot_min is None:
+                        # Fallback to legacy 9:00 base if needed
+                        try:
+                            slot_min = (9 * 60) + int(getattr(timeslot_obj, 'start_time', 0)) * 60
+                        except Exception:
+                            slot_min = None
 
                 # Check day availability
                 is_day_ok = False
@@ -339,34 +351,58 @@ class DifferentialEvolution:
                 if not is_day_ok:
                     return False
 
-                # Check time availability (Corrected Logic)
+                # Check time availability (08:30-based, supports dict/list/string and ALL)
                 is_time_ok = False
                 avail_times = faculty.avail_times
-                if not avail_times or (isinstance(avail_times, str) and avail_times.upper() == "ALL") or \
-                   (isinstance(avail_times, list) and any(str(t).strip().upper() == 'ALL' for t in avail_times)):
+
+                def iter_time_specs(av):
+                    if not av:
+                        return []
+                    if isinstance(av, dict):
+                        specs = None
+                        if day_abbr:
+                            specs = av.get(day_abbr) or av.get(day_abbr.capitalize())
+                        if not specs:
+                            specs = av.get('All') or av.get('ALL')
+                        return specs if isinstance(specs, list) else ([specs] if specs else [])
+                    if isinstance(av, list):
+                        return av
+                    return [av]
+
+                specs_list = iter_time_specs(avail_times)
+                if not specs_list:
+                    is_time_ok = True
+                elif any(str(s).strip().upper() == 'ALL' for s in specs_list):
+                    is_time_ok = True
+                elif slot_min is None:
+                    # If we can't parse slot time, be permissive.
                     is_time_ok = True
                 else:
-                    time_list = avail_times if isinstance(avail_times, list) else [avail_times]
-                    for time_spec in time_list:
-                        time_spec_str = str(time_spec).strip()
-                        if '-' in time_spec_str:
+                    for spec in specs_list:
+                        spec_str = str(spec).strip()
+                        if not spec_str:
+                            continue
+                        if spec_str.upper() == 'ALL':
+                            is_time_ok = True
+                            break
+                        if '-' in spec_str:
                             try:
-                                start_str, end_str = time_spec_str.split('-')
-                                start_h = int(start_str.split(':')[0])
-                                end_h = int(end_str.split(':')[0])
-                                if start_h <= slot_hour < end_h:
+                                start_str, end_str = [p.strip() for p in spec_str.split('-', 1)]
+                                start_min = parse_hhmm(start_str)
+                                end_min = parse_hhmm(end_str)
+                                if start_min is None or end_min is None:
+                                    continue
+                                # END-EXCLUSIVE
+                                if start_min <= slot_min < end_min:
                                     is_time_ok = True
                                     break
-                            except (ValueError, IndexError):
+                            except Exception:
                                 continue
                         else:
-                            try:
-                                h = int(time_spec_str.split(':')[0])
-                                if h == slot_hour:
-                                    is_time_ok = True
-                                    break
-                            except (ValueError, IndexError):
-                                continue
+                            m = parse_hhmm(spec_str)
+                            if m is not None and m == slot_min:
+                                is_time_ok = True
+                                break
                 
                 if not is_time_ok:
                     return False

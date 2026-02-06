@@ -313,16 +313,25 @@ class Constraints:
                         # 2. Check available times
                         # IMPORTANT: Treat end time as inclusive for allowed start-times.
                         # This matches the UX expectation that "9:00-14:00" allows a class starting at 14:00.
-                        is_available_time = self._is_faculty_available_time(faculty, slot_hour)
+                        is_available_time = self._is_faculty_available_time(faculty, slot_hour, day_abbr)
                         
                         if not is_available_time:
                             penalty += 50  # Increased from 2 to 50
                             if debug:
+                                # Get specific times for message to be precise
+                                allowed_times = []
+                                if isinstance(faculty.avail_times, dict):
+                                    allowed_times = faculty.avail_times.get(day_abbr) or faculty.avail_times.get(day_abbr.capitalize()) or faculty.avail_times.get('All') or []
+                                else:
+                                    allowed_times = faculty.avail_times
+
+                                allowed_str = ", ".join(str(t) for t in allowed_times) if isinstance(allowed_times, list) else str(allowed_times)
+                                
                                 # Use faculty name if available, otherwise use faculty_id (email)
                                 lecturer_name = faculty.name if faculty.name else faculty.faculty_id
                                 violation_info = (
                                     f"Lecturer Schedule Violation: '{lecturer_name}' is scheduled at {self.format_hour(slot_hour)} on {day_abbr}, "
-                                    f"but is only available during: {faculty.avail_times}."
+                                    f"but is only available during: {allowed_str} on {day_abbr}."
                                 )
                                 if violation_info not in violations:
                                     violations.append(violation_info)
@@ -529,16 +538,8 @@ class Constraints:
         """
         penalty = 0
         
-        # Identify engineering groups more comprehensively
-        engineering_groups = []
-        for student_group in self.student_groups:
-            group_name = student_group.name.lower()
-            # Check for engineering, computer science, software engineering keywords
-            if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering', 'data science',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen', 'data', 'ds'
-            ]):
-                engineering_groups.append(student_group.id)
+        # Identify SST groups using central classification (explicit building first, keywords as fallback).
+        engineering_groups = [sg.id for sg in self.student_groups if getattr(sg, 'is_sst', False)]
         
         for room_idx in range(len(self.rooms)):
             for timeslot_idx in range(len(self.timeslots)):
@@ -1105,7 +1106,7 @@ class Constraints:
                             
                             # Check day availability
                             is_available_day = self._is_faculty_available_day(faculty, day_abbr)
-                            is_available_time = self._is_faculty_available_time(faculty, slot_hour)
+                            is_available_time = self._is_faculty_available_time(faculty, slot_hour, day_abbr=day_abbr)
                             
                             if not is_available_day or not is_available_time:
                                 course = self.input_data.getCourse(class_event.course_id)
@@ -1244,15 +1245,23 @@ class Constraints:
             timeslots = [t_idx for _, t_idx in events]
             timeslots.sort()
             
+            days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
+
             if course.credits == 2:
                 # 2-credit courses MUST be consecutive
                 if len(timeslots) == 2 and (timeslots[1] - timeslots[0] != 1):
                     times = [self.format_hour(self.timeslots[t].start_time + 8.5) for t in timeslots]
+                    days_list = [days_map.get(self.timeslots[t].day, "") for t in timeslots]
+                    # Unique days while preserving order
+                    seen = set()
+                    days_str = ", ".join([x for x in days_list if not (x in seen or seen.add(x))])
+                    
                     consecutive_violations.append({
                         'course': course.code,
                         'course_name': course.name,
                         'group': student_group.name,
                         'times': times,
+                        'day': days_str,
                         'credits': course.credits,
                         'location': f"{course.code} for {student_group.name}",
                         'reason': f"2-hour course not scheduled consecutively"
@@ -1265,11 +1274,16 @@ class Constraints:
                                     (timeslots[2] - timeslots[1] == 1)
                     if not is_block_of_2:
                         times = [self.format_hour(self.timeslots[t].start_time + 8.5) for t in timeslots]
+                        days_list = [days_map.get(self.timeslots[t].day, "") for t in timeslots]
+                        seen = set()
+                        days_str = ", ".join([x for x in days_list if not (x in seen or seen.add(x))])
+
                         consecutive_violations.append({
                             'course': course.code,
                             'course_name': course.name,
                             'group': student_group.name,
                             'times': times,
+                            'day': days_str,
                             'credits': course.credits,
                             'location': f"{course.code} for {student_group.name}",
                             'reason': f"3-hour course has all hours at different times with no 2-hour consecutive block"
@@ -1487,13 +1501,33 @@ class Constraints:
         
         return day_abbr in days_list or day_abbr.capitalize() in days_list
     
-    def _is_faculty_available_time(self, faculty, slot_hour):
-        """Helper method to check if faculty is available at a specific time"""
+    def _is_faculty_available_time(self, faculty, slot_hour, day_abbr=None):
+        """Helper method to check if faculty is available at a specific time (optionally checking specific day)"""
         # If no availability is specified, assume available all times
         if not faculty.avail_times:
             return True
 
-        if isinstance(faculty.avail_times, str):
+        time_specs = []
+
+        if isinstance(faculty.avail_times, dict):
+            # Dict mapping days to times (new format)
+            if day_abbr:
+                specs = faculty.avail_times.get(day_abbr)
+                if not specs:
+                     specs = faculty.avail_times.get(day_abbr.capitalize())
+                
+                if specs:
+                    time_specs = specs
+                else:
+                    # Fallback to 'All' or empty (meaning unavailable)
+                    time_specs = faculty.avail_times.get('All', [])
+            else:
+                 # Flatten if no day provided
+                 for v in faculty.avail_times.values():
+                     if isinstance(v, list): time_specs.extend(v)
+                     elif isinstance(v, str): time_specs.append(v)
+
+        elif isinstance(faculty.avail_times, str):
             if faculty.avail_times.upper() == 'ALL':
                 return True
             time_specs = [t.strip() for t in faculty.avail_times.split(',')]
@@ -1509,6 +1543,14 @@ class Constraints:
                 return True
             time_specs = [t.strip() for t in avail_times_str.split(',')]
         
+        # If any extracted spec means ALL, short-circuit.
+        if isinstance(time_specs, str) and str(time_specs).strip().upper() == 'ALL':
+            return True
+        if isinstance(time_specs, list) and any(str(s).strip().upper() == 'ALL' for s in time_specs):
+            return True
+        if not isinstance(time_specs, list):
+            time_specs = [time_specs]
+
         slot_min = int(slot_hour * 60)
 
         def parse_hhmm(s: str) -> int | None:

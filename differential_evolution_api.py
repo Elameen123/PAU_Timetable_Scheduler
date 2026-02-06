@@ -21,7 +21,7 @@ class DifferentialEvolution:
         self.timeslots = input_data.create_time_slots(
             no_hours_per_day=input_data.hours, 
             no_days_per_week=input_data.days, 
-            day_start_time=9
+            day_start_time=8.5
         )
         self.student_groups = input_data.student_groups
         self.courses = input_data.courses
@@ -39,15 +39,8 @@ class DifferentialEvolution:
         for idx, room in enumerate(self.rooms):
             self.room_building_cache[idx] = self.get_room_building(room)
         
-        # Optimization: Pre-calculate engineering groups to avoid repeated checks
-        self.engineering_groups = set()
-        for student_group in self.student_groups:
-            group_name = student_group.name.lower()
-            if any(keyword in group_name for keyword in [
-                'engineering', 'eng', 'computer science', 'software engineering',
-                'mechatronics', 'electrical', 'mechanical', 'csc', 'sen'
-            ]):
-                self.engineering_groups.add(student_group.id)
+        # Optimization: Pre-calculate SST groups (explicit building first; keywords as fallback).
+        self.engineering_groups = {sg.id for sg in self.student_groups if getattr(sg, 'is_sst', False)}
         
         self.population = self.initialize_population()
 
@@ -236,6 +229,19 @@ class DifferentialEvolution:
                 days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri"}
                 day_abbr = days_map.get(day)
 
+                def parse_hhmm(s):
+                    m = re.match(r'^\s*(\d{1,2})\s*:\s*(\d{2})\s*$', str(s))
+                    if not m:
+                        return None
+                    return int(m.group(1)) * 60 + int(m.group(2))
+
+                timeslot_obj = self.timeslots[timeslot_idx]
+                # 08:30-based slots: index 0 -> 08:30
+                if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
+                    slot_min = (8 * 60 + 30) + int(timeslot_obj.start_time) * 60
+                else:
+                    slot_min = parse_hhmm(getattr(timeslot_obj, 'start_time', ''))
+
                 # Check day availability
                 is_day_ok = False
                 if isinstance(faculty.avail_days, str):
@@ -257,70 +263,47 @@ class DifferentialEvolution:
                 if not is_day_ok:
                     return False
 
-                # Check time availability
-                if isinstance(faculty.avail_times, str) and faculty.avail_times.upper() != "ALL":
-                    try:
-                        start_avail_str, end_avail_str = faculty.avail_times.split('-')
-                        start_avail_h = int(start_avail_str.split(':')[0])
-                        start_avail_m = int(start_avail_str.split(':')[1]) if ':' in start_avail_str else 0
-                        end_avail_h = int(end_avail_str.split(':')[0])
-                        end_avail_m = int(end_avail_str.split(':')[1]) if ':' in end_avail_str else 0
-                        
-                        timeslot_obj = self.timeslots[timeslot_idx]
-                        # TimeSlot.start_time may be 0-based hour index (int) or 'HH:MM' string; support both
-                        if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
-                            slot_start_h = 9 + int(timeslot_obj.start_time)
-                            slot_start_m = 0
-                        else:
-                            parts = str(timeslot_obj.start_time).split(':')
-                            slot_start_h = int(parts[0])
-                            slot_start_m = int(parts[1]) if len(parts) > 1 else 0
+                # Check time availability (supports str/list/dict and ALL)
+                avail_times = faculty.avail_times
 
-                        slot_min = slot_start_h * 60 + slot_start_m
-                        start_min = start_avail_h * 60 + start_avail_m
-                        end_min = end_avail_h * 60 + end_avail_m
+                def iter_time_specs(av):
+                    if not av:
+                        return []
+                    if isinstance(av, dict):
+                        specs = None
+                        if day_abbr:
+                            specs = av.get(day_abbr) or av.get(day_abbr.capitalize())
+                        if not specs:
+                            specs = av.get('All') or av.get('ALL')
+                        return specs if isinstance(specs, list) else ([specs] if specs else [])
+                    if isinstance(av, list):
+                        return av
+                    return [av]
 
-                        # END-EXCLUSIVE semantics matching the OG algorithm:
-                        # 9:00-14:00 means hours 9,10,11,12,13 only (not 14).
-                        if not (start_min <= slot_min < end_min):
-                            return False
-                    except (ValueError, IndexError):
-                        return False
-                elif isinstance(faculty.avail_times, list):
-                    # Handle list format with END-EXCLUSIVE check
-                    is_time_ok = False
-                    if not faculty.avail_times or any(str(t).strip().upper() == 'ALL' for t in faculty.avail_times):
-                        is_time_ok = True
+                specs_list = iter_time_specs(avail_times)
+                if specs_list and not any(str(s).strip().upper() == 'ALL' for s in specs_list):
+                    # If we cannot parse the slot time, be permissive.
+                    if slot_min is None:
+                        pass
                     else:
-                        timeslot_obj = self.timeslots[timeslot_idx]
-                        if isinstance(getattr(timeslot_obj, 'start_time', None), (int, np.integer)):
-                            slot_hour = 9 + int(timeslot_obj.start_time)
-                        else:
-                            parts = str(timeslot_obj.start_time).split(':')
-                            slot_hour = int(parts[0])
-                        for time_spec in faculty.avail_times:
-                            time_spec_str = str(time_spec).strip()
-                            if '-' in time_spec_str:
-                                try:
-                                    start_str, end_str = time_spec_str.split('-')
-                                    start_h = int(start_str.split(':')[0])
-                                    end_h = int(end_str.split(':')[0])
-                                    # END-EXCLUSIVE: 9:00-14:00 allows 9,10,11,12,13 (not 14)
-                                    if start_h <= slot_hour < end_h:
+                        is_time_ok = False
+                        for spec in specs_list:
+                            spec_str = str(spec).strip()
+                            if not spec_str:
+                                continue
+                            if '-' in spec_str:
+                                start_min, end_min = self.parse_time_range(spec_str)
+                                if start_min is not None and end_min is not None:
+                                    if start_min <= slot_min < end_min:
                                         is_time_ok = True
                                         break
-                                except (ValueError, IndexError):
-                                    continue
                             else:
-                                try:
-                                    h = int(time_spec_str.split(':')[0])
-                                    if h == slot_hour:
-                                        is_time_ok = True
-                                        break
-                                except (ValueError, IndexError):
-                                    continue
-                    if not is_time_ok:
-                        return False
+                                m = parse_hhmm(spec_str)
+                                if m is not None and m == slot_min:
+                                    is_time_ok = True
+                                    break
+                        if not is_time_ok:
+                            return False
 
         return True
 

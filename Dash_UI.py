@@ -804,20 +804,39 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                 })
 
                             # 2. Time availability
-                            # avail_times is list of strings e.g. "09:00", "10:00".
-                            # time_label should match.
                             if faculty.avail_times:
                                 # Simple check: is this time in their available times? 
                                 # We need partial match or exact match.
-                                # Backend uses: if time not in faculty.avail_times -> penalty.
-                                # time is int (9, 10...)
-                                avail_times = faculty.avail_times
+                                
+                                # Handle Dictionary format (New) vs List/String format (Old)
+                                target_times = []
+                                
+                                if isinstance(faculty.avail_times, dict):
+                                    # Try exact day match
+                                    if day_name in faculty.avail_times:
+                                        target_times = faculty.avail_times[day_name]
+                                    elif day_name.capitalize() in faculty.avail_times:
+                                        target_times = faculty.avail_times[day_name.capitalize()]
+                                    elif 'All' in faculty.avail_times:
+                                        target_times = faculty.avail_times['All']
+                                    else:
+                                        # No times for this specific day -> Unavailable
+                                        target_times = []
+                                else:
+                                    # Fallback for old list/str format
+                                    avail_ts = faculty.avail_times
+                                    if isinstance(avail_ts, str):
+                                        target_times = [t.strip() for t in avail_ts.split(',')]
+                                    elif isinstance(avail_ts, list):
+                                        target_times = [str(t) for t in avail_ts]
+                                    else:
+                                        target_times = [str(avail_ts)]
+
+                                avail_times = target_times
                                 is_time_avail = False
                                 
                                 # Handle "All"
-                                if isinstance(avail_times, str) and avail_times.lower() == "all":
-                                    is_time_avail = True
-                                elif isinstance(avail_times, list) and any(str(t).lower() == "all" for t in avail_times):
+                                if any(str(t).lower() == "all" for t in target_times):
                                     is_time_avail = True
                                 else:
                                     try:
@@ -828,7 +847,7 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                         hour = int(parts[0])
                                         minute = int(parts[1]) if len(parts) > 1 else 0
                                         slot_min = hour * 60 + minute
-                                        for t in avail_times:
+                                        for t in target_times:
                                             # Check specific time or range (e.g. 09:00-12:00)
                                             t_str = str(t).strip()
                                             if '-' in t_str:
@@ -853,6 +872,9 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                         pass
                                     
                                 if not is_time_avail:
+                                    # Format allowed times nicely
+                                    allowed_str = ", ".join([str(t) for t in avail_times])
+                                    
                                     violations['Lecturer Schedule Conflicts (Day/Time)'].append({
                                         'lecturer': lecturer_name,
                                         'day': day_name,
@@ -860,8 +882,8 @@ def recompute_constraint_violations_simplified(timetables_data, rooms_data=None)
                                         'course': course_code,
                                         'group': group_name,
                                         'available_days': str(avail_days),
-                                        'available_times': str(avail_times),
-                                        'issue': f"Not available at {time_label}",
+                                        'available_times': allowed_str,
+                                        'issue': f"Available {allowed_str} on {day_name} but scheduled at {time_label}",
                                         'location': f"{lecturer_name} at {time_label}"
                                     })
 

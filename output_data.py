@@ -139,10 +139,31 @@ class TimetableExporter:
         
         return None
 
-    def is_sst_group(self, group_name):
-        """Check if a student group belongs to SST (engineering) based on keywords"""
-        group_name_lower = group_name.lower()
-        return any(keyword in group_name_lower for keyword in self.sst_keywords)
+    def _normalize_building(self, raw_building) -> str:
+        if raw_building is None:
+            return ""
+        b = str(raw_building).strip().upper()
+        if not b:
+            return ""
+        if b == 'SST' or b.startswith('SST'):
+            return 'SST'
+        if b == 'TYD' or b.startswith('TYD'):
+            return 'TYD'
+        return ""
+
+    def is_sst_group(self, group):
+        """Building-first SST check; keyword matching only as fallback when building is invalid."""
+        # group may be a string (older format) or a dict like {'name': ..., 'building': ...}
+        if isinstance(group, dict):
+            nb = self._normalize_building(group.get('building') or group.get('effective_building'))
+            if nb in {'SST', 'TYD'}:
+                return nb == 'SST'
+            name = str(group.get('name') or '')
+        else:
+            name = str(group or '')
+
+        name_lower = name.lower()
+        return any(keyword in name_lower for keyword in self.sst_keywords)
 
     def extract_main_program_name(self, group_name):
         """Extract the main program name from student group name"""
@@ -167,38 +188,58 @@ class TimetableExporter:
         
         return main_name.strip()
 
+    def split_lecturer_names(self, faculty_raw):
+        """Split multi-lecturer strings only on ',' or '/', never on spaces."""
+        s = str(faculty_raw or '').strip()
+        if not s:
+            return []
+
+        def _clean_one(name: str) -> str:
+            # Strip email/extra info in parentheses e.g. "Dr X (x@pau.edu)"
+            return re.sub(r'\s*\([^)]*\)\s*', '', str(name or '')).strip()
+
+        if ',' not in s and '/' not in s:
+            one = _clean_one(s)
+            return [one] if one else []
+
+        parts = [p.strip() for p in re.split(r'\s*[,/]\s*', s) if p and p.strip()]
+        cleaned = []
+        for p in parts:
+            c = _clean_one(p)
+            if c:
+                cleaned.append(c)
+        return cleaned
+
     def extract_lecturer_info(self, cell_content):
         """Extract lecturer information from cell content - handles ALL formats"""
         if not cell_content or cell_content in ["FREE", "BREAK", "", "Free"]:
             return None
-        
-        # Format 1: Comma-separated (ACTUAL timetable_data.json format)
-        # "Course: PHY 101, Lecturer: Dr. Name, Room: RoomName"
-        if 'Course:' in cell_content and ',' in cell_content:
+
+        # Format 1: Single-line labeled (common)
+        # "Course: PHY 101, Lecturer: Dr. A / Dr. B, Room: RoomName"
+        if 'Course:' in cell_content and 'Lecturer:' in cell_content:
             course_code = None
             room = None
             faculty = None
-            
-            # Split by commas and parse each part
-            parts = cell_content.split(',')
-            for part in parts:
-                part = part.strip()
-                if part.startswith('Course:'):
-                    course_part = part.replace('Course:', '').strip()
-                    # Handle "GST 111 - ENG" or "GST 111"
-                    if ' - ' in course_part:
-                        course_code = course_part.split(' - ')[0].strip()
-                    else:
-                        course_code = course_part.strip()
-                elif part.startswith('Lecturer:'):
-                    faculty_part = part.replace('Lecturer:', '').strip()
-                    if '(' in faculty_part:
-                        faculty = faculty_part.split('(')[0].strip()
-                    else:
-                        faculty = faculty_part
-                elif part.startswith('Room:'):
-                    room = part.replace('Room:', '').strip()
-            
+
+            course_match = re.search(r'Course:\s*(.*?)(?:,?\s*Lecturer:|\nLecturer:|$)', cell_content, re.IGNORECASE | re.DOTALL)
+            lecturer_match = re.search(r'Lecturer:\s*(.*?)(?:,?\s*Room:|\nRoom:|$)', cell_content, re.IGNORECASE | re.DOTALL)
+            room_match = re.search(r'Room:\s*([^\n,]+)', cell_content, re.IGNORECASE)
+
+            if course_match:
+                course_part = (course_match.group(1) or '').strip()
+                if ' - ' in course_part:
+                    course_code = course_part.split(' - ')[0].strip()
+                else:
+                    course_code = course_part.strip()
+
+            if lecturer_match:
+                faculty_part = (lecturer_match.group(1) or '').strip()
+                faculty = re.sub(r'\s*\([^)]*\)\s*', '', faculty_part).strip()
+
+            if room_match:
+                room = (room_match.group(1) or '').strip()
+
             if course_code:
                 return {
                     'course_code': course_code,
@@ -223,10 +264,7 @@ class TimetableExporter:
                     course_code = course_part.strip()
             elif line.startswith('Lecturer:'):
                 faculty_part = line.replace('Lecturer:', '').strip()
-                if '(' in faculty_part:
-                    faculty = faculty_part.split('(')[0].strip()
-                else:
-                    faculty = faculty_part
+                faculty = re.sub(r'\s*\([^)]*\)\s*', '', faculty_part).strip()
             elif line.startswith('Room:'):
                 room = line.replace('Room:', '').strip()
         
@@ -673,8 +711,9 @@ class TimetableExporter:
             sst_programs = defaultdict(list)
             
             for group_data in data:
-                group_name = group_data['student_group']['name']
-                if self.is_sst_group(group_name):
+                sg_obj = group_data.get('student_group') or {}
+                group_name = sg_obj.get('name') if isinstance(sg_obj, dict) else str(sg_obj)
+                if self.is_sst_group(sg_obj):
                     main_program = self.extract_main_program_name(group_name)
                     sst_programs[main_program].append(group_data)
             
@@ -717,8 +756,9 @@ class TimetableExporter:
             tyd_programs = defaultdict(list)
             
             for group_data in data:
-                group_name = group_data['student_group']['name']
-                if not self.is_sst_group(group_name):  # Not SST = TYD
+                sg_obj = group_data.get('student_group') or {}
+                group_name = sg_obj.get('name') if isinstance(sg_obj, dict) else str(sg_obj)
+                if not self.is_sst_group(sg_obj):  # Not SST = TYD
                     main_program = self.extract_main_program_name(group_name)
                     tyd_programs[main_program].append(group_data)
             
@@ -772,30 +812,33 @@ class TimetableExporter:
                             
                             if lecturer_info and lecturer_info['course_code']:
                                 course_code = lecturer_info['course_code']
-                                
-                                # Get all faculty for this course from course data
-                                course_info = self.course_data.get(course_code, {})
-                                faculty_ids = course_info.get('facultyId', [])
-                                
-                                # If facultyId is a string, convert to list
-                                if isinstance(faculty_ids, str):
-                                    faculty_ids = [faculty_ids]
-                                
-                                # Create schedule entries for ALL faculty members
-                                for faculty_id in faculty_ids:
-                                    # Get faculty name from faculty data
-                                    faculty_info = self.faculty_data.get(faculty_id, {})
-                                    lecturer_name = faculty_info.get('name', faculty_id)
-                                    
-                                    # Skip generic entries
-                                    if lecturer_name.lower() not in ['unknown', 'tbd', 'staff', '']:
-                                        lecturer_schedules[lecturer_name].append({
-                                            'time_slot': time_slot_idx,
-                                            'day': day_idx,
-                                            'course_code': course_code,
-                                            'room': lecturer_info['room'],
-                                            'student_group': student_group_name
-                                        })
+
+                                room = lecturer_info.get('room', '')
+                                faculty_raw = lecturer_info.get('faculty', '')
+                                lecturer_names = self.split_lecturer_names(faculty_raw)
+
+                                # Fallback: if Lecturer wasn't present in the cell, use course_data mappings.
+                                if not lecturer_names:
+                                    course_info = self.course_data.get(course_code, {})
+                                    faculty_ids = course_info.get('facultyId', [])
+                                    if isinstance(faculty_ids, str):
+                                        faculty_ids = [faculty_ids]
+                                    for faculty_id in faculty_ids:
+                                        faculty_info = self.faculty_data.get(faculty_id, {})
+                                        name = faculty_info.get('name', faculty_id)
+                                        if name and name.lower() not in ['unknown', 'tbd', 'staff']:
+                                            lecturer_names.append(str(name).strip())
+
+                                for lecturer_name in lecturer_names:
+                                    if not lecturer_name or lecturer_name.lower() in ['unknown', 'tbd', 'staff', '']:
+                                        continue
+                                    lecturer_schedules[lecturer_name].append({
+                                        'time_slot': time_slot_idx,
+                                        'day': day_idx,
+                                        'course_code': course_code,
+                                        'room': room,
+                                        'student_group': student_group_name
+                                    })
             
             if not lecturer_schedules:
                 return False, "No lecturer data found"
@@ -931,8 +974,9 @@ def export_sst_timetables_bytes_from_data(timetable_data):
         sst_programs = defaultdict(list)
         
         for group_data in data:
-            group_name = group_data['student_group']['name']
-            if exporter.is_sst_group(group_name):
+            sg_obj = group_data.get('student_group') or {}
+            group_name = sg_obj.get('name') if isinstance(sg_obj, dict) else str(sg_obj)
+            if exporter.is_sst_group(sg_obj):
                 main_program = exporter.extract_main_program_name(group_name)
                 sst_programs[main_program].append(group_data)
         
@@ -984,8 +1028,9 @@ def export_tyd_timetables_bytes_from_data(timetable_data):
         tyd_programs = defaultdict(list)
         
         for group_data in data:
-            group_name = group_data['student_group']['name']
-            if not exporter.is_sst_group(group_name):
+            sg_obj = group_data.get('student_group') or {}
+            group_name = sg_obj.get('name') if isinstance(sg_obj, dict) else str(sg_obj)
+            if not exporter.is_sst_group(sg_obj):
                 main_program = exporter.extract_main_program_name(group_name)
                 tyd_programs[main_program].append(group_data)
         
@@ -1048,27 +1093,32 @@ def export_lecturer_timetables_bytes_from_data(timetable_data):
                         
                         if lecturer_info and lecturer_info['course_code']:
                             course_code = lecturer_info['course_code']
-                            
-                            # Get all faculty for this course
-                            course_info = exporter.course_data.get(course_code, {})
-                            faculty_ids = course_info.get('facultyId', [])
-                            
-                            if isinstance(faculty_ids, str):
-                                faculty_ids = [faculty_ids]
-                            
-                            # Create schedule entries for ALL faculty members
-                            for faculty_id in faculty_ids:
-                                faculty_info = exporter.faculty_data.get(faculty_id, {})
-                                lecturer_name = faculty_info.get('name', faculty_id)
-                                
-                                if lecturer_name.lower() not in ['unknown', 'tbd', 'staff', '']:
-                                    lecturer_schedules[lecturer_name].append({
-                                        'time_slot': time_slot_idx,
-                                        'day': day_idx,
-                                        'course_code': course_code,
-                                        'room': lecturer_info['room'],
-                                        'student_group': student_group_name
-                                    })
+
+                            room = lecturer_info.get('room', '')
+                            faculty_raw = lecturer_info.get('faculty', '')
+                            lecturer_names = exporter.split_lecturer_names(faculty_raw)
+
+                            if not lecturer_names:
+                                course_info = exporter.course_data.get(course_code, {})
+                                faculty_ids = course_info.get('facultyId', [])
+                                if isinstance(faculty_ids, str):
+                                    faculty_ids = [faculty_ids]
+                                for faculty_id in faculty_ids:
+                                    faculty_info = exporter.faculty_data.get(faculty_id, {})
+                                    name = faculty_info.get('name', faculty_id)
+                                    if name and name.lower() not in ['unknown', 'tbd', 'staff']:
+                                        lecturer_names.append(str(name).strip())
+
+                            for lecturer_name in lecturer_names:
+                                if not lecturer_name or lecturer_name.lower() in ['unknown', 'tbd', 'staff', '']:
+                                    continue
+                                lecturer_schedules[lecturer_name].append({
+                                    'time_slot': time_slot_idx,
+                                    'day': day_idx,
+                                    'course_code': course_code,
+                                    'room': room,
+                                    'student_group': student_group_name
+                                })
         
         if not lecturer_schedules:
             return None, "No lecturer data found"

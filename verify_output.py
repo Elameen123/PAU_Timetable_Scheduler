@@ -143,18 +143,36 @@ def verify_timetable_constraints():
         group_id = group_info['id']
         timetable_matrix = entry['timetable'] # List of rows (hours)
 
-        # Determine if group is SST
-        # Start with false, check manual logic or reuse entity logic if possible, 
-        # but for verification let's replicate the logic to be sure.
+        # Determine if group is SST (building-first; keyword/prefix only as fallback)
         is_sst = False
-        sst_prefixes = {'EEE', 'MEE', 'CSC', 'SEN', 'MCT', 'DTS'}
-        sst_keywords = ['engineering', 'computer science', 'data science', 'mechatronics', 'software', 'technology', 'mechanical', 'electrical']
-        
-        prefix = group_id.split(' ')[0].upper()
-        if prefix in sst_prefixes:
-            is_sst = True
-        elif any(k in group_name.lower() for k in sst_keywords):
-            is_sst = True
+        raw_building = None
+        try:
+            raw_building = group_info.get('building') if isinstance(group_info, dict) else None
+        except Exception:
+            raw_building = None
+
+        def _normalize_building(val):
+            if val is None:
+                return ""
+            b = str(val).strip().upper()
+            if b == 'SST' or b.startswith('SST'):
+                return 'SST'
+            if b == 'TYD' or b.startswith('TYD'):
+                return 'TYD'
+            return ""
+
+        nb = _normalize_building(raw_building)
+        if nb in {'SST', 'TYD'}:
+            is_sst = (nb == 'SST')
+        else:
+            # Fallback heuristic
+            sst_prefixes = {'EEE', 'MEE', 'CSC', 'SEN', 'MCT', 'DTS'}
+            sst_keywords = ['engineering', 'computer science', 'data science', 'mechatronics', 'software', 'technology', 'mechanical', 'electrical']
+            prefix = group_id.split(' ')[0].upper() if group_id else ''
+            if prefix in sst_prefixes:
+                is_sst = True
+            elif any(k in group_name.lower() for k in sst_keywords):
+                is_sst = True
             
         # Parse Matrix
         # Row 0: 9:00, Row 1: 10:00 ...

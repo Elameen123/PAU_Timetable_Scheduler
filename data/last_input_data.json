@@ -307,12 +307,10 @@
       "student_groupsID": [
         "Mass Communication Year 3"
       ],
-      "facultyId": "Mr.",
+      "facultyId": "Mr. Chukwudi Ezugwu",
       "required_room_type": "Classroom",
       "lecturers": [
-        "Mr.",
-        "Chukwudi",
-        "Ezugwu"
+        "Mr. Chukwudi Ezugwu"
       ],
       "dept": "Mass Communication",
       "req": []
@@ -384,11 +382,10 @@
       "student_groupsID": [
         "Mass Communication Year 3"
       ],
-      "facultyId": "Miss",
+      "facultyId": "Miss Joy",
       "required_room_type": "Classroom",
       "lecturers": [
-        "Miss",
-        "Joy"
+        "Miss Joy"
       ],
       "dept": "Mass Communication",
       "req": []
@@ -415,11 +412,10 @@
       "student_groupsID": [
         "Mass Communication Year 3"
       ],
-      "facultyId": "Amarachi",
+      "facultyId": "Amarachi Ubani",
       "required_room_type": "Classroom",
       "lecturers": [
-        "Amarachi",
-        "Ubani"
+        "Amarachi Ubani"
       ],
       "dept": "Mass Communication",
       "req": []
@@ -431,12 +427,10 @@
       "student_groupsID": [
         "Mass Communication Year 3"
       ],
-      "facultyId": "Dr.",
+      "facultyId": "Dr. Chuddy Oduneyi",
       "required_room_type": "Classroom",
       "lecturers": [
-        "Dr.",
-        "Chuddy",
-        "Oduneyi"
+        "Dr. Chuddy Oduneyi"
       ],
       "dept": "Mass Communication",
       "req": []
@@ -1259,13 +1253,11 @@
       "student_groupsID": [
         "Film and Multimedia Studies Year 3"
       ],
-      "facultyId": "(Prof.",
+      "facultyId": "(Prof. Okorie",
       "required_room_type": "Classroom",
       "lecturers": [
-        "(Prof.",
-        "Okorie",
-        "Dr.",
-        "Yusuf)"
+        "(Prof. Okorie",
+        "Dr. Yusuf)"
       ],
       "dept": "Film and Multimedia Studies",
       "req": []
@@ -5691,6 +5683,7 @@
     {
       "id": "Mass Communication Year 1",
       "name": "Mass Communication Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "MCM 110",
@@ -5723,6 +5716,7 @@
     {
       "id": "Mass Communication Year 2",
       "name": "Mass Communication Year 2",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "MCM 202",
@@ -5770,6 +5764,7 @@
     {
       "id": "Mass Communication Year 3",
       "name": "Mass Communication Year 3",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "PAU-MCM 316",
@@ -5786,15 +5781,15 @@
       ],
       "teacherIDS": [
         "jsawyer@pau.edu.ng",
-        "Mr.",
+        "Mr. Chukwudi Ezugwu",
         "kalakwe@pau.edu.ng",
         "sjohn-ofoleta@pau.edu.ng",
         "jelegido@pau.edu.ng",
         "oowodunni@pau.edu.ng",
-        "Miss",
+        "Miss Joy",
         "magada-mba@pau.edu.ng",
-        "Amarachi",
-        "Dr.",
+        "Amarachi Ubani",
+        "Dr. Chuddy Oduneyi",
         "unwaezeapu@pau.edu.ng"
       ],
       "hours_required": [
@@ -5814,6 +5809,7 @@
     {
       "id": "Mass Communication Year 4",
       "name": "Mass Communication Year 4",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "COM 406",
@@ -5835,16 +5831,42 @@
       ]
     },
     {
-      "id": "Strategic Communications Year 0",
+      "id": "Strategic Communications Year 1",
       "name": "Strategic Communications Year 1",
+      "building": "TYD",
       "no_students": 45,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "PAU-MCM-108",
+        "CMS 102",
+        "STC 104",
+        "STC 102",
+        "PAU-STC 111",
+        "GST-112",
+        "STC 106"
+      ],
+      "teacherIDS": [
+        "aagina@pau.edu.ng",
+        "cnjoku@pau.edu.ng",
+        "aokoeguale@pau.edu.ng",
+        "kalakwe@pau.edu.ng",
+        "cmgbeadichie@pau.edu.ng",
+        "jeneji@pau.edu.ng",
+        "negbunike@pau.edu.ng"
+      ],
+      "hours_required": [
+        2,
+        2,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
       "id": "Information Science and Media Studies Year 1",
       "name": "Information Science and Media Studies Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "CMS 112",
@@ -5874,6 +5896,7 @@
     {
       "id": "Information Science and Media Studies Year 2",
       "name": "Information Science and Media Studies Year 2",
+      "building": "TYD",
       "no_students": 63,
       "courseIDs": [
         "ISM 211",
@@ -5906,6 +5929,7 @@
     {
       "id": "Information Science and Media Studies Year 3",
       "name": "Information Science and Media Studies Year 3",
+      "building": "TYD",
       "no_students": 52,
       "courseIDs": [
         "ISM 323",
@@ -5944,6 +5968,7 @@
     {
       "id": "Information Science and Media Studies Year 4",
       "name": "Information Science and Media Studies Year 4",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "ISM 402",
@@ -5973,6 +5998,7 @@
     {
       "id": "Film and Multimedia Studies Year 1",
       "name": "Film and Multimedia Studies Year 1",
+      "building": "TYD",
       "no_students": 50,
       "courseIDs": [
         "GST 112",
@@ -6002,6 +6028,7 @@
     {
       "id": "Film and Multimedia Studies Year 2",
       "name": "Film and Multimedia Studies Year 2",
+      "building": "TYD",
       "no_students": 36,
       "courseIDs": [
         "GST 212",
@@ -6034,6 +6061,7 @@
     {
       "id": "Film and Multimedia Studies Year 3",
       "name": "Film and Multimedia Studies Year 3",
+      "building": "TYD",
       "no_students": 16,
       "courseIDs": [
         "GST 312",
@@ -6046,7 +6074,7 @@
       ],
       "teacherIDS": [
         "oogunyemi@pau.edu.ng",
-        "(Prof.",
+        "(Prof. Okorie",
         "mailto:eajala@pau.edu.ng",
         "uwammanda@pau.edu.ng",
         "nikeh@pau.edu.ng",
@@ -6066,6 +6094,7 @@
     {
       "id": "Accounting Year 1",
       "name": "Accounting Year 1",
+      "building": "TYD",
       "no_students": 59,
       "courseIDs": [
         "PAU-ACC 191",
@@ -6098,6 +6127,7 @@
     {
       "id": "Accounting Year 2",
       "name": "Accounting Year 2",
+      "building": "TYD",
       "no_students": 38,
       "courseIDs": [
         "ACC 202",
@@ -6127,6 +6157,7 @@
     {
       "id": "Accounting Year 3",
       "name": "Accounting Year 3",
+      "building": "TYD",
       "no_students": 33,
       "courseIDs": [
         "PAU-ACC 312",
@@ -6159,6 +6190,7 @@
     {
       "id": "Accounting Year 4",
       "name": "Accounting Year 4",
+      "building": "TYD",
       "no_students": 39,
       "courseIDs": [
         "ACC 406",
@@ -6183,40 +6215,132 @@
       ]
     },
     {
-      "id": "Business Administration 1",
+      "id": "Business Administration Year 1",
       "name": "Business Administration 1",
+      "building": "TYD",
       "no_students": 60,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 102",
+        "AMS 103",
+        "PAU-BUA 107",
+        "PAU-BUA 108",
+        "PAU-BUA 109",
+        "PAU-BUA 110",
+        "PAU-BUA 191"
+      ],
+      "teacherIDS": [
+        "rokolo@pau.edu.ng",
+        "ooni@pau.edu.ng",
+        "fiyoha@pau.edu.ng",
+        "oowolabi@pau.edu.ng",
+        "jbankole@pau.edu.ng",
+        "uattoh@pau.edu.ng",
+        "easogwa@pau.edu.ng"
+      ],
+      "hours_required": [
+        2,
+        2,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 2",
+      "id": "Business Administration Year  2",
       "name": "Business Administration 2",
+      "building": "TYD",
       "no_students": 47,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 202",
+        "BUA 203",
+        "BUA 205",
+        "BUA 216",
+        "BUA 218",
+        "PAU-BUA 206",
+        "PAU-BUA 291"
+      ],
+      "teacherIDS": [
+        "alawal@pau.edu.ng",
+        "cebegbetale@pau.edu.ng",
+        "rokolo@pau.edu.ng",
+        "fikpesu@pau.edu.ng",
+        "gogbo@pau.edu.ng",
+        "hagbonrofo@pau.edu.ng",
+        "enzeaka@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        3,
+        2,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 3",
+      "id": "Business Administration Year 3",
       "name": "Business Administration 3",
+      "building": "TYD",
       "no_students": 53,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 304",
+        "BUA 303",
+        "BUA 321",
+        "BUA 323",
+        "PAU-BUA 315",
+        "PAU-BUA 316",
+        "PAU-BUA 317",
+        "PAU-BUA 392"
+      ],
+      "teacherIDS": [
+        "alawal@pau.edu.ng",
+        "cebegbetale@pau.edu.ng",
+        "rokolo@pau.edu.ng",
+        "fikpesu@pau.edu.ng",
+        "gogbo@pau.edu.ng",
+        "hagbonrofo@pau.edu.ng",
+        "enzeaka@pau.edu.ng",
+        "aogbuchi@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        3,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 4",
+      "id": "Business Administration Year 4",
       "name": "Business Administration 4",
+      "building": "TYD",
       "no_students": 36,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUS 404",
+        "BUS 406",
+        "BUS 407"
+      ],
+      "teacherIDS": [
+        "odakare@pau.edu.ng",
+        "genyinnaya@pau.edu.ng",
+        "alawal@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        3
+      ]
     },
     {
       "id": "Finance Year 1",
       "name": "Finance Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "PAU-FIN-191",
@@ -6249,6 +6373,7 @@
     {
       "id": "Finance Year 2",
       "name": "Finance Year 2",
+      "building": "TYD",
       "no_students": 44,
       "courseIDs": [
         "PAU-FIN 211",
@@ -6278,6 +6403,7 @@
     {
       "id": "Finance Year 3",
       "name": "Finance Year 3",
+      "building": "TYD",
       "no_students": 19,
       "courseIDs": [
         "FIN 316",
@@ -6310,6 +6436,7 @@
     {
       "id": "Finance Year 4",
       "name": "Finance Year 4",
+      "building": "TYD",
       "no_students": 8,
       "courseIDs": [
         "BUS 402",
@@ -6339,6 +6466,7 @@
     {
       "id": "Economics Year 1",
       "name": "Economics Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "PAU-ECO 191",
@@ -6371,6 +6499,7 @@
     {
       "id": "Economics Year 2",
       "name": "Economics Year 2",
+      "building": "TYD",
       "no_students": 59,
       "courseIDs": [
         "SSC 202",
@@ -6400,6 +6529,7 @@
     {
       "id": "Economics Year 3",
       "name": "Economics Year 3",
+      "building": "TYD",
       "no_students": 63,
       "courseIDs": [
         "ECO 305",
@@ -6444,6 +6574,7 @@
     {
       "id": "Economics Year 4",
       "name": "Economics Year 4",
+      "building": "TYD",
       "no_students": 62,
       "courseIDs": [
         "ECO 421",
@@ -6476,6 +6607,7 @@
     {
       "id": "Mechatronics Year 1",
       "name": "Mechatronics Year 1",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "GET 102",
@@ -6517,6 +6649,7 @@
     {
       "id": "Mechatronics Year 2",
       "name": "Mechatronics Year 2",
+      "building": "SST",
       "no_students": 47,
       "courseIDs": [
         "GET 202",
@@ -6552,6 +6685,7 @@
     {
       "id": "Mechanical Engineering Year 1",
       "name": "Mechanical Engineering Year 1",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "GET 102",
@@ -6593,6 +6727,7 @@
     {
       "id": "Mechanical Engineering Year 2",
       "name": "Mechanical Engineering Year 2",
+      "building": "SST",
       "no_students": 22,
       "courseIDs": [
         "GET 202",
@@ -6625,6 +6760,7 @@
     {
       "id": "Mechanical Engineering Year 3",
       "name": "Mechanical Engineering Year 3",
+      "building": "SST",
       "no_students": 31,
       "courseIDs": [
         "MEE 306",
@@ -6660,6 +6796,7 @@
     {
       "id": "Mechanical Engineering Year 4",
       "name": "Mechanical Engineering Year 4",
+      "building": "SST",
       "no_students": 22,
       "courseIDs": [
         "MEE 402",
@@ -6692,6 +6829,7 @@
     {
       "id": "Mechanical Engineering Year 5",
       "name": "Mechanical Engineering Year 5",
+      "building": "SST",
       "no_students": 17,
       "courseIDs": [
         "PAU-MEE 510",
@@ -6712,6 +6850,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 1",
       "name": "Electrical & Electronics Engineering Year 1",
+      "building": "SST",
       "no_students": 50,
       "courseIDs": [
         "PHY 108",
@@ -6753,6 +6892,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 2",
       "name": "Electrical & Electronics Engineering Year 2",
+      "building": "SST",
       "no_students": 35,
       "courseIDs": [
         "EEE 204",
@@ -6788,6 +6928,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 3",
       "name": "Electrical & Electronics Engineering Year 3",
+      "building": "SST",
       "no_students": 33,
       "courseIDs": [
         "GET 307",
@@ -6829,6 +6970,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 4",
       "name": "Electrical & Electronics Engineering Year 4",
+      "building": "SST",
       "no_students": 30,
       "courseIDs": [
         "PAU-EEE 402",
@@ -6852,6 +6994,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 5",
       "name": "Electrical & Electronics Engineering Year 5",
+      "building": "SST",
       "no_students": 16,
       "courseIDs": [
         "PAU-EEE 510",
@@ -6876,16 +7019,45 @@
       ]
     },
     {
-      "id": "Computers Science Year 0",
+      "id": "Computers Science Year 1",
       "name": "Computers Science Year 1",
+      "building": "SST",
       "no_students": 54,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "COS 102",
+        "PAU-CSC 112",
+        "PAU-CSC 114",
+        "PHY 108",
+        "PHY 102",
+        "MTH 102",
+        "GST 112",
+        "GST 111"
+      ],
+      "teacherIDS": [
+        "dmoru@pau.edu.ng",
+        "jiloekwe@pau.edu.ng",
+        "kmuka@pau.edu.ng",
+        "rbalogun@pau.edu.ng",
+        "rbalogun@pau.edu.ng",
+        "cifegwu@pau.edu.ng",
+        "aonobhayedo@pau.edu.ng",
+        "uokoro@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        1,
+        2,
+        2,
+        2,
+        2
+      ]
     },
     {
       "id": "Computers Science Year 2 Stream I",
       "name": "Computers Science Year 2 Stream I",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "COS 202",
@@ -6921,6 +7093,7 @@
     {
       "id": "Computers Science Year 2 Stream II",
       "name": "Computers Science Year 2 Stream II",
+      "building": "SST",
       "no_students": 47,
       "courseIDs": [
         "COS 202",
@@ -6954,16 +7127,42 @@
       ]
     },
     {
-      "id": "Computers Science Year 2",
+      "id": "Computers Science Year 3",
       "name": "Computers Science Year 3",
+      "building": "SST",
       "no_students": 59,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "ICT 305",
+        "DTS 304",
+        "CSC 313",
+        "CSC 309",
+        "PAU-CSC 310",
+        "GST 302",
+        "ENT 312"
+      ],
+      "teacherIDS": [
+        "salile@pau.edu.ng",
+        "sadubi@pau.edu.ng",
+        "tamaoo@pau.edu.ng",
+        "dibidapo@pau.edu.ng",
+        "chukwudi.ofoma@pau.edu.ng",
+        "aonwudinjo@pau.edu.ng",
+        "joy@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
       "id": "Computers Science Year 4 Stream I",
       "name": "Computers Science Year 4 Stream I",
+      "building": "SST",
       "no_students": 41,
       "courseIDs": [
         "PAU-CSC 411",
@@ -6990,6 +7189,7 @@
     {
       "id": "Computers Science Year 4 Stream II",
       "name": "Computers Science Year 4 Stream II",
+      "building": "SST",
       "no_students": 50,
       "courseIDs": [
         "PAU-CSC 411",
@@ -7019,6 +7219,7 @@
     {
       "id": "Software Engineering Year 1",
       "name": "Software Engineering Year 1",
+      "building": "SST",
       "no_students": 57,
       "courseIDs": [
         "COS 102",
@@ -7054,6 +7255,7 @@
     {
       "id": "Software Engineering Year 2",
       "name": "Software Engineering Year 2",
+      "building": "SST",
       "no_students": 49,
       "courseIDs": [
         "COS 202",
@@ -7089,6 +7291,7 @@
     {
       "id": "Software Engineering Year 3",
       "name": "Software Engineering Year 3",
+      "building": "SST",
       "no_students": 45,
       "courseIDs": [
         "ICT 305",
@@ -7119,234 +7322,9 @@
       ]
     },
     {
-      "id": "Data Science Year 0",
-      "name": "Data Science Year 1",
-      "no_students": 0,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
-    },
-    {
-      "id": "Strategic Communications Year 1",
-      "name": "Strategic Communications Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "PAU-MCM-108",
-        "CMS 102",
-        "STC 104",
-        "STC 102",
-        "PAU-STC 111",
-        "GST-112",
-        "STC 106"
-      ],
-      "teacherIDS": [
-        "aagina@pau.edu.ng",
-        "cnjoku@pau.edu.ng",
-        "aokoeguale@pau.edu.ng",
-        "kalakwe@pau.edu.ng",
-        "cmgbeadichie@pau.edu.ng",
-        "jeneji@pau.edu.ng",
-        "negbunike@pau.edu.ng"
-      ],
-      "hours_required": [
-        2,
-        2,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 1",
-      "name": "Business Administration Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 102",
-        "AMS 103",
-        "PAU-BUA 107",
-        "PAU-BUA 108",
-        "PAU-BUA 109",
-        "PAU-BUA 110",
-        "PAU-BUA 191"
-      ],
-      "teacherIDS": [
-        "rokolo@pau.edu.ng",
-        "ooni@pau.edu.ng",
-        "fiyoha@pau.edu.ng",
-        "oowolabi@pau.edu.ng",
-        "jbankole@pau.edu.ng",
-        "uattoh@pau.edu.ng",
-        "easogwa@pau.edu.ng"
-      ],
-      "hours_required": [
-        2,
-        2,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year  2",
-      "name": "Business Administration Year  2",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 202",
-        "BUA 203",
-        "BUA 205",
-        "BUA 216",
-        "BUA 218",
-        "PAU-BUA 206",
-        "PAU-BUA 291"
-      ],
-      "teacherIDS": [
-        "alawal@pau.edu.ng",
-        "cebegbetale@pau.edu.ng",
-        "rokolo@pau.edu.ng",
-        "fikpesu@pau.edu.ng",
-        "gogbo@pau.edu.ng",
-        "hagbonrofo@pau.edu.ng",
-        "enzeaka@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        3,
-        2,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 3",
-      "name": "Business Administration Year 3",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 304",
-        "BUA 303",
-        "BUA 321",
-        "BUA 323",
-        "PAU-BUA 315",
-        "PAU-BUA 316",
-        "PAU-BUA 317",
-        "PAU-BUA 392"
-      ],
-      "teacherIDS": [
-        "alawal@pau.edu.ng",
-        "cebegbetale@pau.edu.ng",
-        "rokolo@pau.edu.ng",
-        "fikpesu@pau.edu.ng",
-        "gogbo@pau.edu.ng",
-        "hagbonrofo@pau.edu.ng",
-        "enzeaka@pau.edu.ng",
-        "aogbuchi@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        2,
-        3,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 4",
-      "name": "Business Administration Year 4",
-      "no_students": 0,
-      "courseIDs": [
-        "BUS 404",
-        "BUS 406",
-        "BUS 407"
-      ],
-      "teacherIDS": [
-        "odakare@pau.edu.ng",
-        "genyinnaya@pau.edu.ng",
-        "alawal@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        3
-      ]
-    },
-    {
-      "id": "Computers Science Year 1",
-      "name": "Computers Science Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "COS 102",
-        "PAU-CSC 112",
-        "PAU-CSC 114",
-        "PHY 108",
-        "PHY 102",
-        "MTH 102",
-        "GST 112",
-        "GST 111"
-      ],
-      "teacherIDS": [
-        "dmoru@pau.edu.ng",
-        "jiloekwe@pau.edu.ng",
-        "kmuka@pau.edu.ng",
-        "rbalogun@pau.edu.ng",
-        "rbalogun@pau.edu.ng",
-        "cifegwu@pau.edu.ng",
-        "aonobhayedo@pau.edu.ng",
-        "uokoro@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        1,
-        2,
-        2,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Computers Science Year 3",
-      "name": "Computers Science Year 3",
-      "no_students": 0,
-      "courseIDs": [
-        "ICT 305",
-        "DTS 304",
-        "CSC 313",
-        "CSC 309",
-        "PAU-CSC 310",
-        "GST 302",
-        "ENT 312"
-      ],
-      "teacherIDS": [
-        "salile@pau.edu.ng",
-        "sadubi@pau.edu.ng",
-        "tamaoo@pau.edu.ng",
-        "dibidapo@pau.edu.ng",
-        "chukwudi.ofoma@pau.edu.ng",
-        "aonwudinjo@pau.edu.ng",
-        "joy@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
       "id": "Data Science Year 1",
       "name": "Data Science Year 1",
+      "building": "SST",
       "no_students": 0,
       "courseIDs": [
         "COS 102",
@@ -7384,6 +7362,7 @@
     {
       "id": "Mass Communication Year 1",
       "name": "Mass Communication Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "MCM 110",
@@ -7416,6 +7395,7 @@
     {
       "id": "Mass Communication Year 2",
       "name": "Mass Communication Year 2",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "MCM 202",
@@ -7463,6 +7443,7 @@
     {
       "id": "Mass Communication Year 3",
       "name": "Mass Communication Year 3",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "PAU-MCM 316",
@@ -7479,15 +7460,15 @@
       ],
       "teacherIDS": [
         "jsawyer@pau.edu.ng",
-        "Mr.",
+        "Mr. Chukwudi Ezugwu",
         "kalakwe@pau.edu.ng",
         "sjohn-ofoleta@pau.edu.ng",
         "jelegido@pau.edu.ng",
         "oowodunni@pau.edu.ng",
-        "Miss",
+        "Miss Joy",
         "magada-mba@pau.edu.ng",
-        "Amarachi",
-        "Dr.",
+        "Amarachi Ubani",
+        "Dr. Chuddy Oduneyi",
         "unwaezeapu@pau.edu.ng"
       ],
       "hours_required": [
@@ -7507,6 +7488,7 @@
     {
       "id": "Mass Communication Year 4",
       "name": "Mass Communication Year 4",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "COM 406",
@@ -7528,16 +7510,42 @@
       ]
     },
     {
-      "id": "Strategic Communications Year 0",
+      "id": "Strategic Communications Year 1",
       "name": "Strategic Communications Year 1",
+      "building": "TYD",
       "no_students": 45,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "PAU-MCM-108",
+        "CMS 102",
+        "STC 104",
+        "STC 102",
+        "PAU-STC 111",
+        "GST-112",
+        "STC 106"
+      ],
+      "teacherIDS": [
+        "aagina@pau.edu.ng",
+        "cnjoku@pau.edu.ng",
+        "aokoeguale@pau.edu.ng",
+        "kalakwe@pau.edu.ng",
+        "cmgbeadichie@pau.edu.ng",
+        "jeneji@pau.edu.ng",
+        "negbunike@pau.edu.ng"
+      ],
+      "hours_required": [
+        2,
+        2,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
       "id": "Information Science and Media Studies Year 1",
       "name": "Information Science and Media Studies Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "CMS 112",
@@ -7567,6 +7575,7 @@
     {
       "id": "Information Science and Media Studies Year 2",
       "name": "Information Science and Media Studies Year 2",
+      "building": "TYD",
       "no_students": 63,
       "courseIDs": [
         "ISM 211",
@@ -7599,6 +7608,7 @@
     {
       "id": "Information Science and Media Studies Year 3",
       "name": "Information Science and Media Studies Year 3",
+      "building": "TYD",
       "no_students": 52,
       "courseIDs": [
         "ISM 323",
@@ -7637,6 +7647,7 @@
     {
       "id": "Information Science and Media Studies Year 4",
       "name": "Information Science and Media Studies Year 4",
+      "building": "TYD",
       "no_students": 57,
       "courseIDs": [
         "ISM 402",
@@ -7666,6 +7677,7 @@
     {
       "id": "Film and Multimedia Studies Year 1",
       "name": "Film and Multimedia Studies Year 1",
+      "building": "TYD",
       "no_students": 50,
       "courseIDs": [
         "GST 112",
@@ -7695,6 +7707,7 @@
     {
       "id": "Film and Multimedia Studies Year 2",
       "name": "Film and Multimedia Studies Year 2",
+      "building": "TYD",
       "no_students": 36,
       "courseIDs": [
         "GST 212",
@@ -7727,6 +7740,7 @@
     {
       "id": "Film and Multimedia Studies Year 3",
       "name": "Film and Multimedia Studies Year 3",
+      "building": "TYD",
       "no_students": 16,
       "courseIDs": [
         "GST 312",
@@ -7739,7 +7753,7 @@
       ],
       "teacherIDS": [
         "oogunyemi@pau.edu.ng",
-        "(Prof.",
+        "(Prof. Okorie",
         "mailto:eajala@pau.edu.ng",
         "uwammanda@pau.edu.ng",
         "nikeh@pau.edu.ng",
@@ -7759,6 +7773,7 @@
     {
       "id": "Accounting Year 1",
       "name": "Accounting Year 1",
+      "building": "TYD",
       "no_students": 59,
       "courseIDs": [
         "PAU-ACC 191",
@@ -7791,6 +7806,7 @@
     {
       "id": "Accounting Year 2",
       "name": "Accounting Year 2",
+      "building": "TYD",
       "no_students": 38,
       "courseIDs": [
         "ACC 202",
@@ -7820,6 +7836,7 @@
     {
       "id": "Accounting Year 3",
       "name": "Accounting Year 3",
+      "building": "TYD",
       "no_students": 33,
       "courseIDs": [
         "PAU-ACC 312",
@@ -7852,6 +7869,7 @@
     {
       "id": "Accounting Year 4",
       "name": "Accounting Year 4",
+      "building": "TYD",
       "no_students": 39,
       "courseIDs": [
         "ACC 406",
@@ -7876,40 +7894,132 @@
       ]
     },
     {
-      "id": "Business Administration 1",
+      "id": "Business Administration Year 1",
       "name": "Business Administration 1",
+      "building": "TYD",
       "no_students": 60,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 102",
+        "AMS 103",
+        "PAU-BUA 107",
+        "PAU-BUA 108",
+        "PAU-BUA 109",
+        "PAU-BUA 110",
+        "PAU-BUA 191"
+      ],
+      "teacherIDS": [
+        "rokolo@pau.edu.ng",
+        "ooni@pau.edu.ng",
+        "fiyoha@pau.edu.ng",
+        "oowolabi@pau.edu.ng",
+        "jbankole@pau.edu.ng",
+        "uattoh@pau.edu.ng",
+        "easogwa@pau.edu.ng"
+      ],
+      "hours_required": [
+        2,
+        2,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 2",
+      "id": "Business Administration Year  2",
       "name": "Business Administration 2",
+      "building": "TYD",
       "no_students": 47,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 202",
+        "BUA 203",
+        "BUA 205",
+        "BUA 216",
+        "BUA 218",
+        "PAU-BUA 206",
+        "PAU-BUA 291"
+      ],
+      "teacherIDS": [
+        "alawal@pau.edu.ng",
+        "cebegbetale@pau.edu.ng",
+        "rokolo@pau.edu.ng",
+        "fikpesu@pau.edu.ng",
+        "gogbo@pau.edu.ng",
+        "hagbonrofo@pau.edu.ng",
+        "enzeaka@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        3,
+        2,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 3",
+      "id": "Business Administration Year 3",
       "name": "Business Administration 3",
+      "building": "TYD",
       "no_students": 53,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUA 304",
+        "BUA 303",
+        "BUA 321",
+        "BUA 323",
+        "PAU-BUA 315",
+        "PAU-BUA 316",
+        "PAU-BUA 317",
+        "PAU-BUA 392"
+      ],
+      "teacherIDS": [
+        "alawal@pau.edu.ng",
+        "cebegbetale@pau.edu.ng",
+        "rokolo@pau.edu.ng",
+        "fikpesu@pau.edu.ng",
+        "gogbo@pau.edu.ng",
+        "hagbonrofo@pau.edu.ng",
+        "enzeaka@pau.edu.ng",
+        "aogbuchi@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        3,
+        2,
+        2
+      ]
     },
     {
-      "id": "Business Administration 4",
+      "id": "Business Administration Year 4",
       "name": "Business Administration 4",
+      "building": "TYD",
       "no_students": 36,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "BUS 404",
+        "BUS 406",
+        "BUS 407"
+      ],
+      "teacherIDS": [
+        "odakare@pau.edu.ng",
+        "genyinnaya@pau.edu.ng",
+        "alawal@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        3
+      ]
     },
     {
       "id": "Finance Year 1",
       "name": "Finance Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "PAU-FIN-191",
@@ -7942,6 +8052,7 @@
     {
       "id": "Finance Year 2",
       "name": "Finance Year 2",
+      "building": "TYD",
       "no_students": 44,
       "courseIDs": [
         "PAU-FIN 211",
@@ -7971,6 +8082,7 @@
     {
       "id": "Finance Year 3",
       "name": "Finance Year 3",
+      "building": "TYD",
       "no_students": 19,
       "courseIDs": [
         "FIN 316",
@@ -8003,6 +8115,7 @@
     {
       "id": "Finance Year 4",
       "name": "Finance Year 4",
+      "building": "TYD",
       "no_students": 8,
       "courseIDs": [
         "BUS 402",
@@ -8032,6 +8145,7 @@
     {
       "id": "Economics Year 1",
       "name": "Economics Year 1",
+      "building": "TYD",
       "no_students": 58,
       "courseIDs": [
         "PAU-ECO 191",
@@ -8064,6 +8178,7 @@
     {
       "id": "Economics Year 2",
       "name": "Economics Year 2",
+      "building": "TYD",
       "no_students": 59,
       "courseIDs": [
         "SSC 202",
@@ -8093,6 +8208,7 @@
     {
       "id": "Economics Year 3",
       "name": "Economics Year 3",
+      "building": "TYD",
       "no_students": 63,
       "courseIDs": [
         "ECO 305",
@@ -8137,6 +8253,7 @@
     {
       "id": "Economics Year 4",
       "name": "Economics Year 4",
+      "building": "TYD",
       "no_students": 62,
       "courseIDs": [
         "ECO 421",
@@ -8169,6 +8286,7 @@
     {
       "id": "Mechatronics Year 1",
       "name": "Mechatronics Year 1",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "GET 102",
@@ -8210,6 +8328,7 @@
     {
       "id": "Mechatronics Year 2",
       "name": "Mechatronics Year 2",
+      "building": "SST",
       "no_students": 47,
       "courseIDs": [
         "GET 202",
@@ -8245,6 +8364,7 @@
     {
       "id": "Mechanical Engineering Year 1",
       "name": "Mechanical Engineering Year 1",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "GET 102",
@@ -8286,6 +8406,7 @@
     {
       "id": "Mechanical Engineering Year 2",
       "name": "Mechanical Engineering Year 2",
+      "building": "SST",
       "no_students": 22,
       "courseIDs": [
         "GET 202",
@@ -8318,6 +8439,7 @@
     {
       "id": "Mechanical Engineering Year 3",
       "name": "Mechanical Engineering Year 3",
+      "building": "SST",
       "no_students": 31,
       "courseIDs": [
         "MEE 306",
@@ -8353,6 +8475,7 @@
     {
       "id": "Mechanical Engineering Year 4",
       "name": "Mechanical Engineering Year 4",
+      "building": "SST",
       "no_students": 22,
       "courseIDs": [
         "MEE 402",
@@ -8385,6 +8508,7 @@
     {
       "id": "Mechanical Engineering Year 5",
       "name": "Mechanical Engineering Year 5",
+      "building": "SST",
       "no_students": 17,
       "courseIDs": [
         "PAU-MEE 510",
@@ -8405,6 +8529,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 1",
       "name": "Electrical & Electronics Engineering Year 1",
+      "building": "SST",
       "no_students": 50,
       "courseIDs": [
         "PHY 108",
@@ -8446,6 +8571,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 2",
       "name": "Electrical & Electronics Engineering Year 2",
+      "building": "SST",
       "no_students": 35,
       "courseIDs": [
         "EEE 204",
@@ -8481,6 +8607,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 3",
       "name": "Electrical & Electronics Engineering Year 3",
+      "building": "SST",
       "no_students": 33,
       "courseIDs": [
         "GET 307",
@@ -8522,6 +8649,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 4",
       "name": "Electrical & Electronics Engineering Year 4",
+      "building": "SST",
       "no_students": 30,
       "courseIDs": [
         "PAU-EEE 402",
@@ -8545,6 +8673,7 @@
     {
       "id": "Electrical & Electronics Engineering Year 5",
       "name": "Electrical & Electronics Engineering Year 5",
+      "building": "SST",
       "no_students": 16,
       "courseIDs": [
         "PAU-EEE 510",
@@ -8569,16 +8698,45 @@
       ]
     },
     {
-      "id": "Computers Science Year 0",
+      "id": "Computers Science Year 1",
       "name": "Computers Science Year 1",
+      "building": "SST",
       "no_students": 54,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "COS 102",
+        "PAU-CSC 112",
+        "PAU-CSC 114",
+        "PHY 108",
+        "PHY 102",
+        "MTH 102",
+        "GST 112",
+        "GST 111"
+      ],
+      "teacherIDS": [
+        "dmoru@pau.edu.ng",
+        "jiloekwe@pau.edu.ng",
+        "kmuka@pau.edu.ng",
+        "rbalogun@pau.edu.ng",
+        "rbalogun@pau.edu.ng",
+        "cifegwu@pau.edu.ng",
+        "aonobhayedo@pau.edu.ng",
+        "uokoro@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        1,
+        2,
+        2,
+        2,
+        2
+      ]
     },
     {
       "id": "Computers Science Year 2 Stream I",
       "name": "Computers Science Year 2 Stream I",
+      "building": "SST",
       "no_students": 52,
       "courseIDs": [
         "COS 202",
@@ -8614,6 +8772,7 @@
     {
       "id": "Computers Science Year 2 Stream II",
       "name": "Computers Science Year 2 Stream II",
+      "building": "SST",
       "no_students": 47,
       "courseIDs": [
         "COS 202",
@@ -8647,16 +8806,42 @@
       ]
     },
     {
-      "id": "Computers Science Year 2",
+      "id": "Computers Science Year 3",
       "name": "Computers Science Year 3",
+      "building": "SST",
       "no_students": 59,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
+      "courseIDs": [
+        "ICT 305",
+        "DTS 304",
+        "CSC 313",
+        "CSC 309",
+        "PAU-CSC 310",
+        "GST 302",
+        "ENT 312"
+      ],
+      "teacherIDS": [
+        "salile@pau.edu.ng",
+        "sadubi@pau.edu.ng",
+        "tamaoo@pau.edu.ng",
+        "dibidapo@pau.edu.ng",
+        "chukwudi.ofoma@pau.edu.ng",
+        "aonwudinjo@pau.edu.ng",
+        "joy@pau.edu.ng"
+      ],
+      "hours_required": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
     },
     {
       "id": "Computers Science Year 4 Stream I",
       "name": "Computers Science Year 4 Stream I",
+      "building": "SST",
       "no_students": 41,
       "courseIDs": [
         "PAU-CSC 411",
@@ -8683,6 +8868,7 @@
     {
       "id": "Computers Science Year 4 Stream II",
       "name": "Computers Science Year 4 Stream II",
+      "building": "SST",
       "no_students": 50,
       "courseIDs": [
         "PAU-CSC 411",
@@ -8712,6 +8898,7 @@
     {
       "id": "Software Engineering Year 1",
       "name": "Software Engineering Year 1",
+      "building": "SST",
       "no_students": 57,
       "courseIDs": [
         "COS 102",
@@ -8747,6 +8934,7 @@
     {
       "id": "Software Engineering Year 2",
       "name": "Software Engineering Year 2",
+      "building": "SST",
       "no_students": 49,
       "courseIDs": [
         "COS 202",
@@ -8782,6 +8970,7 @@
     {
       "id": "Software Engineering Year 3",
       "name": "Software Engineering Year 3",
+      "building": "SST",
       "no_students": 45,
       "courseIDs": [
         "ICT 305",
@@ -8812,234 +9001,9 @@
       ]
     },
     {
-      "id": "Data Science Year 0",
-      "name": "Data Science Year 1",
-      "no_students": 0,
-      "courseIDs": [],
-      "teacherIDS": [],
-      "hours_required": []
-    },
-    {
-      "id": "Strategic Communications Year 1",
-      "name": "Strategic Communications Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "PAU-MCM-108",
-        "CMS 102",
-        "STC 104",
-        "STC 102",
-        "PAU-STC 111",
-        "GST-112",
-        "STC 106"
-      ],
-      "teacherIDS": [
-        "aagina@pau.edu.ng",
-        "cnjoku@pau.edu.ng",
-        "aokoeguale@pau.edu.ng",
-        "kalakwe@pau.edu.ng",
-        "cmgbeadichie@pau.edu.ng",
-        "jeneji@pau.edu.ng",
-        "negbunike@pau.edu.ng"
-      ],
-      "hours_required": [
-        2,
-        2,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 1",
-      "name": "Business Administration Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 102",
-        "AMS 103",
-        "PAU-BUA 107",
-        "PAU-BUA 108",
-        "PAU-BUA 109",
-        "PAU-BUA 110",
-        "PAU-BUA 191"
-      ],
-      "teacherIDS": [
-        "rokolo@pau.edu.ng",
-        "ooni@pau.edu.ng",
-        "fiyoha@pau.edu.ng",
-        "oowolabi@pau.edu.ng",
-        "jbankole@pau.edu.ng",
-        "uattoh@pau.edu.ng",
-        "easogwa@pau.edu.ng"
-      ],
-      "hours_required": [
-        2,
-        2,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year  2",
-      "name": "Business Administration Year  2",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 202",
-        "BUA 203",
-        "BUA 205",
-        "BUA 216",
-        "BUA 218",
-        "PAU-BUA 206",
-        "PAU-BUA 291"
-      ],
-      "teacherIDS": [
-        "alawal@pau.edu.ng",
-        "cebegbetale@pau.edu.ng",
-        "rokolo@pau.edu.ng",
-        "fikpesu@pau.edu.ng",
-        "gogbo@pau.edu.ng",
-        "hagbonrofo@pau.edu.ng",
-        "enzeaka@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        3,
-        2,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 3",
-      "name": "Business Administration Year 3",
-      "no_students": 0,
-      "courseIDs": [
-        "BUA 304",
-        "BUA 303",
-        "BUA 321",
-        "BUA 323",
-        "PAU-BUA 315",
-        "PAU-BUA 316",
-        "PAU-BUA 317",
-        "PAU-BUA 392"
-      ],
-      "teacherIDS": [
-        "alawal@pau.edu.ng",
-        "cebegbetale@pau.edu.ng",
-        "rokolo@pau.edu.ng",
-        "fikpesu@pau.edu.ng",
-        "gogbo@pau.edu.ng",
-        "hagbonrofo@pau.edu.ng",
-        "enzeaka@pau.edu.ng",
-        "aogbuchi@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        2,
-        3,
-        3,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Business Administration Year 4",
-      "name": "Business Administration Year 4",
-      "no_students": 0,
-      "courseIDs": [
-        "BUS 404",
-        "BUS 406",
-        "BUS 407"
-      ],
-      "teacherIDS": [
-        "odakare@pau.edu.ng",
-        "genyinnaya@pau.edu.ng",
-        "alawal@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        3
-      ]
-    },
-    {
-      "id": "Computers Science Year 1",
-      "name": "Computers Science Year 1",
-      "no_students": 0,
-      "courseIDs": [
-        "COS 102",
-        "PAU-CSC 112",
-        "PAU-CSC 114",
-        "PHY 108",
-        "PHY 102",
-        "MTH 102",
-        "GST 112",
-        "GST 111"
-      ],
-      "teacherIDS": [
-        "dmoru@pau.edu.ng",
-        "jiloekwe@pau.edu.ng",
-        "kmuka@pau.edu.ng",
-        "rbalogun@pau.edu.ng",
-        "rbalogun@pau.edu.ng",
-        "cifegwu@pau.edu.ng",
-        "aonobhayedo@pau.edu.ng",
-        "uokoro@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        1,
-        2,
-        2,
-        2,
-        2
-      ]
-    },
-    {
-      "id": "Computers Science Year 3",
-      "name": "Computers Science Year 3",
-      "no_students": 0,
-      "courseIDs": [
-        "ICT 305",
-        "DTS 304",
-        "CSC 313",
-        "CSC 309",
-        "PAU-CSC 310",
-        "GST 302",
-        "ENT 312"
-      ],
-      "teacherIDS": [
-        "salile@pau.edu.ng",
-        "sadubi@pau.edu.ng",
-        "tamaoo@pau.edu.ng",
-        "dibidapo@pau.edu.ng",
-        "chukwudi.ofoma@pau.edu.ng",
-        "aonwudinjo@pau.edu.ng",
-        "joy@pau.edu.ng"
-      ],
-      "hours_required": [
-        3,
-        3,
-        2,
-        2,
-        3,
-        2,
-        2
-      ]
-    },
-    {
       "id": "Data Science Year 1",
       "name": "Data Science Year 1",
+      "building": "SST",
       "no_students": 0,
       "courseIDs": [
         "COS 102",
@@ -9082,9 +9046,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 110",
         "PAU-STC 111",
@@ -9099,9 +9065,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCM-108",
         "COM 404"
@@ -9115,9 +9083,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CMS 102",
         "COM 412"
@@ -9131,9 +9101,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 102"
       ]
@@ -9146,9 +9118,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 104",
         "COM 406",
@@ -9164,9 +9138,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 106"
       ]
@@ -9179,9 +9155,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST-112"
       ]
@@ -9194,9 +9172,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 202"
       ]
@@ -9209,9 +9189,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCM 218"
       ]
@@ -9224,9 +9206,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 201",
         "PAU-ACC-291",
@@ -9242,9 +9226,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 212"
       ]
@@ -9257,9 +9243,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCM 292",
         "GST 312"
@@ -9273,9 +9261,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 204",
         "ISM 224"
@@ -9289,9 +9279,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 206"
       ]
@@ -9304,9 +9296,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 208"
       ]
@@ -9319,9 +9313,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 210",
         "MCM 308",
@@ -9336,9 +9332,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 212",
         "STC 104"
@@ -9352,9 +9350,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 214"
       ]
@@ -9367,9 +9367,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 216",
         "MCM 314"
@@ -9383,9 +9385,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCM 316"
       ]
@@ -9393,15 +9397,19 @@
     {
       "id": "Mr. Chukwudi Ezugwu",
       "name": "Mr. Chukwudi Ezugwu",
-      "department": "",
+      "department": "Mass Communication",
       "status": "Adjunct",
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": []
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
+      "courseID": [
+        "PAU-MCM 318"
+      ]
     },
     {
       "id": "kalakwe@pau.edu.ng",
@@ -9411,9 +9419,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CMS 303",
         "STC 102"
@@ -9427,9 +9437,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM 302",
         "CMS 102"
@@ -9443,9 +9455,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MCM",
         "ISM 404"
@@ -9459,9 +9473,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 312"
       ]
@@ -9469,41 +9485,53 @@
     {
       "id": "Miss Joy",
       "name": "Miss Joy",
-      "department": "",
+      "department": "Mass Communication",
       "status": "Adjunct",
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": []
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
+      "courseID": [
+        "ENT 312"
+      ]
     },
     {
       "id": "Amarachi Ubani",
       "name": "Amarachi Ubani",
-      "department": "",
+      "department": "Mass Communication",
       "status": "Adjunct",
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": []
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
+      "courseID": [
+        "MCM 310"
+      ]
     },
     {
       "id": "Dr. Chuddy Oduneyi",
       "name": "Dr. Chuddy Oduneyi",
-      "department": "",
+      "department": "Mass Communication",
       "status": "Adjunct",
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": []
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
+      "courseID": [
+        "MCM 312"
+      ]
     },
     {
       "id": "kesere@pau.edu.ng",
@@ -9513,9 +9541,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "COM 414",
         "ISM 113"
@@ -9529,9 +9559,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST-112",
         "GST 112"
@@ -9545,9 +9577,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "STC 106"
       ]
@@ -9560,9 +9594,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 111",
         "CMS 313"
@@ -9576,9 +9612,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 121",
         "PAU-ISM 210"
@@ -9592,9 +9630,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ISM 115",
         "ISM 223"
@@ -9608,9 +9648,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ISM 191",
         "PAU-ACC 191"
@@ -9624,9 +9666,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 211"
       ]
@@ -9639,9 +9683,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 212",
         "PAU-ISM 310"
@@ -9655,9 +9701,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 213"
       ]
@@ -9670,9 +9718,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ISM 291 (GST 203)",
         "GST 111"
@@ -9686,9 +9736,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 323"
       ]
@@ -9701,9 +9753,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CMS 311"
       ]
@@ -9716,9 +9770,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CMS 312"
       ]
@@ -9731,9 +9787,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ISM 308"
       ]
@@ -9746,9 +9804,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 314"
       ]
@@ -9761,9 +9821,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 406"
       ]
@@ -9776,9 +9838,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 413",
         "PAU-FMM 210"
@@ -9792,9 +9856,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 414",
         "PAU-ACC-207",
@@ -9809,9 +9875,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ISM 416"
       ]
@@ -9824,9 +9892,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "FMM 102"
       ]
@@ -9839,9 +9909,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FMM 106",
         "FMM 202"
@@ -9855,9 +9927,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FMM 191",
         "PAU-ECO 191"
@@ -9871,9 +9945,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "FMM 206",
         "FMM 304"
@@ -9887,9 +9963,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FMM 208",
         "FMM 304",
@@ -9904,9 +9982,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FMM 210"
       ]
@@ -9919,9 +9999,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FMM 212"
       ]
@@ -9934,9 +10016,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "FMM 306"
       ]
@@ -9949,9 +10033,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "FMM 306",
         "PAU\u2010FMM 312"
@@ -9965,9 +10051,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU\u2010FMM 314"
       ]
@@ -9980,9 +10068,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 102",
         "PAU-BUA 108",
@@ -9998,9 +10088,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ACC-104",
         "ECO 426",
@@ -10015,9 +10107,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "AMS 103"
       ]
@@ -10030,9 +10124,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU ACC 105",
         "PAU-FIN-104"
@@ -10046,9 +10142,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ACC 107",
         "PAU-FIN-112"
@@ -10062,9 +10160,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "AMS 101",
         "BUS 404",
@@ -10079,9 +10179,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 202",
         "ACC 303",
@@ -10096,9 +10198,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 203",
         "PAU-FIN 320"
@@ -10112,9 +10216,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 206"
       ]
@@ -10127,9 +10233,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ACC-208",
         "PAU-FIN 309",
@@ -10144,9 +10252,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ACC 312",
         "PAU-FIN 319",
@@ -10161,9 +10271,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 306",
         "ACC 406"
@@ -10177,9 +10289,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 302",
         "ACC 311",
@@ -10194,9 +10308,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ACC 310",
         "PAU-FIN 314"
@@ -10210,9 +10326,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 405"
       ]
@@ -10225,9 +10343,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 408"
       ]
@@ -10240,9 +10360,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ACC 403",
         "BUA 216",
@@ -10259,9 +10381,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUA 102",
         "BUA 205",
@@ -10277,9 +10401,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 107"
       ]
@@ -10292,9 +10418,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 109"
       ]
@@ -10307,9 +10435,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 110"
       ]
@@ -10322,9 +10452,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 191",
         "PAU-FIN-191"
@@ -10338,9 +10470,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUA 202",
         "BUA 304",
@@ -10355,9 +10489,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUA 203",
         "BUA 303"
@@ -10371,9 +10507,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUA 218",
         "PAU-BUA 315"
@@ -10387,9 +10525,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 206",
         "PAU-BUA 316",
@@ -10406,9 +10546,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-BUA 291",
         "PAU-BUA 317",
@@ -10424,9 +10566,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUS 406"
       ]
@@ -10439,9 +10583,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FIN-111",
         "FIN 409",
@@ -10456,9 +10602,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FIN- 113"
       ]
@@ -10471,9 +10619,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "FIN 217",
         "GET 502"
@@ -10487,9 +10637,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FIN- 209",
         "PAU-CSC 293",
@@ -10504,9 +10656,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-FIN 321",
         "GST 302"
@@ -10520,9 +10674,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ECO 104",
         "ECO 206",
@@ -10537,9 +10693,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 106"
       ]
@@ -10552,9 +10710,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "SSC 202",
         "PAU-ECO 316"
@@ -10568,9 +10728,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 208",
         "ECO 305",
@@ -10586,9 +10748,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ECO 304"
       ]
@@ -10601,9 +10765,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "SSC 302",
         "ECO 421"
@@ -10617,9 +10783,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 317"
       ]
@@ -10632,9 +10800,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 318"
       ]
@@ -10647,9 +10817,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 320"
       ]
@@ -10662,9 +10834,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-ECO 392"
       ]
@@ -10677,9 +10851,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ECO 422"
       ]
@@ -10692,9 +10868,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "BUS 301"
       ]
@@ -10707,9 +10885,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 102"
       ]
@@ -10722,9 +10902,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCT 112",
         "GET 210",
@@ -10739,9 +10921,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCT 103",
         "PAU-MEE 103"
@@ -10755,9 +10939,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCT 104",
         "PAU-MEE 104",
@@ -10772,9 +10958,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PHY 108",
         "PAU-EEE-104"
@@ -10788,9 +10976,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CHM 102",
         "CHM 108"
@@ -10804,9 +10994,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MTH 102"
       ]
@@ -10819,9 +11011,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MTH 103"
       ]
@@ -10834,9 +11028,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 112"
       ]
@@ -10849,9 +11045,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 202",
         "PAU-MEE 312"
@@ -10865,9 +11063,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 204",
         "PAU-MEE 322"
@@ -10881,9 +11081,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 208",
         "PAU-EEE 208"
@@ -10897,9 +11099,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 206",
         "PAU-MEE 306"
@@ -10913,9 +11117,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MCE 204",
         "PAU-MEE 518"
@@ -10929,9 +11135,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MEE 202",
         "EEE 202",
@@ -10948,9 +11156,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 212",
         "GST212"
@@ -10964,9 +11174,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MEE 306"
       ]
@@ -10979,9 +11191,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 302",
         "PAU-EEE-112"
@@ -10995,9 +11209,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 304",
         "GET 402",
@@ -11013,9 +11229,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 307"
       ]
@@ -11028,9 +11246,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MEE 310",
         "MEE 402"
@@ -11044,9 +11264,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 404"
       ]
@@ -11059,9 +11281,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MEE 404"
       ]
@@ -11074,9 +11298,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MEE 402",
         "PAU-EEE 413"
@@ -11090,9 +11316,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-MEE 510"
       ]
@@ -11105,9 +11333,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CHM 108",
         "MTH 102"
@@ -11121,9 +11351,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 102"
       ]
@@ -11136,9 +11368,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MTH 103"
       ]
@@ -11151,9 +11385,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "EEE 204",
         "EEE 322"
@@ -11167,9 +11403,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GET 299",
         "GET 399"
@@ -11183,9 +11421,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-EEE 312",
         "PAU-EEE 308"
@@ -11199,9 +11439,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "EEE 326",
         "EEE 324"
@@ -11215,9 +11457,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-EEE 512"
       ]
@@ -11230,9 +11474,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-EEE 514"
       ]
@@ -11245,9 +11491,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "COS 102"
       ]
@@ -11260,9 +11508,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 112"
       ]
@@ -11275,9 +11525,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "COS 102",
         "PAU-CSC 416"
@@ -11291,9 +11543,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 112",
         "PAU-CSC 417",
@@ -11308,9 +11562,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 114"
       ]
@@ -11323,9 +11579,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PHY 108",
         "PHY 102"
@@ -11339,9 +11597,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "COS 202"
       ]
@@ -11354,9 +11614,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "IFT 212"
       ]
@@ -11369,9 +11631,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "INS204"
       ]
@@ -11384,9 +11648,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 214"
       ]
@@ -11399,9 +11665,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "MTH 202"
       ]
@@ -11414,9 +11682,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 212"
       ]
@@ -11429,9 +11699,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ICT 305"
       ]
@@ -11444,9 +11716,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "DTS 304"
       ]
@@ -11459,9 +11733,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CSC 313",
         "PAU-CSC 411"
@@ -11475,9 +11751,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "CSC 309"
       ]
@@ -11490,9 +11768,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 310"
       ]
@@ -11505,9 +11785,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "ENT 312"
       ]
@@ -11520,9 +11802,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "PAU-CSC 413"
       ]
@@ -11535,9 +11819,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 212",
         "GST 302"
@@ -11551,9 +11837,11 @@
       "avail_days": [
         "ALL"
       ],
-      "avail_times": [
-        "ALL"
-      ],
+      "avail_times": {
+        "All": [
+          "ALL"
+        ]
+      },
       "courseID": [
         "GST 212",
         "CSC 401",
@@ -11578,157 +11866,6 @@
       ]
     },
     {
-      "id": "Mr.",
-      "name": "Mr.",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "PAU-MCM 318"
-      ]
-    },
-    {
-      "id": "Chukwudi",
-      "name": "Chukwudi",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "PAU-MCM 318"
-      ]
-    },
-    {
-      "id": "Ezugwu",
-      "name": "Ezugwu",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "PAU-MCM 318"
-      ]
-    },
-    {
-      "id": "Miss",
-      "name": "Miss",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "ENT 312"
-      ]
-    },
-    {
-      "id": "Joy",
-      "name": "Joy",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "ENT 312"
-      ]
-    },
-    {
-      "id": "Amarachi",
-      "name": "Amarachi",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "MCM 310"
-      ]
-    },
-    {
-      "id": "Ubani",
-      "name": "Ubani",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "MCM 310"
-      ]
-    },
-    {
-      "id": "Dr.",
-      "name": "Dr.",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "MCM 312",
-        "CMS 302"
-      ]
-    },
-    {
-      "id": "Chuddy",
-      "name": "Chuddy",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "MCM 312"
-      ]
-    },
-    {
-      "id": "Oduneyi",
-      "name": "Oduneyi",
-      "department": "Mass Communication",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "MCM 312"
-      ]
-    },
-    {
       "id": "mailto:cogbonna@pau.edu.ngc",
       "name": "mailto:cogbonna@pau.edu.ngc",
       "department": "Film and Multimedia Studies",
@@ -11744,8 +11881,8 @@
       ]
     },
     {
-      "id": "(Prof.",
-      "name": "(Prof.",
+      "id": "(Prof. Okorie",
+      "name": "(Prof. Okorie",
       "department": "Film and Multimedia Studies",
       "status": "",
       "avail_days": [
@@ -11759,23 +11896,8 @@
       ]
     },
     {
-      "id": "Okorie",
-      "name": "Okorie",
-      "department": "Film and Multimedia Studies",
-      "status": "",
-      "avail_days": [
-        "ALL"
-      ],
-      "avail_times": [
-        "ALL"
-      ],
-      "courseID": [
-        "CMS 302"
-      ]
-    },
-    {
-      "id": "Yusuf)",
-      "name": "Yusuf)",
+      "id": "Dr. Yusuf)",
+      "name": "Dr. Yusuf)",
       "department": "Film and Multimedia Studies",
       "status": "",
       "avail_days": [
@@ -11857,7 +11979,7 @@
   "_meta": {
     "course_count": 359,
     "room_count": 35,
-    "studentgroup_count": 58,
-    "faculty_count": 177
+    "studentgroup_count": 50,
+    "faculty_count": 166
   }
 }

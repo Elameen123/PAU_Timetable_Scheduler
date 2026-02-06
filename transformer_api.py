@@ -158,7 +158,9 @@ def slugify_id(s: Optional[str]) -> str:
 
 def normalize_list_cell(raw: Any):
     """
-    Convert a cell that may contain lists (strings separated by commas/;/ /) into a list of strings.
+    Convert a cell that may contain lists (strings separated by ',' or '/') into a list of strings.
+
+    IMPORTANT: Do NOT split on whitespace. Names like "Dr John Marston" must remain a single lecturer.
     """
     if raw is None:
         return []
@@ -169,9 +171,14 @@ def normalize_list_cell(raw: Any):
     s = str(raw).strip()
     if not s:
         return []
-    # split on common separators
-    parts = re.split(r'[;,/]|[ \t]+', s)
-    return [p.strip() for p in parts if p.strip()]
+
+    # Only comma or slash separate lecturers.
+    if (',' not in s) and ('/' not in s):
+        return [s]
+
+    # Split on comma or slash, allowing surrounding spaces.
+    parts = re.split(r'\s*[,/]\s*', s)
+    return [p.strip() for p in parts if p and p.strip()]
 
 
 def find_student_group_columns(columns):
@@ -280,12 +287,12 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
         if "Available Days" in lect_df.columns:
             aval = str(r.get("Available Days") or "").strip()
             avail_days = [d.strip() for d in re.split(r'[ ,;]+', aval) if d.strip()] if aval else []
-        avail_times = []
+        # Prepare final list of cleaned times
+        cleaned_avail_times = []
         if "Available Times" in lect_df.columns:
             aval_t = str(r.get("Available Times") or "").strip()
             raw_times = [t.strip() for t in re.split(r'[ ,;]+', aval_t) if t.strip()] if aval_t else []
             
-            # TRANSFORMATION: Rollback support for whole number times (e.g. 9:00 -> 8:30)
             for t in raw_times:
                 try:
                     if '-' in t:
@@ -314,8 +321,7 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
                         else:
                             e_new = end_str
                             
-                        avail_times.append(f"{s_new}-{e_new}")
-                        
+                        cleaned_avail_times.append(f"{s_new}-{e_new}")
                     else:
                         # Singleton
                         if ':' in t:
@@ -324,11 +330,60 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
                             h, m = int(t), 0
                             
                         if m == 0:
-                            avail_times.append(f"{h-1}:{30}")
+                            cleaned_avail_times.append(f"{h-1}:{30}")
                         else:
-                            avail_times.append(t)
+                            cleaned_avail_times.append(t)
                 except:
-                    avail_times.append(t)
+                    cleaned_avail_times.append(t)
+        
+        # MAPPING LOGIC: Map Cleaned Times to Available Days
+        # If 1 time -> All days get that time
+        # If N times -> Day[i] gets Time[i] (fallback to last time if days > times)
+        
+        # We will now store avail_times as a DICTIONARY { 'DayStr': ['TimeRange'] }
+        # To maintain backward compatibility with simplistic checks, 
+        # we might need to be careful, but the request implies strict mapping.
+        
+        final_avail_times_map = {}
+        
+        if not cleaned_avail_times:
+             # No times specified -> treat as empty or ALL depending on logic elsewhere
+             # Currently we leave it empty, which defaults to unavailable or ALL later
+             final_avail_times_map = [] # Keep as empty list to avoid breaking length checks immediately? 
+             # Actually code below: if not avail_times: avail_times = ["ALL"]. 
+             # Let's let it fall through to that, but that sets it to a list.
+             pass
+        else:
+            # We have times. We have avail_days.
+            # Normalize avail_days for reliable mapping
+            normalized_days = [d.strip().capitalize() for d in avail_days]
+            if not normalized_days and cleaned_avail_times:
+                 # Times provided but no days? Assume Mon-Fri? Or just "All"?
+                 # Existing logic below handles empty avail_days -> ["ALL"]
+                 # If "ALL", we just map "ALL" -> times
+                 pass
+
+            if len(cleaned_avail_times) == 1:
+                # One time applied to all days
+                # If days is empty/ALL, map "ALL"
+                if not normalized_days or (len(normalized_days)==1 and normalized_days[0].upper() == 'ALL'):
+                    final_avail_times_map = {'All': cleaned_avail_times}
+                else:
+                    for day in normalized_days:
+                        final_avail_times_map[day] = [cleaned_avail_times[0]]
+            else:
+                # Multiple times roughly corresponding to days
+                if not normalized_days:
+                     # Fallback
+                     final_avail_times_map = {'All': cleaned_avail_times}
+                else:
+                    for i, day in enumerate(normalized_days):
+                        # Use corresponding time index, or clamp to last available
+                        t_idx = min(i, len(cleaned_avail_times)-1)
+                        final_avail_times_map[day] = [cleaned_avail_times[t_idx]]
+        
+        # Replace the list with our map (or list if empty)
+        avail_times = final_avail_times_map if final_avail_times_map else []
 
         # If the spreadsheet does not specify availability, default to ALL.
         # Leaving these empty makes the API scheduler treat the lecturer as unavailable.
@@ -367,6 +422,7 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
         gname = str(r.get("Group Name") or "").strip()
         level = str(r.get("Level") or "").strip() if "Level" in groups_df.columns else ""
         dept = str(r.get("Department") or "").strip() if "Department" in groups_df.columns else ""
+        building = str(r.get("Building") or "").strip() if "Building" in groups_df.columns else ""
         size_raw = r.get("Size") if "Size" in groups_df.columns else ""
         try:
             size = int(size_raw) if str(size_raw).strip() else 0
@@ -374,7 +430,7 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
             size = 0
         if not gid:
             gid = slugify_id(gname) or f"group_{len(groups)+1}"
-        groups[gid] = {"id": gid, "name": gname or gid, "level": level, "dept": dept, "no_students": size, "courseIDs": [], "teacherIDS": [], "hours_required": []}
+        groups[gid] = {"id": gid, "name": gname or gid, "level": level, "dept": dept, "building": building, "no_students": size, "courseIDs": [], "teacherIDS": [], "hours_required": []}
 
     # Courses
     course_df = sheets["Courses"]
@@ -415,7 +471,7 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
 
         for g in student_groups:
             if g not in groups:
-                groups[g] = {"id": g, "name": g, "level": "", "dept": dept, "no_students": 0, "courseIDs": [], "teacherIDS": [], "hours_required": []}
+                groups[g] = {"id": g, "name": g, "level": "", "dept": dept, "building": "", "no_students": 0, "courseIDs": [], "teacherIDS": [], "hours_required": []}
             groups[g]["courseIDs"].append(code)
             # Keep duplicates aligned with courseIDs (as in original)
             groups[g]["teacherIDS"].append(lecturers[0] if lecturers else None)
@@ -465,6 +521,7 @@ def transform_excel_to_json(file_or_path: FileInput) -> dict:
         {
             "id": g["id"],
             "name": g["name"],
+            "building": g.get("building") or "",
             "no_students": int(g.get("no_students") or 0),
             "courseIDs": g.get("courseIDs") or [],
             "teacherIDS": g.get("teacherIDS") or [],

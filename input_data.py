@@ -33,7 +33,7 @@ class inputData():
     def addRoom(self, Id: str, name:str, capacity:int, room_type:str, building:str):
         self.rooms.append(Room(Id, name, capacity, room_type, building))
 
-    def addStudentGroup(self, id: str, name:str, no_students: int, courseIDs: str, teacherIDS: str, hours_required:List[int]):
+    def addStudentGroup(self, id: str, name: str, no_students: int, courseIDs: str, teacherIDS: str, hours_required: List[int], building: str = None):
         normalized_teachers = []
         for t in (teacherIDS or []):
             try:
@@ -43,7 +43,7 @@ class inputData():
                 normalized_teachers.append(ts)
             except Exception:
                 normalized_teachers.append(t)
-        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required))
+        self.student_groups.append(StudentGroup(id, name, no_students, courseIDs, normalized_teachers, hours_required, building=building))
 
     def addFaculty(self, id:str, name:str, department:str, courseID: str, avail_days: list = [], avail_times: list = []):
         normalized_id = str(id).strip()
@@ -139,7 +139,15 @@ with open( DATA_DIR / 'rooms-data.json', encoding='utf-8') as file:
 with open( DATA_DIR / 'studentgroup-data.json', encoding='utf-8') as file:
     student_group_data = json.load(file)
     for student_group in student_group_data:
-        input_data.addStudentGroup(student_group['id'], student_group['name'], student_group['no_students'], student_group['courseIDs'], student_group['teacherIDS'], student_group['hours_required'])
+        input_data.addStudentGroup(
+            student_group['id'],
+            student_group['name'],
+            student_group['no_students'],
+            student_group['courseIDs'],
+            student_group['teacherIDS'],
+            student_group['hours_required'],
+            building=student_group.get('building', ''),
+        )
 
 # Read faculty data from JSON file
 with open( DATA_DIR / 'faculty-data.json', encoding='utf-8') as file:

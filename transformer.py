@@ -147,7 +147,7 @@ for _, r in lect_df.iterrows():
         raw_times = [t.strip() for t in re.split(r'[ ,;/]+', aval_t) if t.strip()] if aval_t else []
         
         # TRANSFORMATION: Rollback support for whole number times (e.g. 9:00 -> 8:30)
-        avail_times = []
+        cleaned_avail_times = []
         for t in raw_times:
             # Logic: If whole hour (e.g. 9:00, 10), convert start to X-1:30, end to X:30
             # Ranges like 9:00-17:00 become 8:30-17:30
@@ -178,7 +178,7 @@ for _, r in lect_df.iterrows():
                     else:
                         e_new = end_str
                         
-                    avail_times.append(f"{s_new}-{e_new}")
+                    cleaned_avail_times.append(f"{s_new}-{e_new}")
                     
                 else:
                     # Singleton time (assuming it's a start time slot)
@@ -189,12 +189,39 @@ for _, r in lect_df.iterrows():
                         h, m = int(t), 0
                         
                     if m == 0:
-                        avail_times.append(f"{h-1}:{30}")
+                        cleaned_avail_times.append(f"{h-1}:{30}")
                     else:
-                        avail_times.append(t)
+                        cleaned_avail_times.append(t)
             except:
                 # Fallback if parsing fails
-                avail_times.append(t)
+                cleaned_avail_times.append(t)
+        
+        # MAPPING LOGIC: Map Cleaned Times to Available Days
+        final_avail_times_map = {}
+        
+        if not cleaned_avail_times:
+             pass
+        else:
+            # We have times. We have avail_days.
+            normalized_days = [d.strip().capitalize() for d in avail_days]
+            if not normalized_days and cleaned_avail_times:
+                 pass
+
+            if len(cleaned_avail_times) == 1:
+                if not normalized_days or (len(normalized_days)==1 and normalized_days[0].upper() == 'ALL'):
+                    final_avail_times_map = {'All': cleaned_avail_times}
+                else:
+                    for day in normalized_days:
+                        final_avail_times_map[day] = [cleaned_avail_times[0]]
+            else:
+                if not normalized_days:
+                     final_avail_times_map = {'All': cleaned_avail_times}
+                else:
+                    for i, day in enumerate(normalized_days):
+                        t_idx = min(i, len(cleaned_avail_times)-1)
+                        final_avail_times_map[day] = [cleaned_avail_times[t_idx]]
+        
+        avail_times = final_avail_times_map if final_avail_times_map else []
     else:
         avail_times = []
 
@@ -229,6 +256,7 @@ for _, r in groups_df.iterrows():
     gname = str(r.get("Group Name") or "").strip()
     level = str(r.get("Level") or "").strip() if "Level" in groups_df.columns else ""
     dept = str(r.get("Department") or "").strip() if "Department" in groups_df.columns else ""
+    building = str(r.get("Building") or "").strip() if "Building" in groups_df.columns else ""
     size_raw = r.get("Size") if "Size" in groups_df.columns else ""
     try:
         size = int(size_raw) if str(size_raw).strip() else 0
@@ -236,7 +264,7 @@ for _, r in groups_df.iterrows():
         size = 0
     if not gid:
         gid = slugify_id(gname) or f"group_{len(groups)+1}"
-    groups[gid] = {"id": gid, "name": gname or gid, "level": level, "dept": dept, "no_students": size, "courseIDs": [], "teacherIDS": [], "hours_required": []}
+    groups[gid] = {"id": gid, "name": gname or gid, "level": level, "dept": dept, "building": building, "no_students": size, "courseIDs": [], "teacherIDS": [], "hours_required": []}
 
 # Courses
 course_df = sheets["Courses"]
@@ -277,7 +305,7 @@ for _, r in course_df.iterrows():
 
     for g in student_groups:
         if g not in groups:
-            groups[g] = {"id": g, "name": g, "level": "", "dept": dept, "no_students": 0, "courseIDs": [], "teacherIDS": [], "hours_required": []}
+            groups[g] = {"id": g, "name": g, "level": "", "dept": dept, "building": "", "no_students": 0, "courseIDs": [], "teacherIDS": [], "hours_required": []}
         groups[g]["courseIDs"].append(code)
         # CHANGED: append only the primary lecturer (first one) to maintain one-to-one mapping with courseIDs
         groups[g]["teacherIDS"].append(lecturers[0] if lecturers else None)
@@ -302,7 +330,18 @@ for gobj in groups.values():
 # Prepare JSON arrays
 course_json = [{"name": c["name"], "code": c["code"], "credits": int(c["credits"]), "student_groupsID": c["student_groupsID"], "facultyId": c["facultyId"], "required_room_type": c["required_room_type"]} for c in courses]
 rooms_json = [{"Id": r["Id"], "name": r["name"], "capacity": int(r["capacity"]), "room_type": r["room_type"], "building": r["building"]} for r in rooms]
-studentgroups_json = [{"id": g["id"], "name": g["name"], "no_students": int(g.get("no_students") or 0), "courseIDs": g.get("courseIDs") or [], "teacherIDS": g.get("teacherIDS") or [], "hours_required": g.get("hours_required") or []} for g in groups.values()]
+studentgroups_json = [
+    {
+        "id": g["id"],
+        "name": g["name"],
+        "building": g.get("building") or "",
+        "no_students": int(g.get("no_students") or 0),
+        "courseIDs": g.get("courseIDs") or [],
+        "teacherIDS": g.get("teacherIDS") or [],
+        "hours_required": g.get("hours_required") or [],
+    }
+    for g in groups.values()
+]
 faculties_json = list(faculty_by_lower.values())
 
 # Write JSON files (overwrite)

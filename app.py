@@ -236,6 +236,8 @@ class TimetableProcessor:
                 # Extract basic identifiers only
                 sg_name = None
                 sg_id = None
+                sg_building = ""
+                sg_effective_building = ""
                 if sg is not None:
                     try:
                         if hasattr(sg, 'name') and getattr(sg, 'name') is not None:
@@ -249,6 +251,16 @@ class TimetableProcessor:
                                 break
                         except Exception:
                             continue
+                    try:
+                        if hasattr(sg, 'building') and getattr(sg, 'building') is not None:
+                            sg_building = str(getattr(sg, 'building') or '').strip()
+                    except Exception:
+                        sg_building = ""
+                    try:
+                        # Effective building classification (building-first with keyword fallback)
+                        sg_effective_building = 'SST' if bool(getattr(sg, 'is_sst', False)) else 'TYD'
+                    except Exception:
+                        sg_effective_building = ""
                 if not sg_name:
                     # Fallback to string repr (kept minimal)
                     try:
@@ -263,7 +275,9 @@ class TimetableProcessor:
                 safe_list.append({
                     'student_group': {
                         'name': sg_name,
-                        'id': sg_id
+                        'id': sg_id,
+                        'building': sg_building,
+                        'effective_building': sg_effective_building,
                     },
                     'timetable': rows
                 })
@@ -640,10 +654,24 @@ class TimetableProcessor:
                 if hasattr(student_group, 'no_students'):
                     student_count = int(student_group.no_students) if student_group.no_students else 0
 
+                building_raw = ''
+                try:
+                    building_raw = str(getattr(student_group, 'building', '') or '').strip()
+                except Exception:
+                    building_raw = ''
+
+                effective_building = ''
+                try:
+                    effective_building = 'SST' if bool(getattr(student_group, 'is_sst', False)) else 'TYD'
+                except Exception:
+                    effective_building = ''
+
                 timetables.append({
                     'title': title,
                     'department': str(self.extract_department(student_group)),
                     'level': str(self.extract_level(student_group)),
+                    'building': building_raw,
+                    'effective_building': effective_building,
                     'student_group_id': student_group_id,
                     'courses': [str(c) for c in list(courses)[:10]],  # Convert to strings
                     'total_courses': len(courses),
@@ -1123,6 +1151,113 @@ def get_rooms_data():
         return jsonify({'error': f'Failed to load rooms data: {str(exc)}'}), 500
 
 
+@app.route('/api/get-course-lecturers/<upload_id>', methods=['GET'])
+def get_course_lecturers(upload_id):
+    """Return course -> lecturers options mapping for the active upload.
+
+    The React UI uses this to mark multi-lecturer courses and allow switching
+    the primary lecturer per scheduled cell.
+    """
+    try:
+        data_dir = os.path.join(os.path.dirname(__file__), 'data')
+
+        # Prefer the per-upload json_data stored in memory.
+        json_data = None
+        try:
+            if upload_id and upload_id in generated_timetables:
+                json_data = generated_timetables.get(upload_id, {}).get('json_data')
+        except Exception:
+            json_data = None
+
+        # Fallback to persisted last_input_data.json.
+        if json_data is None:
+            last_input_path = os.path.join(data_dir, 'last_input_data.json')
+            if os.path.exists(last_input_path):
+                with open(last_input_path, 'r', encoding='utf-8') as lf:
+                    json_data = json.load(lf)
+
+        courses = (json_data or {}).get('courses') or []
+
+        # Try to resolve lecturer IDs/emails to display names using input_data.
+        input_data = None
+        try:
+            if upload_id and upload_id in generated_timetables:
+                input_data = generated_timetables.get(upload_id, {}).get('input_data')
+        except Exception:
+            input_data = None
+        if input_data is None:
+            try:
+                last_input_path = os.path.join(data_dir, 'last_input_data.json')
+                if os.path.exists(last_input_path):
+                    with open(last_input_path, 'r', encoding='utf-8') as lf2:
+                        last_input_json = json.load(lf2)
+                    input_data = initialize_input_data_from_json(last_input_json)
+            except Exception:
+                input_data = None
+
+        faculty_name_by_id = {}
+        if input_data is not None:
+            try:
+                for fac in getattr(input_data, 'faculties', []) or []:
+                    fid = str(getattr(fac, 'faculty_id', '') or getattr(fac, 'id', '') or '').strip()
+                    nm = str(getattr(fac, 'name', '') or '').strip()
+                    if fid:
+                        faculty_name_by_id[fid] = nm or fid
+            except Exception:
+                faculty_name_by_id = {}
+
+        mapping = {}
+
+        for c in courses:
+            try:
+                code = (c or {}).get('code') or (c or {}).get('course_code')
+                name = (c or {}).get('name')
+
+                code = str(code).strip() if code is not None else ''
+                name = str(name).strip() if name is not None else ''
+                if not code and not name:
+                    continue
+
+                # New transformer uses "lecturers"; legacy/static uses "facultyId".
+                lects = (c or {}).get('lecturers')
+                if lects is None:
+                    lects = (c or {}).get('facultyId')
+
+                if lects is None:
+                    normalized = []
+                elif isinstance(lects, list):
+                    normalized = [str(x).strip() for x in lects if str(x).strip()]
+                else:
+                    normalized = [str(lects).strip()] if str(lects).strip() else []
+
+                # Resolve to display names where possible.
+                resolved = []
+                for x in normalized:
+                    resolved.append(faculty_name_by_id.get(x, x))
+
+                # De-duplicate but keep stable order
+                seen = set()
+                deduped = []
+                for x in resolved:
+                    if x in seen:
+                        continue
+                    seen.add(x)
+                    deduped.append(x)
+
+                # Map by both course code and course name to match whatever the UI shows in cells.
+                if code:
+                    mapping[code] = deduped
+                if name and name not in mapping:
+                    mapping[name] = deduped
+            except Exception:
+                continue
+
+        return jsonify({'course_lecturers': mapping}), 200
+    except Exception as exc:
+        print(f"Error building course_lecturers map: {exc}")
+        return jsonify({'error': f'Failed to load course lecturers: {str(exc)}'}), 500
+
+
 @app.route('/api/get-constraint-violations/<upload_id>', methods=['GET'])
 def get_constraint_violations(upload_id):
     """Get detailed constraint violations for a timetable"""
@@ -1178,22 +1313,30 @@ def save_timetable_changes():
 
             def _parse_cell(cell_value: str):
                 if not cell_value:
-                    return None, None
+                    return None, None, None
                 s = str(cell_value).strip()
                 if not s or s.upper() in {'BREAK', 'FREE'}:
-                    return None, None
+                    return None, None, None
                 if "\n" in s:
                     parts = [p.strip() for p in s.split("\n") if p.strip()]
                     if not parts:
-                        return None, None
-                    course_code = parts[0]
-                    room_name = parts[1] if len(parts) > 1 else None
-                    return course_code, room_name
-                m_course = re.search(r"\bCourse\s*:\s*([^,]+)", s, flags=re.IGNORECASE)
-                m_room = re.search(r"\bRoom\s*:\s*(.+)$", s, flags=re.IGNORECASE)
+                        return None, None, None
+                    # Prefer label-based parsing when available
+                    m_course_nl = next((p for p in parts if p.lower().startswith('course:')), None)
+                    m_lect_nl = next((p for p in parts if p.lower().startswith('lecturer:')), None)
+                    m_room_nl = next((p for p in parts if p.lower().startswith('room:')), None)
+                    course_code = (m_course_nl.split(':', 1)[1].strip() if m_course_nl and ':' in m_course_nl else parts[0])
+                    lecturer_id = (m_lect_nl.split(':', 1)[1].strip() if m_lect_nl and ':' in m_lect_nl else None)
+                    room_name = (m_room_nl.split(':', 1)[1].strip() if m_room_nl and ':' in m_room_nl else (parts[2] if len(parts) > 2 else (parts[1] if len(parts) > 1 else None)))
+                    return course_code, room_name, lecturer_id
+
+                m_course = re.search(r"\bCourse\s*:\s*(.*?)(?=\s*,\s*Lecturer\s*:|\s*,\s*Room\s*:|$)", s, flags=re.IGNORECASE)
+                m_lect = re.search(r"\bLecturer\s*:\s*(.*?)(?=\s*,\s*Course\s*:|\s*,\s*Room\s*:|$)", s, flags=re.IGNORECASE)
+                m_room = re.search(r"\bRoom\s*:\s*(.*?)(?=\s*,\s*Course\s*:|\s*,\s*Lecturer\s*:|$)", s, flags=re.IGNORECASE)
                 course_code = m_course.group(1).strip() if m_course else None
+                lecturer_id = m_lect.group(1).strip() if m_lect else None
                 room_name = m_room.group(1).strip() if m_room else None
-                return course_code, room_name
+                return course_code, room_name, lecturer_id
 
             # Load input_data: prefer in-memory per upload_id; fallback to persisted last_input_data.json
             input_data = None
@@ -1231,6 +1374,17 @@ def save_timetable_changes():
                     room_index[rid] = idx
 
             cons = Constraints(input_data)
+
+            # Map lecturer display names back to faculty IDs (emails) for constraint engine.
+            name_to_faculty_id = {}
+            try:
+                for fac in getattr(input_data, 'faculties', []) or []:
+                    fid = str(getattr(fac, 'faculty_id', '') or getattr(fac, 'id', '') or '').strip()
+                    nm = str(getattr(fac, 'name', '') or '').strip()
+                    if fid and nm and nm.lower() not in name_to_faculty_id:
+                        name_to_faculty_id[nm.lower()] = fid
+            except Exception:
+                name_to_faculty_id = {}
 
             # pool[(group_id, course_code)] = [event_id, event_id, ...]
             pool = defaultdict(list)
@@ -1278,11 +1432,12 @@ def save_timetable_changes():
                         continue
                     for d_idx in range(min(days_per_week, max(0, len(row) - 1))):
                         cell = row[d_idx + 1]
-                        course_code, room_name = _parse_cell(cell)
+                        course_code, room_name, lecturer_id = _parse_cell(cell)
                         if not course_code:
                             continue
                         course_code = str(course_code).strip()
                         room_name = str(room_name or '').strip()
+                        lecturer_id = str(lecturer_id or '').strip()
 
                         room_idx = room_index.get(room_name)
                         if room_idx is None:
@@ -1297,6 +1452,21 @@ def save_timetable_changes():
                             continue
 
                         event_id = pool[key].pop(0)
+
+                        # Apply per-cell lecturer overrides so lecturer-based violations
+                        # reflect the current edited timetable, not the original defaults.
+                        if lecturer_id and lecturer_id.lower() != 'unknown':
+                            try:
+                                resolved_faculty_id = lecturer_id
+                                # If the UI stores lecturer display name, resolve to faculty ID.
+                                if '@' not in resolved_faculty_id:
+                                    resolved_faculty_id = name_to_faculty_id.get(resolved_faculty_id.lower(), resolved_faculty_id)
+
+                                ev = cons.events_map.get(event_id)
+                                if ev is not None:
+                                    ev.faculty_id = resolved_faculty_id
+                            except Exception:
+                                pass
                         if chromosome[room_idx, timeslot_idx] is None:
                             chromosome[room_idx, timeslot_idx] = event_id
 
